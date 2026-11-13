@@ -24,10 +24,9 @@
         /* BOCZNY PANEL (SIDEBAR) PO LEWEJ STRONIE */
         .sidebar { width: 280px; background: linear-gradient(180deg, #1d1212 0%, #121212 100%); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; flex-shrink: 0; z-index: 10; }
         .logo-wrapper { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-        .logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; filter: drop-shadow(0 0 8px var(--primary-glow)); }
+        .logo-img { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; filter: drop-shadow(0 0 8px var(--primary-glow)); }
         .brand-text { display: flex; flex-direction: column; text-align: left; }
-        .brand-title { font-size: 0.95rem; font-weight: 800; letter-spacing: 1.5px; background: linear-gradient(135deg, #ffffff 40%, var(--primary) 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; text-transform: uppercase; }
-        .brand-subtitle { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; line-height: 1.2; }
+        .brand-text-line { font-weight: 800; letter-spacing: 1.5px; background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; text-transform: uppercase; }
         
         .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
         .nav-item { background: transparent; border: none; color: var(--text-muted); padding: 12px 15px; text-align: left; font-size: 0.95rem; font-weight: 600; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease; width: 100%; }
@@ -96,10 +95,10 @@
     <!-- BOCZNY PANEL / SIDEBAR -->
     <nav class="sidebar">
         <div class="logo-wrapper">
-            <img src="icon.svg" alt="Pulse 75 Logo" class="logo-img">
+            <img src="icon.svg" alt="Logo" class="logo-img">
             <div class="brand-text">
-                <span class="brand-title">PULSE 75</span>
-                <span class="brand-subtitle">DZIENNIK TRENINGOWY</span>
+                <span class="brand-text-line" style="font-size: 0.95rem;">DZIENNIK</span>
+                <span class="brand-text-line" style="font-size: 0.75rem;">TRENINGOWY</span>
             </div>
         </div>
 
@@ -441,7 +440,9 @@
         function kliknieciePrzyciskuKonta() {
             showConfirmModal('Czy na pewno chcesz się wylogować?', (potwierdzono) => {
                 if (potwierdzono) {
+                    // Czyszczenie obu kluczy sesji, aby uniknąć automatycznego ponownego logowania
                     localStorage.removeItem('pulse75_user');
+                    localStorage.removeItem('ironmetric_user');
                     window.location.href = 'index.html';
                 }
             });
