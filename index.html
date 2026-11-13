@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE 75 – Dziennik Treningowy</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    
+    <!-- SDK SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://sgqmnxqirevsrywyxsnu.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_H_1J8r61TEougxrdNvtRMQ_yS93Gtvf';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
+
+    <style>
+        :root { --bg-color: #121212; --card-bg: #1e1e1e; --primary: #ff2a2a; --primary-glow: rgba(255, 42, 42, 0.3); --text-main: #ffffff; --text-muted: #aaaaaa; --border: #333333; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .full-screen-overlay { width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box; text-align: center; }
+        .auth-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.7); box-sizing: border-box; }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .auth-tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); padding: 8px; font-weight: bold; cursor: pointer; border-radius: 6px; }
+        .auth-tab-btn.active { background: #2a2a2a; color: var(--primary); border: 1px solid var(--border); }
+        
+        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; text-align: left; }
+        input { width: 100%; padding: 12px; margin-bottom: 12px; background-color: #2a2a2a; border: 1px solid var(--border); border-radius: 6px; color: white; font-size: 1rem; box-sizing: border-box; }
+        button { background-color: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; }
+        button:active { opacity: 0.8; transform: scale(0.99); }
+        
+        #custom-toast { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--primary); color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 0.95rem; text-align: center; max-width: 90%; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. EKRAN POWITALNY -->
+    <div id="onboarding-overlay" class="full-screen-overlay" style="display: flex; flex-direction: column; align-items: center;">
+        <img src="logo.jpg" alt="Pulse 75 Logo" style="width: 140px; height: 140px; border-radius: 16px; object-fit: cover; margin-bottom: 20px; box-shadow: 0 4px 20px var(--primary-glow); border: 1px solid var(--border);">
+        
+        <p style="color: #ccc; font-size: 0.95rem; line-height: 1.6; text-align: center; background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-sizing: border-box; margin-bottom: 30px; font-style: italic;">
+            Witaj w aplikacji, która powstała z autentycznej potrzeby. Jej początkiem był dedykowany planer stworzony dla osób pracujących w systemie trzyzmianowym – zaprojektowany tak, by umożliwić utrzymanie regularności treningów pomimo wymagającego grafiku w pracy.<br><br>
+            W miarę rozwoju i dostrzegania nowych potrzeb, narzędzie to płynnie wyewoluowało w pełnoprawny, analityczny dziennik treningowy.
+        </p>
+
+        <button onclick="zamknijPowitanie()" style="max-width: 280px; padding: 14px; font-size: 1rem; box-shadow: 0 4px 15px rgba(255,42,42,0.3);">Przejdź do logowania ➔</button>
+    </div>
+
+    <!-- 2. EKRAN LOGOWANIA / REJESTRACJI -->
+    <div id="auth-overlay" class="full-screen-overlay" style="display: none;">
+        <div class="auth-card">
+            <img src="logo.jpg" alt="Pulse 75 Logo" style="width: 90px; height: 90px; border-radius: 14px; object-fit: cover; margin-bottom: 15px; box-shadow: 0 4px 15px var(--primary-glow); border: 1px solid var(--border);">
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0; margin-bottom: 20px;">Logowanie za pomocą nicku</p>
+
+            <div class="auth-tabs">
+                <button id="tab-btn-login" class="auth-tab-btn active" onclick="przelaczTrybAuth('login')">🔑 Logowanie</button>
+                <button id="tab-btn-register" class="auth-tab-btn" onclick="przelaczTrybAuth('register')">📝 Rejestracja</button>
+            </div>
+
+            <!-- FORMULARZ LOGOWANIA -->
+            <form id="form-login" onsubmit="obslugaLogowania(event)">
+                <label>Twój Nick:</label>
+                <input type="text" id="login-nick" placeholder="np. hammer75" required>
+
+                <label>Hasło:</label>
+                <input type="password" id="login-password" placeholder="••••••••" required>
+
+                <button type="submit" style="margin-top: 10px;">Zaloguj się</button>
+            </form>
+
+            <!-- FORMULARZ REJESTRACJI -->
+            <form id="form-register" onsubmit="obslugaRejestracji(event)" style="display: none;">
+                <label>Nick (Nazwa użytkownika):</label>
+                <input type="text" id="reg-nick" placeholder="np. hammer75" minlength="3" maxlength="20" required>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-align: left; margin-top: -8px; margin-bottom: 12px; display: block;">Od 3 do 20 znaków: litery, cyfry, _ oraz -</span>
+
+                <label>Hasło:</label>
+                <input type="password" id="reg-password" placeholder="Minimum 8 znaków" minlength="8" required>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-align: left; margin-top: -8px; margin-bottom: 12px; display: block;">Wymagane minimum 8 znaków</span>
+
+                <button type="submit" id="btn-submit-register" style="margin-top: 10px;">Załóż konto</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="custom-toast"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sprawdź czy użytkownik jest już zalogowany (nie przekierowujemy automatycznie przy starcie, 
+            // żeby najpierw pokazać ekran powitalny/logowanie, chyba że sesja jest aktywna - wtedy od razu do apki).
+            let saved = localStorage.getItem('pulse75_user') || localStorage.getItem('ironmetric_user');
+            if (saved) {
+                przekierujNaOdpowiedniaWersje();
+            }
+        });
+
+        function przekierujNaOdpowiedniaWersje() {
+            const isMobile = window.innerWidth < 900 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                window.location.href = 'mobile.html';
+            } else {
+                // Sprawdzamy czy istnieje desktop.html, a póki go nie ma – bezpiecznie kierujemy na mobile.html
+                fetch('desktop.html', { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = 'desktop.html';
+                        } else {
+                            window.location.href = 'mobile.html';
+                        }
+                    })
+                    .catch(() => {
+                        window.location.href = 'mobile.html';
+                    });
+            }
+        }
+
+        function zamknijPowitanie() {
+            document.getElementById('onboarding-overlay').style.display = 'none';
+            document.getElementById('auth-overlay').style.display = 'flex';
+        }
+
+        function przelaczTrybAuth(tryb) {
+            const formLogin = document.getElementById('form-login');
+            const formRegister = document.getElementById('form-register');
+            const btnLogin = document.getElementById('tab-btn-login');
+            const btnRegister = document.getElementById('tab-btn-register');
+
+            if (tryb === 'login') {
+                formLogin.style.display = 'block';
+                formRegister.style.display = 'none';
+                btnLogin.classList.add('active');
+                btnRegister.classList.remove('active');
+            } else {
+                formLogin.style.display = 'none';
+                formRegister.style.display = 'block';
+                btnLogin.classList.remove('active');
+                btnRegister.classList.add('active');
+            }
+        }
+
+        function showNotification(msg, duration = 3000) {
+            let toast = document.getElementById('custom-toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, duration);
+        }
+
+        async function hashPassword(password) {
+            const msgBuffer = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function obslugaRejestracji(e) {
+            e.preventDefault();
+            const nick = document.getElementById('reg-nick').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const btnSubmit = document.getElementById('btn-submit-register');
+
+            if (!/^[a-zA-Z0-9_-]{3,20}$/.test(nick)) {
+                showNotification('⚠️ Nick musi mieć od 3 do 20 znaków.');
+                return;
+            }
+            if (password.length < 8) {
+                showNotification('⚠️ Hasło musi mieć min. 8 znaków.');
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Tworzenie konta...';
+
+            try {
+                const { data: existing } = await supabaseClient
+                    .from('profiles')
+                    .select('username')
+                    .ilike('username', nick)
+                    .maybeSingle();
+
+                if (existing) {
+                    showNotification('❌ Ten nick jest już zajęty!');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Załóż konto';
+                    return;
+                }
+
+                const hashedPassword = await hashPassword(password);
+                const newId = crypto.randomUUID();
+
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .insert([{ id: newId, username: nick, password: hashedPassword }]);
+
+                if (error) {
+                    showNotification('❌ Błąd zapisu: ' + error.message);
+                } else {
+                    showNotification('✅ Konto założone pomyślnie!');
+                    const zalogowanyUzytkownik = { id: newId, username: nick };
+                    localStorage.setItem('pulse75_user', JSON.stringify(zalogowanyUzytkownik));
+                    setTimeout(() => przekierujNaOdpowiedniaWersje(), 1000);
+                }
+            } catch (err) {
+                showNotification('❌ Błąd połączenia z bazą.');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Załóż konto';
+            }
+        }
+
+        async function obslugaLogowania(e) {
+            e.preventDefault();
+            const nick = document.getElementById('login-nick').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            showNotification('Logowanie...');
+
+            try {
+                const hashedPassword = await hashPassword(password);
+                const { data: user, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .ilike('username', nick)
+                    .maybeSingle();
+
+                if (error || !user || user.password !== hashedPassword) {
+                    showNotification('❌ Niepoprawny nick lub hasło.');
+                    return;
+                }
+
+                showNotification('✅ Zalogowano pomyślnie!');
+                const zalogowanyUzytkownik = { id: user.id, username: user.username };
+                localStorage.setItem('pulse75_user', JSON.stringify(zalogowanyUzytkownik));
+                setTimeout(() => przekierujNaOdpowiedniaWersje(), 1000);
+            } catch (err) {
+                showNotification('❌ Błąd podczas logowania.');
+            }
+        }
+    </script>
+    <!-- =================================================================
+     * Projekt: PULSE 75 – Dziennik Treningowy PWA
+     * Własność intelektualna i prawa autorskie (C) H75 (Hammer75)
+     * Wszelkie prawa zastrzeżone. Kopiowanie, modyfikowanie 
+     * oraz dystrybucja bez zgody autora jest zabroniona.
+     ================================================================= -->
+</body>
+</html>
