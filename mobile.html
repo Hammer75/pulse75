@@ -100,22 +100,20 @@
         </header>
 
         <div class="container">
-            <!-- NAKŁADKA OSIĄGNIĘTEGO CELU -->
-            <div id="alert-cel-osiagniety" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.96); z-index: 120; border-radius: 0px; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; text-align: center; overflow-y: auto;">
-                <div class="modal-box" style="border: 1px solid #d4af37; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4); max-width: 400px; width: 100%; text-align: center;">
-                    <div style="font-size: 2.5rem; margin-bottom: 10px;">🏆</div>
-                    <h2 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">Cel osiągnięty!</h2>
-                    <p style="color: #ccc; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
-                        Dla ćwiczenia: <b id="alert-cel-nazwa" style="color: white;"></b> pokonałeś barierę <b id="alert-cel-wynik" style="color: white;"></b> kg (1RM). Czas zawiesić poprzeczkę wyżej!
-                    </p>
-                    
-                    <button onclick="przejdzDoNowegoCelu()" style="background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%); color: #000; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">OK, ustaw nowy cel ➔</button>
-                </div>
-            </div>
-
             <!-- ZAKŁADKA DZIENNIK -->
             <div id="tab-dziennik" class="tab-content active">
                 <div class="card">
+                    <!-- NAKŁADKA OSIĄGNIĘTEGO CELU -->
+                    <div id="alert-cel-osiagniety" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.96); z-index: 120; border-radius: 10px; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 10px;">🏆</div>
+                        <h2 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">Cel osiągnięty!</h2>
+                        <p style="color: #ccc; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
+                            Dla ćwiczenia: <b id="alert-cel-nazwa" style="color: white;"></b> pokonałeś barierę <b id="alert-cel-wynik" style="color: white;"></b> kg (1RM). Czas zawiesić poprzeczkę wyżej!
+                        </p>
+                        
+                        <button onclick="przejdzDoNowegoCelu()" style="background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%); color: #000; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">OK, ustaw nowy cel ➔</button>
+                    </div>
+
                     <!-- NAKŁADKA / PANEL STOPER PRZERWY -->
                     <div id="timer-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.96); z-index: 110; border-radius: 10px; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; text-align: center;">
                         <div style="font-size: 2rem; margin-bottom: 5px;">⏱️</div>
@@ -720,15 +718,47 @@
                     celCwiczenieEl.appendChild(opt);
                 });
             }
+            let labelCelWartosc = document.getElementById('label-cel-wartosc');
+            if (labelCelWartosc) {
+                labelCelWartosc.textContent = kat === 'Cardio' ? 'Twój docelowy dystans (km):' : 'Twój docelowy rekord 1RM (kg):';
+            }
             zmienionoKategorieCeluWartosc();
         }
 
         function zmienionoKategorieCeluWartosc() {
+            let celKat = document.getElementById('cel-kategoria').value;
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
             let inputCelWartosc = document.getElementById('cel-wartosc');
             if(!celCwiczenie || !inputCelWartosc) return;
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-            inputCelWartosc.value = celeZapisane[celCwiczenie] !== undefined ? celeZapisane[celCwiczenie] : 0;
+            
+            if (celeZapisane[celCwiczenie] === undefined) {
+                celeZapisane[celCwiczenie] = 0;
+                bezpiecznyZapisStorage('cele', celeZapisane);
+            }
+
+            let docelowaWartosc = celeZapisane[celCwiczenie];
+            if (docelowaWartosc <= 0) {
+                let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+                let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
+                if (celKat === 'Cardio') {
+                    let aktualnyDystans = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.ciezar || 0)) : 0;
+                    if (aktualnyDystans > 0) {
+                        docelowaWartosc = aktualnyDystans;
+                        celeZapisane[celCwiczenie] = docelowaWartosc;
+                        bezpiecznyZapisStorage('cele', celeZapisane);
+                    }
+                } else {
+                    let aktualny1RM = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0;
+                    if (aktualny1RM > 0) {
+                        docelowaWartosc = aktualny1RM;
+                        celeZapisane[celCwiczenie] = docelowaWartosc;
+                        bezpiecznyZapisStorage('cele', celeZapisane);
+                    }
+                }
+            }
+
+            inputCelWartosc.value = docelowaWartosc;
             obliczPostepCelu();
         }
 
@@ -754,6 +784,9 @@
 
             if (docelowaWartosc <= 0) { fill.style.width = '0%'; text.textContent = '0%'; return; }
             let procent = Math.min(Math.floor((aktualnaWartosc / docelowaWartosc) * 100), 100);
+            if (aktualnaWartosc < docelowaWartosc && procent >= 100) {
+                procent = 99;
+            }
             fill.style.width = procent + '%';
             text.textContent = procent + '%';
         }
@@ -771,30 +804,30 @@
             document.getElementById('tab-' + nazwa).classList.add('active');
             if(el) el.classList.add('active');
             if (nazwa === 'historia') inicjalizujSelectHistorii();
-            
-            // Ukrywanie specjalnych przycisków powrotu i kawy, jeśli użytkownik przechodzi do zakładki celów ręcznie z menu głównego
-            if (nazwa === 'cele') {
-                let btnTimer = document.getElementById('btn-powrot-timer');
-                let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
-                if (!flagaPrzejsciaPoOsiagnieciuCelu) {
-                    if(btnTimer) btnTimer.style.display = 'none';
-                    if(kawaWrapper) kawaWrapper.style.display = 'none';
-                }
-            }
         }
 
         function przejdzDoPodmenu(nazwa) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById('subtab-' + nazwa).classList.add('active');
+            
+            let btnPowrotTimer = document.getElementById('btn-powrot-timer');
+            let btnKawaCel = document.getElementById('btn-kawa-cel-wrapper');
+
             if (nazwa === 'cele') {
-                inicjalizujListeCelow();
-                let btnTimer = document.getElementById('btn-powrot-timer');
-                let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
-                if (!flagaPrzejsciaPoOsiagnieciuCelu) {
-                    if(btnTimer) btnTimer.style.display = 'none';
-                    if(kawaWrapper) kawaWrapper.style.display = 'none';
+                if (flagaPrzejsciaPoOsiagnieciuCelu) {
+                    if(btnPowrotTimer) btnPowrotTimer.style.display = 'block';
+                    if(btnKawaCel) btnKawaCel.style.display = 'block';
+                } else {
+                    if(btnPowrotTimer) btnPowrotTimer.style.display = 'none';
+                    if(btnKawaCel) btnKawaCel.style.display = 'none';
                 }
+                inicjalizujListeCelow();
+            } else {
+                flagaPrzejsciaPoOsiagnieciuCelu = false;
+                if(btnPowrotTimer) btnPowrotTimer.style.display = 'none';
+                if(btnKawaCel) btnKawaCel.style.display = 'none';
             }
+
             if (nazwa === 'baza') odswiezPanelBazy();
             if (nazwa === 'historia') {
                 let ap = document.getElementById('analiza-partia');
@@ -865,8 +898,13 @@
 
         function inicjalizujListeCelow() {
             bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            if (!bazyCwiczen || Object.keys(bazyCwiczen).length === 0) {
+                bazyCwiczen = domyslnaBazaCwiczen;
+            }
+            
             let celKatEl = document.getElementById('cel-kategoria');
             if(!celKatEl) return;
+            
             celKatEl.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
                 if (kat !== 'Regeneracja') {
@@ -875,13 +913,49 @@
                     celKatEl.appendChild(opt);
                 }
             });
+            
+            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+            let zmianaWprowadzona = false;
+
+            Object.keys(bazyCwiczen).forEach(kat => {
+                if (kat !== 'Regeneracja') {
+                    bazyCwiczen[kat].forEach(cw => {
+                        if (celeZapisane[cw] === undefined) {
+                            celeZapisane[cw] = 0;
+                            zmianaWprowadzona = true;
+                        }
+                    });
+                }
+            });
+
+            if (zmianaWprowadzona) {
+                bezpiecznyZapisStorage('cele', celeZapisane);
+            }
+
+            if (ostatnioPobityCel) {
+                for (let kat in bazyCwiczen) {
+                    if (kat !== 'Regeneracja' && bazyCwiczen[kat].includes(ostatnioPobityCel)) {
+                        celKatEl.value = kat;
+                        break;
+                    }
+                }
+            }
+
             zmienionoKategorieCelu();
+
+            if (ostatnioPobityCel) {
+                let celCwiczenieEl = document.getElementById('cel-cwiczenie');
+                if (celCwiczenieEl) celCwiczenieEl.value = ostatnioPobityCel;
+            }
+            zmienionoKategorieCeluWartosc();
         }
 
         function sprawdzOsiagniecieCelu(cwiczenie, nowyWynik) {
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-            let docelowaWartosc = celeZapisane[cwiczenie];
-            if (docelowaWartosc !== undefined && docelowaWartosc > 0 && nowyWynik >= docelowaWartosc) {
+            let docelowaWartosc = celeZapisane[cwiczenie] !== undefined ? celeZapisane[cwiczenie] : 0;
+            
+            // Jeśli cel wynosi 0 (nowy użytkownik / brak ustawionego celu) lub wynik przekracza cel
+            if (nowyWynik > 0 && (docelowaWartosc === 0 || nowyWynik >= docelowaWartosc)) {
                 ostatnioPobityCel = cwiczenie;
                 document.getElementById('alert-cel-nazwa').textContent = cwiczenie;
                 document.getElementById('alert-cel-wynik').textContent = nowyWynik;
@@ -895,13 +969,6 @@
         function przejdzDoNowegoCelu() {
             document.getElementById('alert-cel-osiagniety').style.display = 'none';
             flagaPrzejsciaPoOsiagnieciuCelu = true;
-            
-            // Włączamy widoczność przycisku powrotu i kawy w module celów po kliknięciu z nakładki
-            let btnTimer = document.getElementById('btn-powrot-timer');
-            let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
-            if(btnTimer) btnTimer.style.display = 'block';
-            if(kawaWrapper) kawaWrapper.style.display = 'block';
-
             zmienZakladke('wiecej', document.querySelectorAll('.nav-item')[2]);
             przejdzDoPodmenu('cele');
         }
