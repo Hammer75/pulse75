@@ -500,8 +500,15 @@
         function inicjalizujSelectHistorii() {
             let inputDate = document.getElementById('historia-wybor-dnia');
             if (!inputDate) return;
+            
             let dzisiajObj = new Date();
+            let trzydziesciDniWstecz = new Date();
+            trzydziesciDniWstecz.setDate(dzisiajObj.getDate() - 30);
+            
             let dzisiajIso = `${dzisiajObj.getFullYear()}-${String(dzisiajObj.getMonth() + 1).padStart(2, '0')}-${String(dzisiajObj.getDate()).padStart(2, '0')}`;
+            let minIso = `${trzydziesciDniWstecz.getFullYear()}-${String(trzydziesciDniWstecz.getMonth() + 1).padStart(2, '0')}-${String(trzydziesciDniWstecz.getDate()).padStart(2, '0')}`;
+            
+            inputDate.min = minIso;
             inputDate.max = dzisiajIso;
             inputDate.value = dzisiajIso;
             zaladujHistorieDnia();
@@ -954,7 +961,6 @@
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             let docelowaWartosc = celeZapisane[cwiczenie] !== undefined ? celeZapisane[cwiczenie] : 0;
             
-            // Jeśli cel wynosi 0 (nowy użytkownik / brak ustawionego celu) lub wynik przekracza cel
             if (nowyWynik > 0 && (docelowaWartosc === 0 || nowyWynik >= docelowaWartosc)) {
                 ostatnioPobityCel = cwiczenie;
                 document.getElementById('alert-cel-nazwa').textContent = cwiczenie;
