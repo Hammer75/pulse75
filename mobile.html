@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE 75 – Dziennik Treningowy (Mobile)</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    
+    <!-- SDK SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://sgqmnxqirevsrywyxsnu.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_H_1J8r61TEougxrdNvtRMQ_yS93Gtvf';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
+
+    <style>
+        :root { --bg-color: #121212; --card-bg: #1e1e1e; --primary: #ff2a2a; --primary-glow: rgba(255, 42, 42, 0.3); --text-main: #ffffff; --text-muted: #aaaaaa; --border: #333333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 70px; }
+        header { background: linear-gradient(180deg, #2a1b1b 0%, #1d1212 100%); padding: 12px 15px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; align-items: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); max-width: 600px; margin: 0 auto; box-sizing: border-box; }
+        .logo-wrapper { display: flex; align-items: center; gap: 12px; flex-shrink: 0; grid-column: 1; }
+        .logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; filter: drop-shadow(0 0 8px var(--primary-glow)); }
+        .brand-text { display: flex; flex-direction: column; text-align: left; }
+        .brand-title { font-size: 0.95rem; font-weight: 800; letter-spacing: 1.5px; background: linear-gradient(135deg, #ffffff 40%, var(--primary) 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; text-transform: uppercase; }
+        .brand-subtitle { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; line-height: 1.2; }
+        .header-auth-btn { background: #252525; border: 1px solid var(--border); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600; width: auto; justify-self: center; grid-column: 2; }
+        .header-auth-btn:hover { border-color: var(--primary); }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; box-sizing: border-box; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: relative; }
+        h2 { font-size: 1.1rem; margin-top: 0; color: var(--primary); }
+        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
+        select, input { width: 100%; padding: 12px; margin-bottom: 12px; background-color: #2a2a2a; border: 1px solid var(--border); border-radius: 6px; color: white; font-size: 1rem; box-sizing: border-box; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml;utf8,<svg fill='%23aaaaaa' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 35px; }
+        input[type="date"] { background-image: none; padding-right: 12px; color-scheme: dark; }
+        button { background-color: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; }
+        button:active { opacity: 0.8; transform: scale(0.99); }
+        .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 600px; background-color: #1a1a1a; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; box-sizing: border-box; }
+        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; text-align: center; flex: 1; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .result-box { background-color: #252525; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 0.9rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th, td { border: 1px solid var(--border); padding: 8px; text-align: center; }
+        th { background-color: #222; }
+        .menu-btn { background-color: #2a2a2a; color: white; border: 1px solid var(--border); padding: 15px; width: 100%; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; text-align: left; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .menu-btn:hover { background-color: #333; }
+        .progress-bar-container { background-color: #2a2a2a; border-radius: 8px; overflow: hidden; height: 24px; width: 100%; margin-top: 10px; border: 1px solid var(--border); position: relative; }
+        .progress-bar-fill { background-color: var(--primary); height: 100%; width: 0%; transition: width 0.4s ease; }
+        .progress-text { position: absolute; width: 100%; top: 0; left: 0; line-height: 24px; text-align: center; font-size: 0.85rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .list-item-cwiczenie { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 8px; }
+        .btn-small { width: auto; padding: 5px 10px; font-size: 0.8rem; background: #555; }
+        #custom-toast { display: none; position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--primary); color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 0.95rem; text-align: center; max-width: 90%; transition: opacity 0.3s ease; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10001; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.7); position: relative; }
+    </style>
+</head>
+<body>
+
+    <div id="custom-toast"></div>
+    <div id="custom-confirm-modal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="custom-confirm-text" style="color:var(--text-main); font-size:1rem; margin-top:0; margin-bottom:20px; line-height:1.5; white-space: pre-line;"></p>
+            <div style="display:flex; gap:10px;">
+                <button id="custom-confirm-yes" style="flex:1; background:var(--primary); color:white; padding:10px; border-radius:6px; border:none; font-weight:bold; cursor:pointer;">Tak</button>
+                <button id="custom-confirm-no" style="flex:1; background:#444; color:white; padding:10px; border-radius:6px; border:none; font-weight:bold; cursor:pointer;">Anuluj</button>
+            </div>
+        </div>
+    </div>
+    <div id="custom-prompt-modal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="custom-prompt-text" style="color:var(--text-main); font-size:1rem; margin-top:0; margin-bottom:15px; line-height:1.5;"></p>
+            <input type="text" id="custom-prompt-input" style="margin-bottom:20px; padding:10px; background:#2a2a2a; border:1px solid var(--border); border-radius:6px; color:white; width:100%; box-sizing:border-box;">
+            <div style="display:flex; gap:10px;">
+                <button id="custom-prompt-ok" style="flex:1; background:var(--primary); color:white; padding:10px; border-radius:6px; border:none; font-weight:bold; cursor:pointer;">Zapisz</button>
+                <button id="custom-prompt-cancel" style="flex:1; background:#444; color:white; padding:10px; border-radius:6px; border:none; font-weight:bold; cursor:pointer;">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app">
+        <header>
+            <div class="logo-wrapper">
+                <img src="logo.jpg" alt="Pulse 75 Logo" class="logo-img">
+                <div class="brand-text">
+                    <span class="brand-title">DZIENNIK</span>
+                    <span class="brand-subtitle">TRENINGOWY</span>
+                </div>
+            </div>
+            <button id="header-user-btn" class="header-auth-btn" onclick="kliknieciePrzyciskuKonta()">
+                <span id="header-user-icon">🟢</span>
+                <span id="header-user-text">Moje konto</span>
+                <span id="header-logout-symbol" style="display: none; margin-left: 3px; font-size: 0.9rem;" title="Wyloguj">⏻</span>
+            </button>
+        </header>
+
+        <div class="container">
+            <!-- NAKŁADKA OSIĄGNIĘTEGO CELU -->
+            <div id="alert-cel-osiagniety" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.96); z-index: 120; border-radius: 0px; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; text-align: center; overflow-y: auto;">
+                <div class="modal-box" style="border: 1px solid #d4af37; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4); max-width: 400px; width: 100%; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 10px;">🏆</div>
+                    <h2 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">Cel osiągnięty!</h2>
+                    <p style="color: #ccc; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
+                        Dla ćwiczenia: <b id="alert-cel-nazwa" style="color: white;"></b> pokonałeś barierę <b id="alert-cel-wynik" style="color: white;"></b> kg (1RM). Czas zawiesić poprzeczkę wyżej!
+                    </p>
+                    
+                    <button onclick="przejdzDoNowegoCelu()" style="background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%); color: #000; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">OK, ustaw nowy cel ➔</button>
+                </div>
+            </div>
+
+            <!-- ZAKŁADKA DZIENNIK -->
+            <div id="tab-dziennik" class="tab-content active">
+                <div class="card">
+                    <!-- NAKŁADKA / PANEL STOPER PRZERWY -->
+                    <div id="timer-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 18, 18, 0.96); z-index: 110; border-radius: 10px; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 5px;">⏱️</div>
+                        <h2 style="color: var(--primary); font-size: 1.2rem; margin-bottom: 10px;" id="timer-title">Wybierz czas przerwy</h2>
+                        
+                        <!-- WYBÓR CZASU -->
+                        <div id="timer-wybor-box" style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 280px; margin-bottom: 10px;">
+                            <button onclick="startTimerWybranegoCzasu(90)" style="background: #2a2a2a; border: 1px solid var(--border); padding: 12px; border-radius: 6px; font-weight: bold;">90 sekund</button>
+                            <button onclick="startTimerWybranegoCzasu(180)" style="background: var(--primary); border: none; padding: 12px; border-radius: 6px; font-weight: bold;">3 minuty</button>
+                            <button onclick="startTimerWybranegoCzasu(300)" style="background: #2a2a2a; border: 1px solid var(--border); padding: 12px; border-radius: 6px; font-weight: bold;">5 minut</button>
+                        </div>
+
+                        <!-- ODLICZANIE -->
+                        <div id="timer-odliczanie-box" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+                            <div id="timer-display" style="font-size: 3rem; font-weight: 800; color: white; margin-bottom: 20px; font-variant-numeric: tabular-nums;">03:00</div>
+                            <div style="display: flex; gap: 10px; width: 100%; max-width: 280px;">
+                                <button onclick="anulujTimer()" style="background: #444; color: white; padding: 10px; border-radius: 6px; font-size: 0.9rem;">Pomiń przerwę</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2>Rejestracja aktywności</h2>
+                    <div style="text-align: center; margin-bottom: 12px; font-size: 1rem; font-weight: bold; color: white; background: #252525; padding: 12px; border-radius: 6px; border: 1px solid var(--border);" id="dziennik-data-wyswietlacz">
+                        -
+                    </div>
+                    <input type="hidden" id="dziennik-data">
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; margin-top: 10px;">
+                        <label style="margin-bottom: 0; color: var(--text-muted); font-size: 0.9rem;">Kategoria / Partia Mięśniowa:</label>
+                        <button type="button" id="btn-lock-cwiczenie" onclick="toggleLockCwiczenie()" class="btn-small" style="background: #333; border: 1px solid var(--border); padding: 3px 8px; font-size: 0.75rem; color: #fff; border-radius: 4px; cursor: pointer;">🔓 Odblokowane</button>
+                    </div>
+                    <select id="dziennik-partia" onchange="zmienKategorieDziennika()"></select>
+
+                    <div id="sekcja-treningowa">
+                        <label>Wybierz Ćwiczenie / Aktywność:</label>
+                        <select id="dziennik-cwiczenie" onchange="zmienionoCwiczenieDziennika()"></select>
+
+                        <!-- SEKCJA SIŁOWA -->
+                        <div id="kontener-pola-silowe">
+                            <label>Numer Serii:</label>
+                            <select id="dziennik-seria">
+                                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                            </select>
+
+                            <label id="label-ciezar">Ciężar (kg):</label>
+                            <input type="number" id="dziennik-ciezar" placeholder="np. 90" step="0.5" min="0" oninput="obliczWlocie()">
+
+                            <label id="label-powt">Powtórzenia:</label>
+                            <div id="kontener-powt">
+                                <select id="dziennik-powt" onchange="obliczWlocie()">
+                                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                                </select>
+                            </div>
+
+                            <div id="group-rir">
+                                <label>Zapas sił w serii (RIR – opcjonalnie):</label>
+                                <select id="dziennik-rir">
+                                    <option value="">-- Brak / Nie dotyczy --</option>
+                                    <option value="0">RIR 0 (Do odcięcia / Upadek mięśniowy)</option>
+                                    <option value="1">RIR 1 (1 powtórzenie w zapasie)</option>
+                                    <option value="2">RIR 2 (2 powtórzenia w zapasie – optymalnie)</option>
+                                    <option value="3">RIR 3 (3 powtórzenia w zapasie)</option>
+                                    <option value="4+">RIR 4+ (Bardzo lekko / zapas)</option>
+                                </select>
+                            </div>
+
+                            <div class="result-box" id="live-calc">
+                                Tonaż: <b>0 kg</b> | Szacowane 1RM (Epley): <b>0 kg</b>
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA CARDIO -->
+                        <div id="kontener-pola-cardio" style="display: none;">
+                            <label>Dystans (km):</label>
+                            <input type="number" id="dziennik-dystans" placeholder="np. 5.5" step="0.1" min="0">
+
+                            <label>Czas trwania (minuty):</label>
+                            <input type="number" id="dziennik-czas" placeholder="np. 30" step="1" min="0">
+                        </div>
+                    </div>
+
+                    <br>
+                    <button onclick="zapiszIZsynchronizuj()" style="width:100%; background: var(--primary); padding: 12px; font-size: 1rem; font-weight: bold;">💾 Zapisz</button>
+                </div>
+            </div>
+
+            <!-- ZAKŁADKA HISTORIA -->
+            <div id="tab-historia" class="tab-content">
+                <div class="card">
+                    <h2>Historia Treningów</h2>
+                    <label>Wybierz dzień:</label>
+                    <input type="date" id="historia-wybor-dnia" onchange="zaladujHistorieDnia()">
+
+                    <div id="historia-wyniki-container" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <!-- MENU WIĘCEJ -->
+            <div id="tab-wiecej" class="tab-content">
+                <div class="card">
+                    <h2>Więcej Opcji</h2>
+                    <button class="menu-btn" onclick="przejdzDoPodmenu('historia')"><span>📊 Analiza i Historia</span><span>➔</span></button>
+                    <button class="menu-btn" onclick="przejdzDoPodmenu('cele')"><span>🎯 Wizualizacja celów</span><span>➔</span></button>
+                    <button class="menu-btn" onclick="przejdzDoPodmenu('baza')"><span>🏋️ Zarządzanie Bazą Ćwiczeń</span><span>➔</span></button>
+                    <button class="menu-btn" onclick="przejdzDoPodmenu('instrukcja')"><span>📖 Instrukcja Obsługi</span><span>➔</span></button>
+                    <button class="menu-btn" style="border-color: #333; background: #252525; margin-top: 10px;" onclick="otworzKontakt()"><span>✉️ Zgłoś błąd / Kontakt</span><span style="color: var(--text-muted);">➔</span></button>
+                    <button class="menu-btn" style="border-color: var(--primary); background: linear-gradient(135deg, #2a1b1b 0%, #1a1a1a 100%); margin-top: 20px;" onclick="window.open('https://suppi.pl/h75', '_blank')"><span>☕ Postaw mi kawę</span><span style="color: var(--primary);">❤️</span></button>
+                </div>
+            </div>
+
+            <!-- PODMENU HISTORIA -->
+            <div id="subtab-historia" class="tab-content">
+                <div class="card">
+                    <button onclick="wracajDoWiecej()" class="menu-btn" style="margin-bottom: 15px; padding: 10px 15px; font-size: 0.9rem;">⬅ Powrót do menu</button>
+                    <h2>Analiza Postępów</h2>
+                    <label>Kategoria / Partia Mięśniowa:</label>
+                    <select id="analiza-partia" onchange="aktualizujCwiczenia('analiza')"></select>
+                    <div id="analiza-wybor-cwiczenia-box">
+                        <label>Wybierz Ćwiczenie / Metodę:</label>
+                        <select id="analiza-cwiczenie" onchange="zaladujAnalize()"></select>
+                    </div>
+                    <div class="result-box" id="analiza-podsumowanie" style="margin-top:15px;">Brak danych.</div>
+                    <div style="overflow-x: auto; margin-top: 15px;">
+                        <table id="tabela-historii"><tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr></table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PODMENU CELE -->
+            <div id="subtab-cele" class="tab-content">
+                <div class="card">
+                    <button onclick="wracajDoWiecej()" class="menu-btn" style="margin-bottom: 15px; padding: 10px 15px; font-size: 0.9rem;">⬅ Powrót do menu</button>
+                    <h2>Wizualizacja celów</h2>
+                    
+                    <label>Wybierz Kategoria:</label>
+                    <select id="cel-kategoria" onchange="zmienionoKategorieCelu()"></select>
+
+                    <label>Wybierz Ćwiczenie:</label>
+                    <select id="cel-cwiczenie" onchange="zmienionoKategorieCelu()"></select>
+
+                    <label id="label-cel-wartosc">Twój docelowy rekord 1RM (kg):</label>
+                    <input type="number" id="cel-wartosc" placeholder="np. 100" step="0.5" min="0" oninput="zapiszWartoscCelu()">
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                        <div class="progress-text" id="progress-text">0%</div>
+                    </div>
+                    
+                    <!-- WIDOCZNE TYLKO PO PRZEJŚCIU Z NAKŁADKI OSIĄGNIĘTEGO CELU -->
+                    <button id="btn-powrot-timer" onclick="powrotZModuluCelu()" style="display: none; margin-top: 20px; background: #444;">⬅ Wróć do Dziennika i ustaw przerwę</button>
+
+                    <div id="btn-kawa-cel-wrapper" style="display: none; background: #252525; border: 1px solid var(--primary); border-radius: 8px; padding: 12px; margin-top: 20px; text-align: center;">
+                        <p style="font-size: 0.85rem; color: #ccc; line-height: 1.4; margin-top: 0; margin-bottom: 10px;">
+                            Jeżeli uważasz że program Pulse 75 przyczynił się do Twojego progresu treningowego...
+                        </p>
+                        <button onclick="window.open('https://suppi.pl/h75', '_blank')" style="background: linear-gradient(135deg, #2a1b1b 0%, #1a1a1a 100%); color: var(--primary); border: 1px solid var(--primary); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.95rem;">☕ Postaw mi kawę ❤️</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PODMENU BAZA ĆWICZEŃ -->
+            <div id="subtab-baza" class="tab-content">
+                <div class="card">
+                    <button onclick="wracajDoWiecej()" class="menu-btn" style="margin-bottom: 15px; padding: 10px 15px; font-size: 0.9rem;">⬅ Powrót do menu</button>
+                    <h2>Baza Ćwiczeń</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Zarządzaj listą ćwiczeń i kategorii.</p>
+                    <label>Wybierz Kategorię:</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <select id="menedzer-kategoria" onchange="odswiezListeMenedzera()" style="margin-bottom: 0;"></select>
+                        <button onclick="dodajKategorie()" class="btn-small" style="padding: 0 15px;">+ Kat.</button>
+                    </div>
+                    <div style="background: #252525; padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                        <label>Dodaj nowe ćwiczenie:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="nowe-cwiczenie-nazwa" placeholder="Nazwa..." style="margin-bottom: 0;">
+                            <button onclick="dodajCwiczenie()" class="btn-small" style="width: 80px; background: var(--primary);">Dodaj</button>
+                        </div>
+                    </div>
+                    <div id="lista-cwiczen-menedzer"></div>
+                </div>
+            </div>
+
+            <!-- PODMENU INSTRUKCJA -->
+            <div id="subtab-instrukcja" class="tab-content">
+                <div class="card">
+                    <button onclick="wracajDoWiecej()" class="menu-btn" style="margin-bottom: 15px; padding: 10px 15px; font-size: 0.9rem;">⬅ Powrót do menu</button>
+                    <h2 style="color: var(--primary); margin-bottom: 15px;">📖 Instrukcja Obsługi PULSE 75</h2>
+                    
+                    <div style="font-size: 0.9rem; line-height: 1.6; color: #ccc;">
+                        <p>Witaj w oficjalnej instrukcji obsługi aplikacji <b>PULSE 75</b>. Aby zapewnić najwyższy komfort korzystania, pełną płynność oraz dostęp do danych offline, zalecamy zainstalowanie aplikacji jako PWA (Progressive Web App) na swoim telefonie.</p>
+                        
+                        <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">Jak zainstalować aplikację (PWA):</h3>
+                        <p>• <b>Android (Chrome):</b> Otwórz aplikację w przeglądarce, kliknij ikonę menu (trzy kropki w prawym górnym rogu) i wybierz opcję „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.<br>
+                        • <b>iOS (Safari):</b> Otwórz aplikację w przeglądarce Safari, kliknij przycisk Udostępnij (kwadrat ze strzałką w górę) na dolnym pasku, a następnie przewiń listę i wybierz „Do ekranu początkowego”.</p>
+
+                        <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">1. 📝 Dziennik (Rejestracja aktywności)</h3>
+                        <p>Główny ekran roboczy aplikacji służący do bieżącego zapisywania Twoich treningów siłowych, jednostek cardio oraz dni regeneracyjnych.</p>
+                        <p>
+                        • <b>Data Treningu / Dnia:</b> Wyświetla aktualną datę bieżącą (automatycznie ustawianą przez system) dla rejestrowanej aktywności.<br>
+                        • <b>Kategoria / Partia Mięśniowa:</b> Grupuje ćwiczenia według partii ciała oraz trybów specjalnych (Cardio i Regeneracja). Posiada przycisk trybu blokady (odblokowane/zablokowane) pozwalający uchronić się przed przypadkową zmianą wyboru na czas serii.<br>
+                        • <b>Wybierz Ćwiczenie:</b> Lista konkretnych ćwiczeń przypisanych do wybranej kategorii. Zmiana ćwiczenia automatycznie podpowiada ostatnio użyte wartości z historii.<br>
+                        • <b>Numer Serii:</b> Określa, którą z kolei serię danego ćwiczenia właśnie wykonujesz (w zakresie od 1 do 6).<br>
+                        • <b>Ciężar (kg) / Czas (min):</b> Nałożony ciężar roboczy z dokładnością do 0.5 kg lub czas trwania wysiłku w minutach (dla jednostek cardio). Pole to automatycznie uzupełnia się ostatnim ciężarem (lub dystansem) zapisanym dla tego ćwiczenia w historii.<br>
+                        • <b>Powtórzenia / Dystans (km):</b> Liczba powtórzeń wybierana z listy od 1 do 12 (domyślnie ustawiona na 8 lub podpowiadająca ostatni wynik) lub pokonany dystans w kilometrach (dla cardio).<br>
+                        • <b>Zapas sił w serii (RIR):</b> Rate in Reserve – opcjonalny zapas powtórzeń do technicznego upadku mięśniowego (od RIR 0 do RIR 4+).<br>
+                        • <b>Live-Calc:</b> Inteligentny kalkulator w czasie rzeczywistym, który automatycznie wylicza tonaż oraz szacowany maksymalny wynik (1RM według wzoru Epleya) jeszcze przed zatwierdzeniem zapisu.<br>
+                        • <b>Przycisk Zapisz:</b> Zapisuje wpis w bazie i synchronizuje stan aplikacji oraz uruchamia stoper przerwy między seriami.
+                        </p>
+
+                        <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">2. 📊 Historia (Przegląd Dni)</h3>
+                        <p>Dedykowana sekcja umożliwiająca szybkie przeglądanie zapisanych treningów dzień po dniu za pomocą wygodnego pola wyboru daty (z zakresem do 30 dni wstecz).</p>
+
+                        <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">3. ⚙️ Więcej (Menu Główne Opcji)</h3>
+                        <p>Centralny punkt nawigacyjny prowadzący do zaawansowanych modułów analitycznych, celów oraz zarządzania słownikiem treningowym.</p>
+                        <p>
+                        • <b>📊 Analiza i Historia:</b> Kompleksowy przegląd historii Twoich treningów z opcją filtrowania według partii mięśniowej oraz konkretnego ćwiczenia. Moduł prezentuje kluczowe statystyki: liczbę wpisów, rekordy 1RM, największy dystans oraz szczegółową tabelę historyczną wpisów (data, seria, ciężar, powtórzenia, 1RM, prędkość dla cardio).<br>
+                        • <b>🎯 Wizualizacja Celów (1RM):</b> Narzędzie motywacyjne pozwalające zdefiniować docelowy rekord 1RM w kg (lub docelowy dystans) dla wybranego ćwiczenia i śledzić bieżący postęp w formie przejrzystego paska procentowego (od 0% do 100%).<br>
+                        • <b>🏋️ Zarządzanie Bazą Ćwiczeń:</b> Wbudowany menedżer słownika. Pozwala na dodawanie własnych kategorii, tworzenie nowych ćwiczeń oraz usuwanie pozycji z listy.<br>
+                        • <b>📖 Instrukcja Obsługi:</b> Kompletny przewodnik po funkcjach i działaniu aplikacji.<br>
+                        • <b>✉️ Zgłoś błąd / Kontakt:</b> Szybki przycisk otwierający klient poczty e-mail w celu zgłoszenia uwagi lub błędu bezpośrednio do twórcy.<br>
+                        • <b>☕ Postaw mi kawę:</b> Przycisk wsparcia projektu (prowadzący do serwisu Suppi.pl), umożliwiający docenienie rozwoju aplikacji.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="zmienZakladke('dziennik', this)">📝 Dziennik</button>
+            <button class="nav-item" onclick="zmienZakladke('historia', this)">📊 Historia</button>
+            <button class="nav-item" onclick="zmienZakladke('wiecej', this)">⚙️ Więcej</button>
+        </div>
+    </div>
+
+    <script>
+        let zalogowanyUzytkownik = null;
+        let ostatnioPobityCel = null;
+        let timerInterval = null;
+        let pozostalyCzasSekundy = 0;
+        let flagaPrzejsciaPoOsiagnieciuCelu = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let saved = localStorage.getItem('pulse75_user') || localStorage.getItem('ironmetric_user');
+            if (!saved) {
+                window.location.href = 'index.html';
+                return;
+            }
+            zalogowanyUzytkownik = JSON.parse(saved);
+            aktualizujStanKonta(zalogowanyUzytkownik);
+
+            const teraz = new Date();
+            const rok = teraz.getFullYear();
+            const miesiac = String(teraz.getMonth() + 1).padStart(2, '0');
+            const dzien = String(teraz.getDate()).padStart(2, '0');
+            
+            const isoData = `${rok}-${miesiac}-${dzien}`;
+            const sformatowanaData = `${dzien}.${miesiac}.${rok}`;
+            
+            let elHidden = document.getElementById('dziennik-data');
+            let elDisp = document.getElementById('dziennik-data-wyswietlacz');
+            if (elHidden) elHidden.value = isoData;
+            if (elDisp) elDisp.textContent = sformatowanaData;
+
+            inicjalizujSelectHistorii();
+            inicjalizujPoZalogowaniu();
+        });
+
+        function pobierzKluczStorage(klucz) {
+            if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return `pulse75_guest_${klucz}`;
+            return `pulse75_user_${zalogowanyUzytkownik.id}_${klucz}`;
+        }
+
+        function bezpiecznyOdczytStorage(klucz, domyslnaWartosc) {
+            try {
+                let realKey = pobierzKluczStorage(klucz);
+                let val = localStorage.getItem(realKey);
+                if (val !== null) return JSON.parse(val);
+                
+                let globalVal = localStorage.getItem(`ironmetric_${klucz}`) || localStorage.getItem(`pulse75_${klucz}`);
+                if (globalVal !== null) return JSON.parse(globalVal);
+
+                return domyslnaWartosc;
+            } catch (e) {
+                return domyslnaWartosc;
+            }
+        }
+
+        function bezpiecznyZapisStorage(klucz, dane) {
+            try {
+                let realKey = pobierzKluczStorage(klucz);
+                localStorage.setItem(realKey, JSON.stringify(dane));
+            } catch (e) {}
+        }
+
+        function aktualizujStanKonta(user) {
+            const btnText = document.getElementById('header-user-text');
+            const btnIcon = document.getElementById('header-user-icon');
+            const logoutSymbol = document.getElementById('header-logout-symbol');
+            if (user) {
+                btnText.textContent = user.username;
+                btnIcon.textContent = '🟢';
+                if(logoutSymbol) logoutSymbol.style.display = 'inline';
+            } else {
+                btnText.textContent = 'Niezalogowany';
+                btnIcon.textContent = '🔴';
+                if(logoutSymbol) logoutSymbol.style.display = 'none';
+            }
+        }
+
+        function kliknieciePrzyciskuKonta() {
+            showConfirmModal('Czy na pewno chcesz się wylogować?', (potwierdzono) => {
+                if (potwierdzono) {
+                    localStorage.removeItem('pulse75_user');
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+        function showNotification(msg, duration = 3000) {
+            let toast = document.getElementById('custom-toast');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, duration);
+        }
+
+        function showConfirmModal(text, onResult) {
+            let modal = document.getElementById('custom-confirm-modal');
+            document.getElementById('custom-confirm-text').textContent = text;
+            modal.style.display = 'flex';
+            document.getElementById('custom-confirm-yes').onclick = () => { modal.style.display = 'none'; onResult(true); };
+            document.getElementById('custom-confirm-no').onclick = () => { modal.style.display = 'none'; onResult(false); };
+        }
+
+        function showPromptModal(text, defaultVal, callback) {
+            let modal = document.getElementById('custom-prompt-modal');
+            document.getElementById('custom-prompt-text').textContent = text;
+            let input = document.getElementById('custom-prompt-input');
+            input.value = defaultVal || '';
+            modal.style.display = 'flex';
+            input.focus();
+            document.getElementById('custom-prompt-ok').onclick = () => { modal.style.display = 'none'; callback(input.value); };
+            document.getElementById('custom-prompt-cancel').onclick = () => { modal.style.display = 'none'; callback(null); };
+        }
+
+        let isExerciseLocked = false;
+        function toggleLockCwiczenie() {
+            isExerciseLocked = !isExerciseLocked;
+            let p = document.getElementById('dziennik-partia');
+            let c = document.getElementById('dziennik-cwiczenie');
+            let btn = document.getElementById('btn-lock-cwiczenie');
+            p.disabled = isExerciseLocked;
+            c.disabled = isExerciseLocked;
+            btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+        }
+
+        const domyslnaBazaCwiczen = {
+            'Klatka': ['Wyciskanie sztangi na ławce poziomej', 'Wyciskanie sztangi na ławce skośnej dodatniej', 'Wyciskanie hantli na ławce poziomej', 'Wyciskanie hantli na ławce skośnej dodatniej', 'Rozpiętki z hantlami', 'Rozpiętki na maszynie (Pec Deck)', 'Krzyżowanie linek wyciągu', 'Pompki na poręczach (Dipy)', 'Pompki klasyczne', 'Wyciskanie na maszynie (Hammer Strength)'],
+            'Plecy': ['Martwy ciąg klasyczny', 'Martwy ciąg sumiasty', 'Wiosłowanie sztangą w opadzie tułowia', 'Wiosłowanie hantlem jednorącz o ławkę', 'Wiosłowanie na maszynie (Machine Row)', 'Ściąganie drążka wyciągu górnego do klatki', 'Ściąganie drążka z wyciągu dolnego do klatki', 'Wciąganie uchwytu wyciągu dolnego do brzucha', 'Podciąganie na drążku (nachwyt / podchwyt)', 'Szrugsy (wznosy barków) ze sztangą / hantlami'],
+            'Nogi': ['Przysiady ze sztangą na plecach (Back Squat)', 'Przysiady przednie (Front Squat)', 'Wykroki z hantlami / sztangą', 'Martwy ciąg na prostych nogach (RDL / Stiff-leg)', 'Wypychanie ciężaru na suwnicy (Leg Press)', 'Uginanie nóg na maszynie leżąc na brzuchu', 'Uginanie nóg na maszynie siedząc (tył ud)', 'Prostowanie nóg siedząc (maszyna - czworogłowe)', 'Wspięcia na palce stojąc (łydki)', 'Wspięcia na palce siedząc', 'Wspięcia na palce na suwnicy'],
+            'Posladki': ['Hip Thrust ze sztangą', 'Rumuński martwy ciąg (RDL)', 'Wypychanie ciężaru wysokimi stopami na suwnicy', 'Wznosy bioder na maszynie / mostki biodrowe', 'Przysiady bułgarskie (wersja na pośladek)', 'Zakroki z hantlami / sztangą', 'Glute Bridge ze sztangą', 'Odwodzenie nóg na maszynie (Abductor)', 'Uginanie nóg na maszynie leżąc na brzuchu'],
+            'Barki': ['Wyciskanie żołnierskie (Overhead Press)', 'Wyciskanie hantli nad głowę siedząc', 'Wyciskanie na maszynie (Shoulder Press)', 'Wznosy hantli bokiem (bok barku)', 'Wznosy hantli w opadzie tułowia (tył barku)', 'Odwodzenie ramion na maszynie (Reverse Pec Deck)', 'Face pull (wyciąg - tył barku)', 'Wznosy ramion ze sztangielkami w przód', 'Podciąganie sztangi wzdłuż tułowia'],
+            'Ramiona': ['Uginanie przedramion ze sztangą (biceps)', 'Uginanie przedramion z hantlami z supinacją', 'Uginanie hantlami chwytem młotkowym', 'Uginanie na modlitewniku', 'Uginanie ramion z linką wyciągu dolnego', 'Wyciskanie francuskie ze sztangą łamaną leżąc (triceps)', 'Wyciskanie wąskim chwytem na ławce poziomej', 'Prostowanie ramion na wyciągu (ściąganie sznura)', 'Wyciskanie hantla oburącz zza głowy siedząc', 'Pompki w podporze tyłem na ławce'],
+            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych legs w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
+            'Cardio': ['Bieżnia / Bieganie', 'Rower stacjonarny', 'Orbitrek / Maszyna eliptyczna'],
+            'Regeneracja': ['Odpoczynek całkowity', 'Lekkie cardio / spacer', 'Stretching', 'Rolowanie (foam roller)', 'Basen', 'Sauna', 'Joga regeneracyjna', 'Ćwiczenia mobilnościowe', 'Kąpiel solankowa']
+        };
+
+        let bazyCwiczen = {};
+
+        function inicjalizujCeleDlaNowegoUzytkownika() {
+            let celeZapisane = bezpiecznyOdczytStorage('cele', null);
+            if (celeZapisane === null) {
+                let domyslneCele = {};
+                Object.keys(bazyCwiczen).forEach(kat => {
+                    bazyCwiczen[kat].forEach(cw => {
+                        domyslneCele[cw] = 0;
+                    });
+                });
+                bezpiecznyZapisStorage('cele', domyslneCele);
+            }
+        }
+
+        function inicjalizujSelectHistorii() {
+            let inputDate = document.getElementById('historia-wybor-dnia');
+            if (!inputDate) return;
+            let dzisiajObj = new Date();
+            let dzisiajIso = `${dzisiajObj.getFullYear()}-${String(dzisiajObj.getMonth() + 1).padStart(2, '0')}-${String(dzisiajObj.getDate()).padStart(2, '0')}`;
+            inputDate.max = dzisiajIso;
+            inputDate.value = dzisiajIso;
+            zaladujHistorieDnia();
+        }
+
+        function zaladujHistorieDnia() {
+            let inputDate = document.getElementById('historia-wybor-dnia');
+            let kontener = document.getElementById('historia-wyniki-container');
+            if (!inputDate || !kontener) return;
+            let wybranaData = inputDate.value;
+
+            if (!wybranaData) {
+                kontener.innerHTML = `<div class="result-box" style="text-align: center; color: var(--text-muted);">Wybierz datę, aby zobaczyć trening.</div>`;
+                return;
+            }
+
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let wpisyDnia = historia.filter(w => w.data && w.data.substring(0, 10) === wybranaData);
+
+            if (wpisyDnia.length === 0) {
+                kontener.innerHTML = `<div class="result-box" style="text-align: center; color: var(--text-muted);">Brak wpisów treningowych dla wybranego dnia.</div>`;
+                return;
+            }
+
+            let wpisySila = wpisyDnia.filter(w => w.partia !== 'Cardio' && w.partia !== 'Regeneracja');
+            let wpisyCardio = wpisyDnia.filter(w => w.partia === 'Cardio');
+            let wpisyRegeneracja = wpisyDnia.filter(w => w.partia === 'Regeneracja');
+
+            let html = '';
+
+            if (wpisySila.length > 0) {
+                html += `
+                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 5px;">💪 Trening Siłowy</div>
+                    <div style="overflow-x: auto; margin-bottom: 15px;">
+                        <table>
+                            <tr>
+                                <th>Partia</th>
+                                <th>Ćwiczenie</th>
+                                <th>Seria</th>
+                                <th>Ciężar</th>
+                                <th>Powt.</th>
+                                <th>Zapas</th>
+                                <th>1RM</th>
+                            </tr>
+                `;
+                wpisySila.forEach(w => {
+                    html += `
+                        <tr>
+                            <td>${w.partia || '-'}</td>
+                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Trening'}</td>
+                            <td>${w.seria || 1}</td>
+                            <td>${w.ciezar || 0} kg</td>
+                            <td>${w.powt || 0}</td>
+                            <td>${w.rir !== undefined && w.rir !== null && w.rir !== "" ? `RIR ${w.rir}` : '-'}</td>
+                            <td><b>${w.onerm || 0} kg</b></td>
+                        </tr>
+                    `;
+                });
+                html += `</table></div>`;
+            }
+
+            if (wpisyCardio.length > 0) {
+                html += `
+                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 15px;">🏃 Cardio</div>
+                    <div style="overflow-x: auto; margin-bottom: 15px;">
+                        <table>
+                            <tr>
+                                <th>Aktywność</th>
+                                <th>Dystans</th>
+                                <th>Czas</th>
+                            </tr>
+                `;
+                wpisyCardio.forEach(w => {
+                    html += `
+                        <tr>
+                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Cardio'}</td>
+                            <td>${w.ciezar || 0} km</td>
+                            <td>${w.powt || 0} min</td>
+                        </tr>
+                    `;
+                });
+                html += `</table></div>`;
+            }
+
+            if (wpisyRegeneracja.length > 0) {
+                html += `
+                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 15px;">🔋 Regeneracja</div>
+                    <div style="overflow-x: auto; margin-bottom: 15px;">
+                        <table>
+                            <tr>
+                                <th>Aktywność / Stan</th>
+                            </tr>
+                `;
+                wpisyRegeneracja.forEach(w => {
+                    html += `
+                        <tr>
+                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Regeneracja'}</td>
+                        </tr>
+                    `;
+                });
+                html += `</table></div>`;
+            }
+
+            kontener.innerHTML = html;
+        }
+
+        async function inicjalizujPoZalogowaniu() {
+            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            inicjalizujCeleDlaNowegoUzytkownika();
+            inicjalizujKategorie();
+            
+            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    const { data: serverTreningi } = await supabaseClient
+                        .from('treningi')
+                        .select('*')
+                        .eq('user_id', zalogowanyUzytkownik.id)
+                        .order('data', { ascending: false });
+                    if (serverTreningi) {
+                        bezpiecznyZapisStorage('historia_treningow', serverTreningi);
+                        inicjalizujSelectHistorii();
+                    }
+                } catch(err) {}
+            }
+            aktualizujCwiczenia('analiza');
+        }
+
+        function inicjalizujKategorie() {
+            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            ['dziennik-partia', 'analiza-partia', 'cel-kategoria'].forEach(id => {
+                let el = document.getElementById(id);
+                if(el) {
+                    el.innerHTML = '';
+                    Object.keys(bazyCwiczen).forEach(kat => {
+                        if (id === 'dziennik-partia' || kat !== 'Regeneracja') {
+                            let opt = document.createElement('option');
+                            opt.value = kat; opt.textContent = kat;
+                            el.appendChild(opt);
+                        }
+                    });
+                }
+            });
+            zmienKategorieDziennika();
+            zmienionoKategorieCelu();
+        }
+
+        function zmienKategorieDziennika() {
+            let partiaEl = document.getElementById('dziennik-partia');
+            let kontenerSila = document.getElementById('kontener-pola-silowe');
+            let kontenerCardio = document.getElementById('kontener-pola-cardio');
+            if (partiaEl.value === 'Cardio') {
+                kontenerSila.style.display = 'none';
+                kontenerCardio.style.display = 'block';
+            } else if (partiaEl.value === 'Regeneracja') {
+                kontenerSila.style.display = 'none';
+                kontenerCardio.style.display = 'none';
+            } else {
+                kontenerSila.style.display = 'block';
+                kontenerCardio.style.display = 'none';
+            }
+            aktualizujCwiczenia('dziennik');
+        }
+
+        function aktualizujCwiczenia(tryb) {
+            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            let partiaId = tryb === 'dziennik' ? 'dziennik-partia' : (tryb === 'analiza' ? 'analiza-partia' : 'cel-kategoria');
+            let cwiczenieId = tryb === 'dziennik' ? 'dziennik-cwiczenie' : (tryb === 'analiza' ? 'analiza-cwiczenie' : 'cel-cwiczenie');
+            let partiaEl = document.getElementById(partiaId);
+            let selectCwiczenie = document.getElementById(cwiczenieId);
+            if(!partiaEl || !selectCwiczenie) return;
+            
+            let partia = partiaEl.value;
+            selectCwiczenie.innerHTML = '';
+            if(bazyCwiczen[partia]) {
+                bazyCwiczen[partia].forEach(cw => {
+                    let opt = document.createElement('option');
+                    opt.value = cw; opt.textContent = cw;
+                    selectCwiczenie.appendChild(opt);
+                });
+            }
+            if(tryb === 'analiza') zaladujAnalize();
+            else if(tryb === 'cel') zmienionoKategorieCelu();
+            else if(tryb === 'dziennik') zmienionoCwiczenieDziennika();
+        }
+
+        function zmienionoCwiczenieDziennika() {
+            let partia = document.getElementById('dziennik-partia').value;
+            let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
+            if (!cwiczenie) return;
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let ostatniWpis = historia.find(w => w.cwiczenie === cwiczenie);
+            if (ostatniWpis) {
+                if (partia === 'Cardio') {
+                    document.getElementById('dziennik-dystans').value = ostatniWpis.ciezar || '';
+                    document.getElementById('dziennik-czas').value = ostatniWpis.powt || '';
+                } else if (partia !== 'Regeneracja') {
+                    document.getElementById('dziennik-ciezar').value = ostatniWpis.ciezar || '';
+                    document.getElementById('dziennik-powt').value = ostatniWpis.powt || 8;
+                }
+            }
+            obliczWlocie();
+        }
+
+        function zmienionoKategorieCelu() {
+            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            let kat = document.getElementById('cel-kategoria').value;
+            let celCwiczenieEl = document.getElementById('cel-cwiczenie');
+            if(!celCwiczenieEl) return;
+            celCwiczenieEl.innerHTML = '';
+            if (bazyCwiczen[kat]) {
+                bazyCwiczen[kat].forEach(cw => {
+                    let opt = document.createElement('option');
+                    opt.value = cw; opt.textContent = cw;
+                    celCwiczenieEl.appendChild(opt);
+                });
+            }
+            zmienionoKategorieCeluWartosc();
+        }
+
+        function zmienionoKategorieCeluWartosc() {
+            let celCwiczenie = document.getElementById('cel-cwiczenie').value;
+            let inputCelWartosc = document.getElementById('cel-wartosc');
+            if(!celCwiczenie || !inputCelWartosc) return;
+            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+            inputCelWartosc.value = celeZapisane[celCwiczenie] !== undefined ? celeZapisane[celCwiczenie] : 0;
+            obliczPostepCelu();
+        }
+
+        function zapiszWartoscCelu() {
+            let celCwiczenie = document.getElementById('cel-cwiczenie').value;
+            let val = parseFloat(document.getElementById('cel-wartosc').value) || 0;
+            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+            celeZapisane[celCwiczenie] = val;
+            bezpiecznyZapisStorage('cele', celeZapisane);
+            obliczPostepCelu();
+        }
+
+        function obliczPostepCelu() {
+            let celKat = document.getElementById('cel-kategoria').value;
+            let celCwiczenie = document.getElementById('cel-cwiczenie').value;
+            let docelowaWartosc = parseFloat(document.getElementById('cel-wartosc').value) || 0;
+            let fill = document.getElementById('progress-fill');
+            let text = document.getElementById('progress-text');
+            if(!fill || !text || !celCwiczenie) return;
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
+            let aktualnaWartosc = celKat === 'Cardio' ? (wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.ciezar || 0)) : 0) : (wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0);
+
+            if (docelowaWartosc <= 0) { fill.style.width = '0%'; text.textContent = '0%'; return; }
+            let procent = Math.min(Math.floor((aktualnaWartosc / docelowaWartosc) * 100), 100);
+            fill.style.width = procent + '%';
+            text.textContent = procent + '%';
+        }
+
+        function obliczWlocie() {
+            let c = parseFloat(document.getElementById('dziennik-ciezar')?.value) || 0;
+            let p = parseInt(document.getElementById('dziennik-powt')?.value) || 0;
+            let lc = document.getElementById('live-calc');
+            if(lc) lc.innerHTML = `Tonaż: <b>${c*p} kg</b> | Szacowane 1RM: <b>${p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0} kg</b>`;
+        }
+
+        function zmienZakladke(nazwa, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + nazwa).classList.add('active');
+            if(el) el.classList.add('active');
+            if (nazwa === 'historia') inicjalizujSelectHistorii();
+            
+            // Ukrywanie specjalnych przycisków powrotu i kawy, jeśli użytkownik przechodzi do zakładki celów ręcznie z menu głównego
+            if (nazwa === 'cele') {
+                let btnTimer = document.getElementById('btn-powrot-timer');
+                let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
+                if (!flagaPrzejsciaPoOsiagnieciuCelu) {
+                    if(btnTimer) btnTimer.style.display = 'none';
+                    if(kawaWrapper) kawaWrapper.style.display = 'none';
+                }
+            }
+        }
+
+        function przejdzDoPodmenu(nazwa) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('subtab-' + nazwa).classList.add('active');
+            if (nazwa === 'cele') {
+                inicjalizujListeCelow();
+                let btnTimer = document.getElementById('btn-powrot-timer');
+                let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
+                if (!flagaPrzejsciaPoOsiagnieciuCelu) {
+                    if(btnTimer) btnTimer.style.display = 'none';
+                    if(kawaWrapper) kawaWrapper.style.display = 'none';
+                }
+            }
+            if (nazwa === 'baza') odswiezPanelBazy();
+            if (nazwa === 'historia') {
+                let ap = document.getElementById('analiza-partia');
+                if(ap) ap.selectedIndex = 0;
+                aktualizujCwiczenia('analiza');
+            }
+        }
+
+        function wracajDoWiecej() {
+            flagaPrzejsciaPoOsiagnieciuCelu = false;
+            let btnTimer = document.getElementById('btn-powrot-timer');
+            let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
+            if(btnTimer) btnTimer.style.display = 'none';
+            if(kawaWrapper) kawaWrapper.style.display = 'none';
+            zmienZakladke('wiecej', document.querySelectorAll('.nav-item')[2]);
+        }
+
+        function powrotZModuluCelu() {
+            flagaPrzejsciaPoOsiagnieciuCelu = false;
+            let btnTimer = document.getElementById('btn-powrot-timer');
+            let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
+            if(btnTimer) btnTimer.style.display = 'none';
+            if(kawaWrapper) kawaWrapper.style.display = 'none';
+            zmienZakladke('dziennik', document.querySelectorAll('.nav-item')[0]);
+            otwórzPanelWyboruPrzerwy();
+        }
+
+        function otwórzPanelWyboruPrzerwy() {
+            document.getElementById('timer-wybor-box').style.display = 'flex';
+            document.getElementById('timer-odliczanie-box').style.display = 'none';
+            document.getElementById('timer-title').textContent = 'Wybierz czas przerwy';
+            document.getElementById('timer-overlay').style.display = 'flex';
+        }
+
+        function startTimerWybranegoCzasu(sekundy) {
+            pozostalyCzasSekundy = sekundy;
+            document.getElementById('timer-wybor-box').style.display = 'none';
+            document.getElementById('timer-odliczanie-box').style.display = 'flex';
+            document.getElementById('timer-title').textContent = 'Przerwa między seriami';
+            aktualizujWyświetlaczTimera();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                pozostalyCzasSekundy--;
+                aktualizujWyświetlaczTimera();
+                if (pozostalyCzasSekundy <= 0) {
+                    clearInterval(timerInterval);
+                    uruchomSygnałKoniecPzerwy();
+                    document.getElementById('timer-overlay').style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function aktualizujWyświetlaczTimera() {
+            let min = Math.floor(pozostalyCzasSekundy / 60);
+            let sek = pozostalyCzasSekundy % 60;
+            let disp = document.getElementById('timer-display');
+            if(disp) disp.textContent = `${min.toString().padStart(2, '0')}:${sek.toString().padStart(2, '0')}`;
+        }
+
+        function anulujTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('timer-overlay').style.display = 'none';
+        }
+
+        function uruchomSygnałKoniecPzerwy() {
+            if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+        }
+
+        function inicjalizujListeCelow() {
+            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            let celKatEl = document.getElementById('cel-kategoria');
+            if(!celKatEl) return;
+            celKatEl.innerHTML = '';
+            Object.keys(bazyCwiczen).forEach(kat => {
+                if (kat !== 'Regeneracja') {
+                    let opt = document.createElement('option');
+                    opt.value = kat; opt.textContent = kat;
+                    celKatEl.appendChild(opt);
+                }
+            });
+            zmienionoKategorieCelu();
+        }
+
+        function sprawdzOsiagniecieCelu(cwiczenie, nowyWynik) {
+            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+            let docelowaWartosc = celeZapisane[cwiczenie];
+            if (docelowaWartosc !== undefined && docelowaWartosc > 0 && nowyWynik >= docelowaWartosc) {
+                ostatnioPobityCel = cwiczenie;
+                document.getElementById('alert-cel-nazwa').textContent = cwiczenie;
+                document.getElementById('alert-cel-wynik').textContent = nowyWynik;
+                anulujTimer();
+                document.getElementById('alert-cel-osiagniety').style.display = 'flex';
+                return true;
+            }
+            return false;
+        }
+
+        function przejdzDoNowegoCelu() {
+            document.getElementById('alert-cel-osiagniety').style.display = 'none';
+            flagaPrzejsciaPoOsiagnieciuCelu = true;
+            
+            // Włączamy widoczność przycisku powrotu i kawy w module celów po kliknięciu z nakładki
+            let btnTimer = document.getElementById('btn-powrot-timer');
+            let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
+            if(btnTimer) btnTimer.style.display = 'block';
+            if(kawaWrapper) kawaWrapper.style.display = 'block';
+
+            zmienZakladke('wiecej', document.querySelectorAll('.nav-item')[2]);
+            przejdzDoPodmenu('cele');
+        }
+
+        function zaladujAnalize() {
+            let wybranaPartia = document.getElementById('analiza-partia').value;
+            let wybraneCwiczenie = document.getElementById('analiza-cwiczenie').value;
+            let podsumowanieEl = document.getElementById('analiza-podsumowanie');
+            let tabelaEl = document.getElementById('tabela-historii');
+            if(!wybraneCwiczenie || !tabelaEl) return;
+            
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let wpisyCwiczenia = historia.filter(w => w.cwiczenie === wybraneCwiczenie);
+            tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr>`;
+            
+            if(wpisyCwiczenia.length === 0) {
+                podsumowanieEl.innerHTML = 'Brak zarejestrowanych wpisów dla tego ćwiczenia.';
+                return;
+            }
+            podsumowanieEl.innerHTML = `Liczba wpisów: <b>${wpisyCwiczenia.length}</b>`;
+            wpisyCwiczenia.forEach(w => {
+                tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+            });
+        }
+
+        function odswiezPanelBazy() {
+            let select = document.getElementById('menedzer-kategoria');
+            if(!select) return;
+            select.innerHTML = '';
+            Object.keys(bazyCwiczen).forEach(kat => {
+                let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
+                select.appendChild(opt);
+            });
+            odswiezListeMenedzera();
+        }
+
+        function odswiezListeMenedzera() {
+            let kat = document.getElementById('menedzer-kategoria').value;
+            let container = document.getElementById('lista-cwiczen-menedzer');
+            if(!kat || !container) return;
+            container.innerHTML = '';
+            bazyCwiczen[kat].forEach((cwiczenie) => {
+                container.innerHTML += `<div class="list-item-cwiczenie"><span>${cwiczenie}</span><button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌</button></div>`;
+            });
+        }
+
+        function dodajKategorie() {
+            showPromptModal("Podaj nazwę nowej kategorii:", "", (nowa) => {
+                if (nowa && nowa.trim() !== "" && !bazyCwiczen[nowa.trim()]) {
+                    bazyCwiczen[nowa.trim()] = [];
+                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+                    inicjalizujKategorie();
+                    odswiezPanelBazy();
+                    showNotification("✅ Kategoria dodana!");
+                }
+            });
+        }
+
+        function dodajCwiczenie() {
+            let kat = document.getElementById('menedzer-kategoria').value;
+            let nazwa = document.getElementById('nowe-cwiczenie-nazwa').value.trim();
+            if (kat && nazwa && !bazyCwiczen[kat].includes(nazwa)) {
+                bazyCwiczen[kat].push(nazwa);
+                document.getElementById('nowe-cwiczenie-nazwa').value = '';
+                bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+                odswiezListeMenedzera();
+                aktualizujCwiczenia('dziennik');
+                showNotification("✅ Ćwiczenie dodane!");
+            }
+        }
+
+        function usunCwiczenie(kat, nazwa) {
+            showConfirmModal(`Usunąć "${nazwa}"?`, (potwierdzono) => {
+                if (potwierdzono) {
+                    bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
+                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+                    odswiezListeMenedzera();
+                    aktualizujCwiczenia('dziennik');
+                    showNotification("🗑️ Usunięto!");
+                }
+            });
+        }
+
+        async function zapiszIZsynchronizuj() {
+            if (!zalogowanyUzytkownik) { showNotification('⚠️ Musisz być zalogowany!'); return; }
+            let data = document.getElementById('dziennik-data').value;
+            let partia = document.getElementById('dziennik-partia').value;
+            let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
+            if (!data || !cwiczenie) { showNotification('Uzupełnij dane'); return; }
+
+            let wpis = { user_id: zalogowanyUzytkownik.id, data, partia, cwiczenie, typ: 'Trening' };
+            let celOsiagniety = false;
+
+            if (partia === 'Cardio') {
+                wpis.seria = 1; wpis.ciezar = parseFloat(document.getElementById('dziennik-dystans').value) || 0; wpis.powt = parseInt(document.getElementById('dziennik-czas').value) || 0; wpis.onerm = 0;
+            } else if (partia === 'Regeneracja') {
+                wpis.seria = 1; wpis.ciezar = 0; wpis.powt = 0; wpis.onerm = 0;
+            } else {
+                let ciezar = parseFloat(document.getElementById('dziennik-ciezar').value) || 0;
+                let powt = parseInt(document.getElementById('dziennik-powt').value) || 0;
+                let onerm = Math.round(ciezar * (1 + powt / 30) * 10) / 10;
+                wpis.seria = parseInt(document.getElementById('dziennik-seria').value) || 1;
+                wpis.ciezar = ciezar; wpis.powt = powt; wpis.onerm = onerm;
+                wpis.rir = document.getElementById('dziennik-rir').value || null;
+                celOsiagniety = sprawdzOsiagniecieCelu(cwiczenie, onerm);
+            }
+
+            try {
+                await supabaseClient.from('treningi').insert([wpis]);
+                showNotification('✅ Zapisano i zsynchronizowano!');
+            } catch (err) {
+                showNotification('✅ Zapisano lokalnie');
+            }
+
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            historia.unshift(wpis);
+            bezpiecznyZapisStorage('historia_treningow', historia);
+            inicjalizujSelectHistorii();
+
+            if (!celOsiagniety && partia !== 'Regeneracja') otwórzPanelWyboruPrzerwy();
+        }
+
+        function otworzKontakt() {
+            window.location.href = `mailto:h75@onet.eu?subject=Pulse75%20-%20Zgłoszenie%20błędu`;
+        }
+    </script>
+    <!-- =================================================================
+     * Projekt: PULSE 75 – Dziennik Treningowy PWA
+     * Własność intelektualna i prawa autorskie (C) H75 (Hammer75)
+     * Wszelkie prawa zastrzeżone. Kopiowanie, modyfikowanie 
+     * oraz dystrybucja bez zgody autora jest zabroniona.
+     ================================================================= -->
+</body>
+</html>
