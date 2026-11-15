@@ -397,10 +397,15 @@
                         .order('data', { ascending: false });
                     if (!error && serverTreningi) {
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
+                        
+                        // Odśwież bazę ćwiczeń i kategorie w dzienniku
+                        bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+                        inicjalizujKategorie();
+                        
                         inicjalizujSelectHistorii();
                         zaladujHistorieDnia();
                         
-                        // Odśwież widoki, jeśli użytkownik akurat w nich przebywa
+                        // Odśwież widoki w zależności od tego, w której zakładce znajduje się użytkownik
                         if (document.getElementById('subtab-cele').classList.contains('active')) {
                             inicjalizujListeCelow();
                         }
@@ -663,6 +668,7 @@
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
                         inicjalizujSelectHistorii();
                         zaladujHistorieDnia();
+                        zmienionoCwiczenieDziennika(); // Aktualizujemy pole ciężaru/powtórzeń w dzienniku po pobraniu z Supabase
                     }
                 } catch(err) {}
             }
@@ -760,6 +766,14 @@
                 } else if (partia !== 'Regeneracja') {
                     document.getElementById('dziennik-ciezar').value = ostatniWpis.ciezar || '';
                     document.getElementById('dziennik-powt').value = ostatniWpis.powt || 8;
+                }
+            } else {
+                if (partia === 'Cardio') {
+                    document.getElementById('dziennik-dystans').value = '';
+                    document.getElementById('dziennik-czas').value = '';
+                } else if (partia !== 'Regeneracja') {
+                    document.getElementById('dziennik-ciezar').value = '';
+                    document.getElementById('dziennik-powt').value = 8;
                 }
             }
             obliczWlocie();
@@ -991,13 +1005,11 @@
         }
 
         function uruchomSygnałKoniecPzerwy() {
-            // Wibracja
             if (navigator.vibrate) {
                 try {
                     navigator.vibrate([500, 200, 500, 200, 500]);
                 } catch(e) {}
             }
-            // Sygnał dźwiękowy (Web Audio API - działa natywnie bez zewnętrznych plików)
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 if (AudioContext) {
@@ -1005,7 +1017,7 @@
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
                     gain.gain.setValueAtTime(0.2, ctx.currentTime);
                     osc.connect(gain);
                     gain.connect(ctx.destination);
