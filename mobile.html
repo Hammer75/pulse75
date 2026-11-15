@@ -220,7 +220,8 @@
                     <button class="menu-btn" onclick="przejdzDoPodmenu('baza')"><span>🏋️ Zarządzanie Bazą Ćwiczeń</span><span>➔</span></button>
                     <button class="menu-btn" onclick="przejdzDoPodmenu('instrukcja')"><span>📖 Instrukcja Obsługi</span><span>➔</span></button>
                     <button class="menu-btn" style="border-color: #333; background: #252525; margin-top: 10px;" onclick="otworzKontakt()"><span>✉️ Zgłoś błąd / Kontakt</span><span style="color: var(--text-muted);">➔</span></button>
-                    <button class="menu-btn" style="border-color: var(--primary); background: linear-gradient(135deg, #2a1b1b 0%, #1a1a1a 100%); margin-top: 20px;" onclick="window.open('https://suppi.pl/h75', '_blank')"><span>☕ Postaw mi kawę</span><span style="color: var(--primary);">❤️</span></button>
+                    <!-- PRZYCISK KAWY 1 (POMARAŃCZOWY) -->
+                    <button class="menu-btn" style="border-color: #ff8c00; background: linear-gradient(135deg, #ff9900 0%, #e65c00 100%); color: #ffffff; margin-top: 20px;" onclick="window.open('https://suppi.pl/h75', '_blank')"><span style="color: #ffffff; font-weight: bold;">☕ Postaw mi kawę</span><span style="color: #ffffff;">❤️</span></button>
                 </div>
             </div>
 
@@ -265,11 +266,12 @@
                     <!-- WIDOCZNE TYLKO PO PRZEJŚCIU Z NAKŁADKI OSIĄGNIĘTEGO CELU -->
                     <button id="btn-powrot-timer" onclick="powrotZModuluCelu()" style="display: none; margin-top: 20px; background: #444;">⬅ Powrót do dziennika</button>
 
-                    <div id="btn-kawa-cel-wrapper" style="display: none; background: #252525; border: 1px solid var(--primary); border-radius: 8px; padding: 12px; margin-top: 20px; text-align: center;">
+                    <!-- PRZYCISK KAWY 2 (POMARAŃCZOWY) -->
+                    <div id="btn-kawa-cel-wrapper" style="display: none; background: #252525; border: 1px solid #ff8c00; border-radius: 8px; padding: 12px; margin-top: 20px; text-align: center;">
                         <p style="font-size: 0.85rem; color: #ccc; line-height: 1.4; margin-top: 0; margin-bottom: 10px;">
                             Jeżeli uważasz że program Pulse 75 przyczynił się do Twojego progresu treningowego...
                         </p>
-                        <button onclick="window.open('https://suppi.pl/h75', '_blank')" style="background: linear-gradient(135deg, #2a1b1b 0%, #1a1a1a 100%); color: var(--primary); border: 1px solid var(--primary); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.95rem;">☕ Postaw mi kawę ❤️</button>
+                        <button onclick="window.open('https://suppi.pl/h75', '_blank')" style="background: linear-gradient(135deg, #ff9900 0%, #e65c00 100%); color: #ffffff; border: 1px solid #ffaa00; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.95rem;">☕ Postaw mi kawę ❤️</button>
                     </div>
                 </div>
             </div>
