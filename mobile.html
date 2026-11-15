@@ -819,21 +819,24 @@
             document.getElementById('subtab-' + nazwa).classList.add('active');
             
             let btnPowrotTimer = document.getElementById('btn-powrot-timer');
-            let btnKawaCel = document.getElementById('btn-kawa-cel-wrapper');
+            let kawaWrapper = document.getElementById('btn-kawa-cel-wrapper');
 
             if (nazwa === 'cele') {
                 if (flagaPrzejsciaPoOsiagnieciuCelu) {
-                    if(btnPowrotTimer) btnPowrotTimer.style.display = 'block';
-                    if(btnKawaCel) btnKawaCel.style.display = 'block';
+                    if(btnPowrotTimer) {
+                        btnPowrotTimer.style.display = 'block';
+                        btnPowrotTimer.textContent = czyOstatniCelCardio ? '⬅ Powrót do dziennika' : '⬅ Powrót do dziennika i uruchomienie stopera';
+                    }
+                    if(kawaWrapper) kawaWrapper.style.display = 'block';
                 } else {
                     if(btnPowrotTimer) btnPowrotTimer.style.display = 'none';
-                    if(btnKawaCel) btnKawaCel.style.display = 'none';
+                    if(kawaWrapper) kawaWrapper.style.display = 'none';
                 }
                 inicjalizujListeCelow();
             } else {
                 flagaPrzejsciaPoOsiagnieciuCelu = false;
                 if(btnPowrotTimer) btnPowrotTimer.style.display = 'none';
-                if(btnKawaCel) btnKawaCel.style.display = 'none';
+                if(kawaWrapper) kawaWrapper.style.display = 'none';
             }
 
             if (nazwa === 'baza') odswiezPanelBazy();
