@@ -627,14 +627,15 @@
             
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
-                    const { data: serverTreningi } = await supabaseClient
+                    const { data: serverTreningi, error } = await supabaseClient
                         .from('treningi')
                         .select('*')
                         .eq('user_id', zalogowanyUzytkownik.id)
                         .order('data', { ascending: false });
-                    if (serverTreningi) {
+                    if (!error && serverTreningi) {
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
                         inicjalizujSelectHistorii();
+                        zaladujHistorieDnia();
                     }
                 } catch(err) {}
             }
