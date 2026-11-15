@@ -386,6 +386,33 @@
             inicjalizujPoZalogowaniu();
         });
 
+        // Synchronizacja przy powrocie z tła (np. przełączenie aplikacji w telefonie)
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    const { data: serverTreningi, error } = await supabaseClient
+                        .from('treningi')
+                        .select('*')
+                        .eq('user_id', zalogowanyUzytkownik.id)
+                        .order('data', { ascending: false });
+                    if (!error && serverTreningi) {
+                        bezpiecznyZapisStorage('historia_treningow', serverTreningi);
+                        inicjalizujSelectHistorii();
+                        zaladujHistorieDnia();
+                        
+                        // Odśwież widoki, jeśli użytkownik akurat w nich przebywa
+                        if (document.getElementById('subtab-cele').classList.contains('active')) {
+                            inicjalizujListeCelow();
+                        }
+                        if (document.getElementById('subtab-historia').classList.contains('active')) {
+                            zaladujAnalize();
+                        }
+                        zmienionoCwiczenieDziennika();
+                    }
+                } catch(e) {}
+            }
+        });
+
         function pobierzKluczStorage(klucz) {
             if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return `pulse75_guest_${klucz}`;
             return `pulse75_user_${zalogowanyUzytkownik.id}_${klucz}`;
@@ -648,13 +675,20 @@
                 let el = document.getElementById(id);
                 if(el) {
                     el.innerHTML = '';
+                    let hasAny = false;
                     Object.keys(bazyCwiczen).forEach(kat => {
-                        if (id === 'dziennik-partia' || kat !== 'Regeneracja') {
+                        if ((id === 'dziennik-partia' || kat !== 'Regeneracja') && bazyCwiczen[kat] && bazyCwiczen[kat].length > 0) {
+                            hasAny = true;
                             let opt = document.createElement('option');
                             opt.value = kat; opt.textContent = kat;
                             el.appendChild(opt);
                         }
                     });
+                    if (!hasAny) {
+                        let opt = document.createElement('option');
+                        opt.value = ''; opt.textContent = 'Brak kategorii / ćwiczeń';
+                        el.appendChild(opt);
+                    }
                 }
             });
             zmienKategorieDziennika();
@@ -688,13 +722,26 @@
             
             let partia = partiaEl.value;
             selectCwiczenie.innerHTML = '';
-            if(bazyCwiczen[partia]) {
-                bazyCwiczen[partia].forEach(cw => {
-                    let opt = document.createElement('option');
-                    opt.value = cw; opt.textContent = cw;
-                    selectCwiczenie.appendChild(opt);
-                });
+
+            if (!partia || !bazyCwiczen[partia] || bazyCwiczen[partia].length === 0) {
+                let opt = document.createElement('option');
+                opt.value = ''; opt.textContent = 'Brak ćwiczeń';
+                selectCwiczenie.appendChild(opt);
+                if (tryb === 'dziennik') {
+                    let ciezarInput = document.getElementById('dziennik-ciezar');
+                    if(ciezarInput) ciezarInput.value = '';
+                    obliczWlocie();
+                } else if (tryb === 'analiza') {
+                    zaladujAnalize();
+                }
+                return;
             }
+
+            bazyCwiczen[partia].forEach(cw => {
+                let opt = document.createElement('option');
+                opt.value = cw; opt.textContent = cw;
+                selectCwiczenie.appendChild(opt);
+            });
             if(tryb === 'analiza') zaladujAnalize();
             else if(tryb === 'cel') zmienionoKategorieCelu();
             else if(tryb === 'dziennik') zmienionoCwiczenieDziennika();
@@ -703,7 +750,7 @@
         function zmienionoCwiczenieDziennika() {
             let partia = document.getElementById('dziennik-partia').value;
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
-            if (!cwiczenie) return;
+            if (!cwiczenie || cwiczenie === "Brak ćwiczeń") return;
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             let ostatniWpis = historia.find(w => w.cwiczenie === cwiczenie);
             if (ostatniWpis) {
@@ -769,7 +816,6 @@
 
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             
-            // Jeśli ćwiczenie nie ma żadnych wpisów w historii (np. trening usunięty), wyzeruj cel docelowy
             if (wpisyCwiczenia.length === 0) {
                 celeZapisane[celCwiczenie] = 0;
                 bezpiecznyZapisStorage('cele', celeZapisane);
@@ -1096,9 +1142,11 @@
             let container = document.getElementById('lista-cwiczen-menedzer');
             if(!kat || !container) return;
             container.innerHTML = '';
-            bazyCwiczen[kat].forEach((cwiczenie) => {
-                container.innerHTML += `<div class="list-item-cwiczenie"><span>${cwiczenie}</span><button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌</button></div>`;
-            });
+            if (bazyCwiczen[kat]) {
+                bazyCwiczen[kat].forEach((cwiczenie) => {
+                    container.innerHTML += `<div class="list-item-cwiczenie"><span>${cwiczenie}</span><button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌</button></div>`;
+                });
+            }
         }
 
         function dodajKategorie() {
@@ -1116,13 +1164,16 @@
         function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria').value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa').value.trim();
-            if (kat && nazwa && !bazyCwiczen[kat].includes(nazwa)) {
-                bazyCwiczen[kat].push(nazwa);
-                document.getElementById('nowe-cwiczenie-nazwa').value = '';
-                bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
-                odswiezListeMenedzera();
-                aktualizujCwiczenia('dziennik');
-                showNotification("✅ Ćwiczenie dodane!");
+            if (kat && nazwa) {
+                if (!bazyCwiczen[kat]) bazyCwiczen[kat] = [];
+                if (!bazyCwiczen[kat].includes(nazwa)) {
+                    bazyCwiczen[kat].push(nazwa);
+                    document.getElementById('nowe-cwiczenie-nazwa').value = '';
+                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+                    odswiezListeMenedzera();
+                    inicjalizujKategorie();
+                    showNotification("✅ Ćwiczenie dodane!");
+                }
             }
         }
 
@@ -1132,7 +1183,7 @@
                     bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
                     bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
                     odswiezListeMenedzera();
-                    aktualizujCwiczenia('dziennik');
+                    inicjalizujKategorie();
                     showNotification("🗑️ Usunięto!");
                 }
             });
@@ -1143,7 +1194,7 @@
             let data = document.getElementById('dziennik-data').value;
             let partia = document.getElementById('dziennik-partia').value;
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
-            if (!data || !cwiczenie) { showNotification('Uzupełnij dane'); return; }
+            if (!data || !cwiczenie || cwiczenie === "Brak ćwiczeń" || !partia) { showNotification('Brak dostępnych ćwiczeń lub nie wybrano danych'); return; }
 
             let wpis = { user_id: zalogowanyUzytkownik.id, data, partia, cwiczenie, typ: 'Trening' };
             let celOsiagniety = false;
