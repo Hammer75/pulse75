@@ -963,9 +963,6 @@
 
         function inicjalizujListeCelow() {
             bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || Object.keys(bazyCwiczen).length === 0) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
             
             let celKatEl = document.getElementById('cel-kategoria');
             if(!celKatEl) return;
