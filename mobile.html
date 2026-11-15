@@ -720,17 +720,29 @@
 
         function zmienionoKategorieCelu() {
             bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            let kat = document.getElementById('cel-kategoria').value;
+            let katEl = document.getElementById('cel-kategoria');
             let celCwiczenieEl = document.getElementById('cel-cwiczenie');
-            if(!celCwiczenieEl) return;
+            let inputCelWartosc = document.getElementById('cel-wartosc');
+            let fill = document.getElementById('progress-fill');
+            let text = document.getElementById('progress-text');
+
+            if(!celCwiczenieEl || !katEl) return;
+            let kat = katEl.value;
             celCwiczenieEl.innerHTML = '';
-            if (bazyCwiczen[kat]) {
-                bazyCwiczen[kat].forEach(cw => {
-                    let opt = document.createElement('option');
-                    opt.value = cw; opt.textContent = cw;
-                    celCwiczenieEl.appendChild(opt);
-                });
+
+            if (!kat || !bazyCwiczen[kat] || bazyCwiczen[kat].length === 0) {
+                celCwiczenieEl.innerHTML = '<option value="">Brak ćwiczeń</option>';
+                if (inputCelWartosc) inputCelWartosc.value = '';
+                if (fill) fill.style.width = '0%';
+                if (text) text.textContent = '0%';
+                return;
             }
+
+            bazyCwiczen[kat].forEach(cw => {
+                let opt = document.createElement('option');
+                opt.value = cw; opt.textContent = cw;
+                celCwiczenieEl.appendChild(opt);
+            });
             let labelCelWartosc = document.getElementById('label-cel-wartosc');
             if (labelCelWartosc) {
                 labelCelWartosc.textContent = kat === 'Cardio' ? 'Twój docelowy dystans (km):' : 'Twój docelowy rekord 1RM (kg):';
@@ -739,10 +751,18 @@
         }
 
         function zmienionoKategorieCeluWartosc() {
-            let celKat = document.getElementById('cel-kategoria').value;
-            let celCwiczenie = document.getElementById('cel-cwiczenie').value;
+            let celKat = document.getElementById('cel-kategoria')?.value;
+            let celCwiczenie = document.getElementById('cel-cwiczenie')?.value;
             let inputCelWartosc = document.getElementById('cel-wartosc');
-            if(!celCwiczenie || !inputCelWartosc) return;
+            let fill = document.getElementById('progress-fill');
+            let text = document.getElementById('progress-text');
+
+            if(!celCwiczenie || !inputCelWartosc || !celKat || celCwiczenie === "" || celCwiczenie === "Brak ćwiczeń") {
+                if(inputCelWartosc) inputCelWartosc.value = '';
+                if (fill) fill.style.width = '0%';
+                if (text) text.textContent = '0%';
+                return;
+            }
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             
             if (celeZapisane[celCwiczenie] === undefined) {
@@ -777,6 +797,7 @@
 
         function zapiszWartoscCelu() {
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
+            if (!celCwiczenie || celCwiczenie === "Brak ćwiczeń") return;
             let val = parseFloat(document.getElementById('cel-wartosc').value) || 0;
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             celeZapisane[celCwiczenie] = val;
@@ -790,7 +811,11 @@
             let docelowaWartosc = parseFloat(document.getElementById('cel-wartosc').value) || 0;
             let fill = document.getElementById('progress-fill');
             let text = document.getElementById('progress-text');
-            if(!fill || !text || !celCwiczenie) return;
+            if(!fill || !text || !celCwiczenie || celCwiczenie === "Brak ćwiczeń") {
+                if(fill) fill.style.width = '0%';
+                if(text) text.textContent = '0%';
+                return;
+            }
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
             let aktualnaWartosc = celKat === 'Cardio' ? (wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.ciezar || 0)) : 0) : (wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0);
@@ -946,19 +971,35 @@
             if(!celKatEl) return;
             
             celKatEl.innerHTML = '';
+            let hasAnyExercises = false;
+
             Object.keys(bazyCwiczen).forEach(kat => {
-                if (kat !== 'Regeneracja') {
+                if (kat !== 'Regeneracja' && bazyCwiczen[kat] && bazyCwiczen[kat].length > 0) {
+                    hasAnyExercises = true;
                     let opt = document.createElement('option');
                     opt.value = kat; opt.textContent = kat;
                     celKatEl.appendChild(opt);
                 }
             });
+
+            if (!hasAnyExercises) {
+                celKatEl.innerHTML = '<option value="">Brak kategorii</option>';
+                let celCwiczenieEl = document.getElementById('cel-cwiczenie');
+                if (celCwiczenieEl) celCwiczenieEl.innerHTML = '<option value="">Brak ćwiczeń</option>';
+                let inputCelWartosc = document.getElementById('cel-wartosc');
+                if (inputCelWartosc) inputCelWartosc.value = '';
+                let fill = document.getElementById('progress-fill');
+                let text = document.getElementById('progress-text');
+                if (fill) fill.style.width = '0%';
+                if (text) text.textContent = '0%';
+                return;
+            }
             
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             let zmianaWprowadzona = false;
 
             Object.keys(bazyCwiczen).forEach(kat => {
-                if (kat !== 'Regeneracja') {
+                if (kat !== 'Regeneracja' && bazyCwiczen[kat]) {
                     bazyCwiczen[kat].forEach(cw => {
                         if (celeZapisane[cw] === undefined) {
                             celeZapisane[cw] = 0;
@@ -973,9 +1014,8 @@
             }
 
             if (ostatnioPobityCel) {
-                let celKatEl = document.getElementById('cel-kategoria');
                 for (let kat in bazyCwiczen) {
-                    if (kat !== 'Regeneracja' && bazyCwiczen[kat].includes(ostatnioPobityCel)) {
+                    if (kat !== 'Regeneracja' && bazyCwiczen[kat] && bazyCwiczen[kat].includes(ostatnioPobityCel)) {
                         celKatEl.value = kat;
                         break;
                     }
