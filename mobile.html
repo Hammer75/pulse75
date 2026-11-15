@@ -108,7 +108,7 @@
                         <div style="font-size: 2.5rem; margin-bottom: 10px;">🏆</div>
                         <h2 style="color: #d4af37; font-size: 1.4rem; margin-bottom: 10px;">Cel osiągnięty!</h2>
                         <p style="color: #ccc; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
-                            Dla ćwiczenia: <b id="alert-cel-nazwa" style="color: white;"></b> pokonałeś barierę <b id="alert-cel-wynik" style="color: white;"></b> kg (1RM). Czas zawiesić poprzeczkę wyżej!
+                            Dla ćwiczenia: <b id="alert-cel-nazwa" style="color: white;"></b> pokonałeś barierę <b id="alert-cel-wynik" style="color: white;"></b>. Czas zawiesić poprzeczkę wyżej!
                         </p>
                         
                         <button onclick="przejdzDoNowegoCelu()" style="background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%); color: #000; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">OK, ustaw nowy cel ➔</button>
@@ -957,14 +957,14 @@
             zmienionoKategorieCeluWartosc();
         }
 
-        function sprawdzOsiagniecieCelu(cwiczenie, nowyWynik) {
+        function sprawdzOsiagniecieCelu(cwiczenie, nowyWynik, isCardio = false) {
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             let docelowaWartosc = celeZapisane[cwiczenie] !== undefined ? celeZapisane[cwiczenie] : 0;
             
             if (nowyWynik > 0 && (docelowaWartosc === 0 || nowyWynik >= docelowaWartosc)) {
                 ostatnioPobityCel = cwiczenie;
                 document.getElementById('alert-cel-nazwa').textContent = cwiczenie;
-                document.getElementById('alert-cel-wynik').textContent = nowyWynik;
+                document.getElementById('alert-cel-wynik').textContent = nowyWynik + (isCardio ? ' km' : ' kg (1RM)');
                 anulujTimer();
                 document.getElementById('alert-cel-osiagniety').style.display = 'flex';
                 return true;
@@ -1069,7 +1069,12 @@
             let celOsiagniety = false;
 
             if (partia === 'Cardio') {
-                wpis.seria = 1; wpis.ciezar = parseFloat(document.getElementById('dziennik-dystans').value) || 0; wpis.powt = parseInt(document.getElementById('dziennik-czas').value) || 0; wpis.onerm = 0;
+                let dystans = parseFloat(document.getElementById('dziennik-dystans').value) || 0;
+                wpis.seria = 1; 
+                wpis.ciezar = dystans; 
+                wpis.powt = parseInt(document.getElementById('dziennik-czas').value) || 0; 
+                wpis.onerm = 0;
+                celOsiagniety = sprawdzOsiagniecieCelu(cwiczenie, dystans, true);
             } else if (partia === 'Regeneracja') {
                 wpis.seria = 1; wpis.ciezar = 0; wpis.powt = 0; wpis.onerm = 0;
             } else {
@@ -1079,7 +1084,7 @@
                 wpis.seria = parseInt(document.getElementById('dziennik-seria').value) || 1;
                 wpis.ciezar = ciezar; wpis.powt = powt; wpis.onerm = onerm;
                 wpis.rir = document.getElementById('dziennik-rir').value || null;
-                celOsiagniety = sprawdzOsiagniecieCelu(cwiczenie, onerm);
+                celOsiagniety = sprawdzOsiagniecieCelu(cwiczenie, onerm, false);
             }
 
             try {
