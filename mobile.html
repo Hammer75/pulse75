@@ -263,7 +263,7 @@
                     </div>
                     
                     <!-- WIDOCZNE TYLKO PO PRZEJŚCIU Z NAKŁADKI OSIĄGNIĘTEGO CELU -->
-                    <button id="btn-powrot-timer" onclick="powrotZModuluCelu()" style="display: none; margin-top: 20px; background: #444;">⬅ Wróć do Dziennika i ustaw przerwę</button>
+                    <button id="btn-powrot-timer" onclick="powrotZModuluCelu()" style="display: none; margin-top: 20px; background: #444;">⬅ Powrót do dziennika</button>
 
                     <div id="btn-kawa-cel-wrapper" style="display: none; background: #252525; border: 1px solid var(--primary); border-radius: 8px; padding: 12px; margin-top: 20px; text-align: center;">
                         <p style="font-size: 0.85rem; color: #ccc; line-height: 1.4; margin-top: 0; margin-bottom: 10px;">
@@ -351,6 +351,7 @@
     <script>
         let zalogowanyUzytkownik = null;
         let ostatnioPobityCel = null;
+        let czyOstatniCelCardio = false;
         let timerInterval = null;
         let pozostalyCzasSekundy = 0;
         let flagaPrzejsciaPoOsiagnieciuCelu = false;
@@ -859,7 +860,10 @@
             if(btnTimer) btnTimer.style.display = 'none';
             if(kawaWrapper) kawaWrapper.style.display = 'none';
             zmienZakladke('dziennik', document.querySelectorAll('.nav-item')[0]);
-            otwórzPanelWyboruPrzerwy();
+            if (!czyOstatniCelCardio) {
+                otwórzPanelWyboruPrzerwy();
+            }
+            czyOstatniCelCardio = false;
         }
 
         function otwórzPanelWyboruPrzerwy() {
@@ -963,6 +967,7 @@
             
             if (nowyWynik > 0 && (docelowaWartosc === 0 || nowyWynik >= docelowaWartosc)) {
                 ostatnioPobityCel = cwiczenie;
+                czyOstatniCelCardio = isCardio;
                 document.getElementById('alert-cel-nazwa').textContent = cwiczenie;
                 document.getElementById('alert-cel-wynik').textContent = nowyWynik + (isCardio ? ' km' : ' kg (1RM)');
                 anulujTimer();
