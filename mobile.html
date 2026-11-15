@@ -763,8 +763,18 @@
                 if (text) text.textContent = '0%';
                 return;
             }
+
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
+
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             
+            // Jeśli ćwiczenie nie ma żadnych wpisów w historii (np. trening usunięty), wyzeruj cel docelowy
+            if (wpisyCwiczenia.length === 0) {
+                celeZapisane[celCwiczenie] = 0;
+                bezpiecznyZapisStorage('cele', celeZapisane);
+            }
+
             if (celeZapisane[celCwiczenie] === undefined) {
                 celeZapisane[celCwiczenie] = 0;
                 bezpiecznyZapisStorage('cele', celeZapisane);
@@ -772,8 +782,6 @@
 
             let docelowaWartosc = celeZapisane[celCwiczenie];
             if (docelowaWartosc <= 0) {
-                let historia = bezpiecznyOdczytStorage('historia_treningow', []);
-                let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
                 if (celKat === 'Cardio') {
                     let aktualnyDystans = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.ciezar || 0)) : 0;
                     if (aktualnyDystans > 0) {
@@ -791,7 +799,7 @@
                 }
             }
 
-            inputCelWartosc.value = docelowaWartosc;
+            inputCelWartosc.value = docelowaWartosc > 0 ? docelowaWartosc : '';
             obliczPostepCelu();
         }
 
