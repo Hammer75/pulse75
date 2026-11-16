@@ -602,15 +602,23 @@
 
                     try {
                         if (w.id) {
-                            let { error } = await supabaseClient.from('treningi').delete().eq('id', w.id);
+                            let { data: deletedRows, error } = await supabaseClient
+                                .from('treningi')
+                                .delete()
+                                .eq('id', w.id)
+                                .select();
+
                             if (error) throw error;
+                            if (!deletedRows || deletedRows.length === 0) {
+                                throw new Error("Baza danych odrzuciła usunięcie (sprawdź polityki RLS w Supabase).");
+                            }
                         }
                         historia.splice(index, 1);
                         bezpiecznyZapisStorage('historia_treningow', historia);
                         odswiezInlineAccordion();
                         showNotification("🗑️ Usunięto wpis z bazy i aplikacji!");
                     } catch (err) {
-                        showNotification("⚠️ Błąd podczas usuwania z bazy: " + (err.message || err));
+                        showNotification("⚠️ Błąd usuwania: " + (err.message || err));
                     }
                 }
             });
