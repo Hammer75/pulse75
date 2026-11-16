@@ -1098,7 +1098,32 @@
             } catch(e) {}
         }
 
+        function oczyscCeleISynchronizuj() {
+            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
+                bazyCwiczen = domyslnaBazaCwiczen;
+            }
+            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+            if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
+                celeZapisane = {};
+            }
+            let dostepneCwiczenia = new Set();
+            Object.keys(bazyCwiczen).forEach(kat => {
+                if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
+                    bazyCwiczen[kat].forEach(cw => dostepneCwiczenia.add(cw));
+                }
+            });
+            let nowezele = {};
+            Object.keys(celeZapisane).forEach(cw => {
+                if (dostepneCwiczenia.has(cw)) {
+                    nowezele[cw] = celeZapisane[cw];
+                }
+            });
+            bezpiecznyZapisStorage('cele', nowezele);
+        }
+
         function inicjalizujListeCelow() {
+            oczyscCeleISynchronizuj();
             bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
                 bazyCwiczen = domyslnaBazaCwiczen;
@@ -1263,6 +1288,11 @@
                 if (potwierdzono) {
                     if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
                         bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
+                        let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+                        if (celeZapisane && celeZapisane[nazwa] !== undefined) {
+                            delete celeZapisane[nazwa];
+                            bezpiecznyZapisStorage('cele', celeZapisane);
+                        }
                         bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
