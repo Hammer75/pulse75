@@ -593,14 +593,25 @@
             entriesList.innerHTML = html;
         }
 
-        function usunWpisPrzezAccordion(index) {
-            showConfirmModal("Czy na pewno chcesz usunąć ten wpis?", (potwierdzono) => {
+        async function usunWpisPrzezAccordion(index) {
+            showConfirmModal("Czy na pewno chcesz usunąć ten wpis z bazy i aplikacji?", async (potwierdzono) => {
                 if (potwierdzono) {
                     let historia = bezpiecznyOdczytStorage('historia_treningow', []);
-                    historia.splice(index, 1);
-                    bezpiecznyZapisStorage('historia_treningow', historia);
-                    odswiezInlineAccordion();
-                    showNotification("🗑️ Usunięto wpis!");
+                    let w = historia[index];
+                    if (!w) return;
+
+                    try {
+                        if (w.id) {
+                            let { error } = await supabaseClient.from('treningi').delete().eq('id', w.id);
+                            if (error) throw error;
+                        }
+                        historia.splice(index, 1);
+                        bezpiecznyZapisStorage('historia_treningow', historia);
+                        odswiezInlineAccordion();
+                        showNotification("🗑️ Usunięto wpis z bazy i aplikacji!");
+                    } catch (err) {
+                        showNotification("⚠️ Błąd podczas usuwania z bazy: " + (err.message || err));
+                    }
                 }
             });
         }
@@ -721,7 +732,7 @@
             document.getElementById('edit-entry-modal').style.display = 'none';
         }
 
-        function zapiszEdytowanyWpis() {
+        async function zapiszEdytowanyWpis() {
             let index = parseInt(document.getElementById('edit-entry-index').value);
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             if (isNaN(index) || !historia[index]) return;
@@ -732,33 +743,53 @@
             
             if (!noweCwiczenie) { showNotification('Wybierz ćwiczenie'); return; }
             
-            w.partia = nowaPartia;
-            w.cwiczenie = noweCwiczenie;
+            let aktualizowanyWpis = {
+                partia: nowaPartia,
+                cwiczenie: noweCwiczenie,
+                typ: 'Trening'
+            };
             
             if (nowaPartia === 'Cardio') {
-                w.seria = 1;
-                w.ciezar = parseFloat(document.getElementById('edit-dystans').value) || 0;
-                w.powt = parseInt(document.getElementById('edit-czas').value) || 0;
-                w.onerm = 0;
-                w.rir = null;
+                aktualizowanyWpis.seria = 1;
+                aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-dystans').value) || 0;
+                aktualizowanyWpis.powt = parseInt(document.getElementById('edit-czas').value) || 0;
+                aktualizowanyWpis.onerm = 0;
+                aktualizowanyWpis.rir = null;
             } else if (nowaPartia === 'Regeneracja') {
-                w.seria = 1;
-                w.ciezar = 0;
-                w.powt = 0;
-                w.onerm = 0;
-                w.rir = null;
+                aktualizowanyWpis.seria = 1;
+                aktualizowanyWpis.ciezar = 0;
+                aktualizowanyWpis.powt = 0;
+                aktualizowanyWpis.onerm = 0;
+                aktualizowanyWpis.rir = null;
             } else {
-                w.seria = parseInt(document.getElementById('edit-seria').value) || 1;
-                w.ciezar = parseFloat(document.getElementById('edit-ciezar').value) || 0;
-                w.powt = parseInt(document.getElementById('edit-powt').value) || 0;
-                w.onerm = Math.round(w.ciezar * (1 + w.powt / 30) * 10) / 10;
-                w.rir = document.getElementById('edit-rir').value || null;
+                aktualizowanyWpis.seria = parseInt(document.getElementById('edit-seria').value) || 1;
+                aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-ciezar').value) || 0;
+                aktualizowanyWpis.powt = parseInt(document.getElementById('edit-powt').value) || 0;
+                aktualizowanyWpis.onerm = Math.round(aktualizowanyWpis.ciezar * (1 + aktualizowanyWpis.powt / 30) * 10) / 10;
+                aktualizowanyWpis.rir = document.getElementById('edit-rir').value || null;
             }
             
-            bezpiecznyZapisStorage('historia_treningow', historia);
-            zamknijEdycjeWpisu();
-            odswiezInlineAccordion();
-            showNotification("✅ Zaktualizowano wpis!");
+            try {
+                if (w.id) {
+                    let { error } = await supabaseClient.from('treningi').update(aktualizowanyWpis).eq('id', w.id);
+                    if (error) throw error;
+                }
+                
+                w.partia = aktualizowanyWpis.partia;
+                w.cwiczenie = aktualizowanyWpis.cwiczenie;
+                w.seria = aktualizowanyWpis.seria;
+                w.ciezar = aktualizowanyWpis.ciezar;
+                w.powt = aktualizowanyWpis.powt;
+                w.onerm = aktualizowanyWpis.onerm;
+                w.rir = aktualizowanyWpis.rir;
+
+                bezpiecznyZapisStorage('historia_treningow', historia);
+                zamknijEdycjeWpisu();
+                odswiezInlineAccordion();
+                showNotification("✅ Zaktualizowano wpis w bazie i aplikacji!");
+            } catch (err) {
+                showNotification("⚠️ Błąd aktualizacji w bazie: " + (err.message || err));
+            }
         }
 
         async function inicjalizujPoZalogowaniu() {
@@ -1471,10 +1502,15 @@
             }
 
             try {
-                await supabaseClient.from('treningi').insert([wpis]);
-                showNotification('✅ Zapisano i zsynchronizowano!');
+                let { data: insertedData, error } = await supabaseClient.from('treningi').insert([wpis]).select();
+                if (error) throw error;
+                if (insertedData && insertedData.length > 0) {
+                    wpis.id = insertedData[0].id;
+                }
+                showNotification('✅ Zapisano i zsynchronizowano z bazą!');
             } catch (err) {
-                showNotification('✅ Zapisano lokalnie');
+                showNotification('⚠️ Błąd zapisu w bazie: ' + (err.message || err));
+                return;
             }
 
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
