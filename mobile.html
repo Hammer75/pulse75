@@ -1281,6 +1281,7 @@
 
             let wpis = { user_id: zalogowanyUzytkownik.id, data, partia, cwiczenie, typ: 'Trening' };
             let celOsiagniety = false;
+            let seriaWpisu = 1;
 
             if (partia === 'Cardio') {
                 let dystans = parseFloat(document.getElementById('dziennik-dystans')?.value) || 0;
@@ -1288,20 +1289,48 @@
                 wpis.ciezar = dystans; 
                 wpis.powt = parseInt(document.getElementById('dziennik-czas')?.value) || 0; 
                 wpis.onerm = 0;
+                seriaWpisu = 1;
                 celOsiagniety = sprawdzOsiagniecieCelu(cwiczenie, dystans, true);
             } else if (partia === 'Regeneracja') {
                 wpis.seria = 1; wpis.ciezar = 0; wpis.powt = 0; wpis.onerm = 0;
+                seriaWpisu = 1;
             } else {
                 let ciezar = parseFloat(document.getElementById('dziennik-ciezar')?.value) || 0;
                 let powt = parseInt(document.getElementById('dziennik-powt')?.value) || 0;
                 let onerm = Math.round(ciezar * (1 + powt / 30) * 10) / 10;
-                wpis.seria = parseInt(document.getElementById('dziennik-seria')?.value) || 1;
+                seriaWpisu = parseInt(document.getElementById('dziennik-seria')?.value) || 1;
+                wpis.seria = seriaWpisu;
                 wpis.ciezar = ciezar; wpis.powt = powt; wpis.onerm = onerm;
                 wpis.rir = document.getElementById('dziennik-rir')?.value || null;
                 celOsiagniety = sprawdzOsiagniecieCelu(cwiczenie, onerm, false);
             }
 
+            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            if (!Array.isArray(historia)) historia = [];
+            
+            let istniejacyWpis = historia.find(w => w && w.data && w.data.substring(0, 10) === data && w.cwiczenie === cwiczenie && Number(w.seria) === Number(seriaWpisu));
+
+            if (istniejacyWpis) {
+                showConfirmModal(`Ta seria (${seriaWpisu}) dla ćwiczenia "${cwiczenie}" w tym dniu już istnieje. Czy chcesz ją nadpisać (poprawić)?`, async (potwierdzono) => {
+                    if (potwierdzono) {
+                        await wykonajZapisWpisu(wpis, celOsiagniety, true);
+                    }
+                });
+            } else {
+                await wykonajZapisWpisu(wpis, celOsiagniety, false);
+            }
+        }
+
+        async function wykonajZapisWpisu(wpis, celOsiagniety, czyNadpisanie) {
             try {
+                if (czyNadpisanie) {
+                    await supabaseClient.from('treningi')
+                        .delete()
+                        .eq('user_id', zalogowanyUzytkownik.id)
+                        .eq('data', wpis.data)
+                        .eq('cwiczenie', wpis.cwiczenie)
+                        .eq('seria', wpis.seria);
+                }
                 await supabaseClient.from('treningi').insert([wpis]);
                 showNotification('✅ Zapisano i zsynchronizowano!');
             } catch (err) {
@@ -1310,11 +1339,18 @@
 
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             if (!Array.isArray(historia)) historia = [];
+            
+            if (czyNadpisanie) {
+                historia = historia.filter(w => !(w && w.data && w.data.substring(0, 10) === wpis.data && w.cwiczenie === wpis.cwiczenie && Number(w.seria) === Number(wpis.seria)));
+            }
             historia.unshift(wpis);
             bezpiecznyZapisStorage('historia_treningow', historia);
             inicjalizujSelectHistorii();
+            zaladujHistorieDnia();
 
-            if (!celOsiagniety && partia !== 'Regeneracja' && partia !== 'Cardio') otwórzPanelWyboruPrzerwy();
+            if (!celOsiagniety && wpis.partia !== 'Regeneracja' && wpis.partia !== 'Cardio') {
+                otwórzPanelWyboruPrzerwy();
+            }
         }
 
         function otworzKontakt() {
