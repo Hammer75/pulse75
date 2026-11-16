@@ -255,7 +255,7 @@
                     <select id="cel-kategoria" onchange="zmienionoKategorieCelu()"></select>
 
                     <label>Wybierz Ćwiczenie:</label>
-                    <select id="cel-cwiczenie" onchange="zmienionoKategorieCelu()"></select>
+                    <select id="cel-cwiczenie" onchange="zmienionoKategorieCeluWartosc()"></select>
 
                     <label id="label-cel-wartosc">Twój docelowy rekord 1RM (kg):</label>
                     <input type="number" id="cel-wartosc" placeholder="np. 100" step="0.5" min="0" oninput="zapiszWartoscCelu()">
@@ -386,7 +386,6 @@
             inicjalizujPoZalogowaniu();
         });
 
-        // Synchronizacja przy powrocie z tła (np. przełączenie aplikacji w telefonie)
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible' && zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
@@ -692,7 +691,6 @@
                 }
             });
 
-            // Przywrócenie ostatnio wybranej partii w Dzienniku (jeśli zapisana)
             let savedPartia = bezpiecznyOdczytStorage('ostatnia_partia', null);
             let partiaEl = document.getElementById('dziennik-partia');
             if (savedPartia && partiaEl) {
@@ -702,7 +700,6 @@
 
             zmienKategorieDziennika();
 
-            // Przywrócenie ostatnio wybranego ćwiczenia w Dzienniku (jeśli zapisane)
             let savedCwiczenie = bezpiecznyOdczytStorage('ostatnie_cwiczenie', null);
             let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
             if (savedCwiczenie && cwiczenieEl) {
@@ -713,7 +710,6 @@
                 }
             }
 
-            // Przywrócenie stanu zablokowania
             let savedLock = bezpiecznyOdczytStorage('is_locked', false);
             if (savedLock) {
                 isExerciseLocked = true;
@@ -874,40 +870,14 @@
                 return;
             }
 
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
-            let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
-
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             
-            if (wpisyCwiczenia.length === 0) {
-                celeZapisane[celCwiczenie] = 0;
-                bezpiecznyZapisStorage('cele', celeZapisane);
-            }
-
             if (celeZapisane[celCwiczenie] === undefined) {
                 celeZapisane[celCwiczenie] = 0;
                 bezpiecznyZapisStorage('cele', celeZapisane);
             }
 
             let docelowaWartosc = celeZapisane[celCwiczenie];
-            if (docelowaWartosc <= 0) {
-                if (celKat === 'Cardio') {
-                    let aktualnyDystans = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.ciezar || 0)) : 0;
-                    if (aktualnyDystans > 0) {
-                        docelowaWartosc = aktualnyDystans;
-                        celeZapisane[celCwiczenie] = docelowaWartosc;
-                        bezpiecznyZapisStorage('cele', celeZapisane);
-                    }
-                } else {
-                    let aktualny1RM = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0;
-                    if (aktualny1RM > 0) {
-                        docelowaWartosc = aktualny1RM;
-                        celeZapisane[celCwiczenie] = docelowaWartosc;
-                        bezpiecznyZapisStorage('cele', celeZapisane);
-                    }
-                }
-            }
-
             inputCelWartosc.value = docelowaWartosc > 0 ? docelowaWartosc : '';
             obliczPostepCelu();
         }
@@ -1106,24 +1076,6 @@
                 if (text) text.textContent = '0%';
                 return;
             }
-            
-            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-            let zmianaWprowadzona = false;
-
-            Object.keys(bazyCwiczen).forEach(kat => {
-                if (kat !== 'Regeneracja' && bazyCwiczen[kat]) {
-                    bazyCwiczen[kat].forEach(cw => {
-                        if (celeZapisane[cw] === undefined) {
-                            celeZapisane[cw] = 0;
-                            zmianaWprowadzona = true;
-                        }
-                    });
-                }
-            });
-
-            if (zmianaWprowadzona) {
-                bezpiecznyZapisStorage('cele', celeZapisane);
-            }
 
             if (ostatnioPobityCel) {
                 for (let kat in bazyCwiczen) {
@@ -1298,11 +1250,5 @@
             window.location.href = `mailto:h75@onet.eu?subject=Pulse75%20-%20Zgłoszenie%20błędu`;
         }
     </script>
-    <!-- =================================================================
-     * Projekt: PULSE 75 – Dziennik Treningowy PWA
-     * Własność intelektualna i prawa autorskie (C) H75 (Hammer75)
-     * Wszelkie prawa zastrzeżone. Kopiowanie, modyfikowanie 
-     * oraz dystrybucja bez zgody autora jest zabroniona.
-     ================================================================= -->
 </body>
 </html>
