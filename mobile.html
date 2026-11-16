@@ -397,20 +397,17 @@
                         .order('data', { ascending: false });
                     if (!error && serverTreningi) {
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
-                        
-                        bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-                        inicjalizujKategorie();
-                        
                         inicjalizujSelectHistorii();
                         zaladujHistorieDnia();
                         
+                        // Odśwież widoki celów lub analizy, jeśli użytkownik akurat w nich przebywa.
+                        // NIE dotykamy formularza w zakładce Dziennik, aby zachować zablokowany stan i wpisane dane.
                         if (document.getElementById('subtab-cele').classList.contains('active')) {
                             inicjalizujListeCelow();
                         }
                         if (document.getElementById('subtab-historia').classList.contains('active')) {
                             zaladujAnalize();
                         }
-                        zmienionoCwiczenieDziennika();
                     }
                 } catch(e) {}
             }
