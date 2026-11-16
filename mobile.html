@@ -400,8 +400,6 @@
                         inicjalizujSelectHistorii();
                         zaladujHistorieDnia();
                         
-                        // Odśwież widoki celów lub analizy, jeśli użytkownik akurat w nich przebywa.
-                        // NIE dotykamy formularza w zakładce Dziennik, aby zachować zablokowany stan i wpisane dane.
                         if (document.getElementById('subtab-cele').classList.contains('active')) {
                             inicjalizujListeCelow();
                         }
@@ -500,6 +498,7 @@
             p.disabled = isExerciseLocked;
             c.disabled = isExerciseLocked;
             btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+            bezpiecznyZapisStorage('is_locked', isExerciseLocked);
         }
 
         const domyslnaBazaCwiczen = {
@@ -692,7 +691,38 @@
                     }
                 }
             });
+
+            // Przywrócenie ostatnio wybranej partii w Dzienniku (jeśli zapisana)
+            let savedPartia = bezpiecznyOdczytStorage('ostatnia_partia', null);
+            let partiaEl = document.getElementById('dziennik-partia');
+            if (savedPartia && partiaEl) {
+                let found = Array.from(partiaEl.options).some(o => o.value === savedPartia);
+                if (found) partiaEl.value = savedPartia;
+            }
+
             zmienKategorieDziennika();
+
+            // Przywrócenie ostatnio wybranego ćwiczenia w Dzienniku (jeśli zapisane)
+            let savedCwiczenie = bezpiecznyOdczytStorage('ostatnie_cwiczenie', null);
+            let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
+            if (savedCwiczenie && cwiczenieEl) {
+                let foundCw = Array.from(cwiczenieEl.options).some(o => o.value === savedCwiczenie);
+                if (foundCw) {
+                    cwiczenieEl.value = savedCwiczenie;
+                    zmienionoCwiczenieDziennika();
+                }
+            }
+
+            // Przywrócenie stanu zablokowania
+            let savedLock = bezpiecznyOdczytStorage('is_locked', false);
+            if (savedLock) {
+                isExerciseLocked = true;
+                if (partiaEl) partiaEl.disabled = true;
+                if (cwiczenieEl) cwiczenieEl.disabled = true;
+                let btn = document.getElementById('btn-lock-cwiczenie');
+                if (btn) btn.textContent = '🔒 Zablokowane';
+            }
+
             zmienionoKategorieCelu();
         }
 
@@ -700,10 +730,15 @@
             let partiaEl = document.getElementById('dziennik-partia');
             let kontenerSila = document.getElementById('kontener-pola-silowe');
             let kontenerCardio = document.getElementById('kontener-pola-cardio');
-            if (partiaEl.value === 'Cardio') {
+            
+            if (partiaEl) {
+                bezpiecznyZapisStorage('ostatnia_partia', partiaEl.value);
+            }
+
+            if (partiaEl && partiaEl.value === 'Cardio') {
                 kontenerSila.style.display = 'none';
                 kontenerCardio.style.display = 'block';
-            } else if (partiaEl.value === 'Regeneracja') {
+            } else if (partiaEl && partiaEl.value === 'Regeneracja') {
                 kontenerSila.style.display = 'none';
                 kontenerCardio.style.display = 'none';
             } else {
@@ -750,7 +785,12 @@
 
         function zmienionoCwiczenieDziennika() {
             let partia = document.getElementById('dziennik-partia').value;
-            let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
+            let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
+            let cwiczenie = cwiczenieEl ? cwiczenieEl.value : '';
+            
+            if (cwiczenieEl) {
+                bezpiecznyZapisStorage('ostatnie_cwiczenie', cwiczenie);
+            }
             
             let ciezarInput = document.getElementById('dziennik-ciezar');
             let powtSelect = document.getElementById('dziennik-powt');
