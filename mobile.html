@@ -355,6 +355,7 @@
     <script>
         let zalogowanyUzytkownik = null;
         let ostatnioPobityCel = null;
+        let ostatnioPobityWynik = 0;
         let czyOstatniCelCardio = false;
         let timerInterval = null;
         let pozostalyCzasSekundy = 0;
@@ -838,7 +839,7 @@
 
             if (!kat || !bazyCwiczen[kat] || bazyCwiczen[kat].length === 0) {
                 celCwiczenieEl.innerHTML = '<option value="">Brak ćwiczeń</option>';
-                if (inputCelWartosc) inputCelWartosc.value = '';
+                if (inputCelWartosc) inputCelWartosc.value = '0';
                 if (fill) fill.style.width = '0%';
                 if (text) text.textContent = '0%';
                 return;
@@ -864,7 +865,7 @@
             let text = document.getElementById('progress-text');
 
             if(!celCwiczenie || !inputCelWartosc || !celKat || celCwiczenie === "" || celCwiczenie === "Brak ćwiczeń") {
-                if(inputCelWartosc) inputCelWartosc.value = '';
+                if(inputCelWartosc) inputCelWartosc.value = '0';
                 if (fill) fill.style.width = '0%';
                 if (text) text.textContent = '0%';
                 return;
@@ -878,7 +879,12 @@
             }
 
             let docelowaWartosc = celeZapisane[celCwiczenie];
-            inputCelWartosc.value = docelowaWartosc > 0 ? docelowaWartosc : '';
+            
+            if (flagaPrzejsciaPoOsiagnieciuCelu && ostatnioPobityCel === celCwiczenie && ostatnioPobityWynik > 0) {
+                docelowaWartosc = ostatnioPobityWynik;
+            }
+
+            inputCelWartosc.value = docelowaWartosc !== undefined ? docelowaWartosc : 0;
             obliczPostepCelu();
         }
 
@@ -1069,7 +1075,7 @@
                 let celCwiczenieEl = document.getElementById('cel-cwiczenie');
                 if (celCwiczenieEl) celCwiczenieEl.innerHTML = '<option value="">Brak ćwiczeń</option>';
                 let inputCelWartosc = document.getElementById('cel-wartosc');
-                if (inputCelWartosc) inputCelWartosc.value = '';
+                if (inputCelWartosc) inputCelWartosc.value = '0';
                 let fill = document.getElementById('progress-fill');
                 let text = document.getElementById('progress-text');
                 if (fill) fill.style.width = '0%';
@@ -1095,12 +1101,14 @@
             zmienionoKategorieCeluWartosc();
         }
 
+        let ostatnioPobityWynik = 0;
         function sprawdzOsiagniecieCelu(cwiczenie, nowyWynik, isCardio = false) {
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             let docelowaWartosc = celeZapisane[cwiczenie] !== undefined ? celeZapisane[cwiczenie] : 0;
             
             if (nowyWynik > 0 && (docelowaWartosc === 0 || nowyWynik >= docelowaWartosc)) {
                 ostatnioPobityCel = cwiczenie;
+                ostatnioPobityWynik = nowyWynik;
                 czyOstatniCelCardio = isCardio;
                 document.getElementById('alert-cel-nazwa').textContent = cwiczenie;
                 document.getElementById('alert-cel-wynik').textContent = nowyWynik + (isCardio ? ' km' : ' kg (1RM)');
