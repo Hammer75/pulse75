@@ -398,7 +398,7 @@
                     const { data: serverTreningi, error } = await supabaseClient
                         .from('treningi')
                         .select('*')
-                        .eq('user_id', zalogowanyUzytkownik.id)
+                        .eq('user_id', String(zalogowanyUzytkownik.id))
                         .order('data', { ascending: false });
                     if (!error && serverTreningi) {
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
@@ -528,39 +528,36 @@
 
         let bazyCwiczen = {};
 
-        // Asynchroniczne ładowanie pełnej bazy ćwiczeń z Supabase (własne, ukryte oraz nadpisane domyślne)
+        // Asynchroniczne ładowanie pełnej bazy ćwiczeń z Supabase
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
             let ukryteZestawy = [];
-            let nadpisaneZestawy = []; // Mapowanie starych nazw na nowe dla domyślnych
+            let nadpisaneZestawy = [];
 
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
-                    // 1. Pobierz ukryte domyślne ćwiczenia
                     const { data: ukryteData, error: errUkryte } = await supabaseClient
                         .from('ukryte_domyslne_cwiczenia')
                         .select('kategoria, nazwa_cwiczenia')
-                        .eq('user_id', zalogowanyUzytkownik.id);
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
                     
                     if (!errUkryte && ukryteData) {
                         ukryteZestawy = ukryteData;
                     }
 
-                    // 2. Pobierz zmodyfikowane/nadpisane nazwy domyślnych ćwiczeń
                     const { data: nadpisaneData, error: errNadpisane } = await supabaseClient
                         .from('nadpisane_domyslne_cwiczenia')
                         .select('kategoria, stara_nazwa, nowa_nazwa')
-                        .eq('user_id', zalogowanyUzytkownik.id);
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
 
                     if (!errNadpisane && nadpisaneData) {
                         nadpisaneZestawy = nadpisaneData;
                     }
 
-                    // 3. Pobierz własne ćwiczenia użytkownika
                     const { data: wlasneData, error: errWlasne } = await supabaseClient
                         .from('baza_cwiczen')
                         .select('kategoria, nazwa')
-                        .eq('user_id', zalogowanyUzytkownik.id);
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
 
                     if (!errWlasne && wlasneData) {
                         wlasneData.forEach(item => {
@@ -575,14 +572,12 @@
                 } catch(e) {}
             }
 
-            // Odrzuć domyślne ćwiczenia, które użytkownik ukrył
             ukryteZestawy.forEach(u => {
                 if (aktualnaBaza[u.kategoria]) {
                     aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
                 }
             });
 
-            // Podmień nazwy domyślnych ćwiczeń na te zmodyfikowane przez użytkownika
             nadpisaneZestawy.forEach(n => {
                 if (aktualnaBaza[n.kategoria]) {
                     let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
@@ -748,7 +743,7 @@
                     const { data: serverTreningi, error } = await supabaseClient
                         .from('treningi')
                         .select('*')
-                        .eq('user_id', zalogowanyUzytkownik.id)
+                        .eq('user_id', String(zalogowanyUzytkownik.id))
                         .order('data', { ascending: false });
                     if (!error && serverTreningi) {
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
@@ -1356,14 +1351,18 @@
 
                     if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                         try {
-                            await supabaseClient.from('baza_cwiczen').insert([{
-                                user_id: zalogowanyUzytkownik.id,
+                            const { error } = await supabaseClient.from('baza_cwiczen').insert([{
+                                user_id: String(zalogowanyUzytkownik.id),
                                 kategoria: kat,
                                 nazwa: nazwa
                             }]);
+                            if (error) {
+                                console.error("Supabase insert error:", error);
+                            }
                         } catch(e) {}
                     }
 
+                    bazyCwiczen = await pobierzBazeCwiczenZChmury();
                     odswiezListeMenedzera();
                     inicjalizujKategorie();
                     showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
@@ -1386,9 +1385,8 @@
                         if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                             try {
                                 if (czyDomyslne) {
-                                    // Sprawdź czy już jest wpis nadpisany dla tego domyślnego ćwiczenia
                                     await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
-                                        user_id: zalogowanyUzytkownik.id,
+                                        user_id: String(zalogowanyUzytkownik.id),
                                         kategoria: kat,
                                         stara_nazwa: staraNazwa,
                                         nowa_nazwa: nowa
@@ -1396,13 +1394,14 @@
                                 } else {
                                     await supabaseClient.from('baza_cwiczen')
                                         .update({ nazwa: nowa })
-                                        .eq('user_id', zalogowanyUzytkownik.id)
+                                        .eq('user_id', String(zalogowanyUzytkownik.id))
                                         .eq('kategoria', kat)
                                         .eq('nazwa', staraNazwa);
                                 }
                             } catch(e) {}
                         }
 
+                        bazyCwiczen = await pobierzBazeCwiczenZChmury();
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
                         showNotification("✅ Nazwa ćwiczenia została zaktualizowana!");
@@ -1423,14 +1422,14 @@
                             try {
                                 if (czyDomyslne) {
                                     await supabaseClient.from('ukryte_domyslne_cwiczenia').insert([{
-                                        user_id: zalogowanyUzytkownik.id,
+                                        user_id: String(zalogowanyUzytkownik.id),
                                         kategoria: kat,
                                         nazwa_cwiczenia: nazwa
                                     }]);
                                 } else {
                                     await supabaseClient.from('baza_cwiczen')
                                         .delete()
-                                        .eq('user_id', zalogowanyUzytkownik.id)
+                                        .eq('user_id', String(zalogowanyUzytkownik.id))
                                         .eq('kategoria', kat)
                                         .eq('nazwa', nazwa);
                                 }
@@ -1443,6 +1442,7 @@
                             bezpiecznyZapisStorage('cele', celeZapisane);
                         }
 
+                        bazyCwiczen = await pobierzBazeCwiczenZChmury();
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
                         showNotification("🗑️ Usunięto i zsynchronizowano!");
@@ -1458,7 +1458,7 @@
             let cwiczenie = document.getElementById('dziennik-cwiczenie')?.value;
             if (!data || !cwiczenie || cwiczenie === "Brak ćwiczeń" || !partia) { showNotification('Brak dostępnych ćwiczeń lub nie wybrano danych'); return; }
 
-            let wpis = { user_id: zalogowanyUzytkownik.id, data, partia, cwiczenie, typ: 'Trening' };
+            let wpis = { user_id: String(zalogowanyUzytkownik.id), data, partia, cwiczenie, typ: 'Trening' };
             let celOsiagniety = false;
             let seriaWpisu = 1;
 
@@ -1505,7 +1505,7 @@
                 if (czyNadpisanie) {
                     await supabaseClient.from('treningi')
                         .delete()
-                        .eq('user_id', zalogowanyUzytkownik.id)
+                        .eq('user_id', String(zalogowanyUzytkownik.id))
                         .eq('data', wpis.data)
                         .eq('cwiczenie', wpis.cwiczenie)
                         .eq('seria', wpis.seria);
