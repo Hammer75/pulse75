@@ -528,42 +528,49 @@
 
         let bazyCwiczen = {};
 
-        // Asynchroniczne ładowanie pełnej bazy ćwiczeń z Supabase
+        // Hybrydowe ładowanie bazy ćwiczeń (lokalny localStorage + próba pobrania z Supabase)
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
-            let ukryteZestawy = [];
-            let nadpisaneZestawy = [];
+            
+            // 1. Najpierw załaduj z localStorage (gwarancja że nic nie zniknie offline/lokalnie)
+            let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+            let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
+            let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
 
+            Object.keys(lokalneWlasne).forEach(kat => {
+                if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
+                lokalneWlasne[kat].forEach(cw => {
+                    if (!aktualnaBaza[kat].includes(cw)) aktualnaBaza[kat].push(cw);
+                });
+            });
+
+            lokalneUkryte.forEach(u => {
+                if (aktualnaBaza[u.kategoria]) {
+                    aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa);
+                }
+            });
+
+            Object.keys(lokalneNadpisane).forEach(kat => {
+                if (aktualnaBaza[kat]) {
+                    let stara = lokalneNadpisane[kat].stara;
+                    let nowa = lokalneNadpisane[kat].nowa;
+                    let idx = aktualnaBaza[kat].indexOf(stara);
+                    if (idx > -1) aktualnaBaza[kat][idx] = nowa;
+                    else if (!aktualnaBaza[kat].includes(nowa)) aktualnaBaza[kat].push(nowa);
+                }
+            });
+
+            // 2. Próba synchronizacji z Supabase w tle
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
-                    const { data: ukryteData, error: errUkryte } = await supabaseClient
-                        .from('ukryte_domyslne_cwiczenia')
-                        .select('kategoria, nazwa_cwiczenia')
-                        .eq('user_id', String(zalogowanyUzytkownik.id));
-                    
-                    if (!errUkryte && ukryteData) {
-                        ukryteZestawy = ukryteData;
-                    }
-
-                    const { data: nadpisaneData, error: errNadpisane } = await supabaseClient
-                        .from('nadpisane_domyslne_cwiczenia')
-                        .select('kategoria, stara_nazwa, nowa_nazwa')
-                        .eq('user_id', String(zalogowanyUzytkownik.id));
-
-                    if (!errNadpisane && nadpisaneData) {
-                        nadpisaneZestawy = nadpisaneData;
-                    }
-
-                    const { data: wlasneData, error: errWlasne } = await supabaseClient
+                    const { data: wlasneData } = await supabaseClient
                         .from('baza_cwiczen')
                         .select('kategoria, nazwa')
                         .eq('user_id', String(zalogowanyUzytkownik.id));
 
-                    if (!errWlasne && wlasneData) {
+                    if (wlasneData) {
                         wlasneData.forEach(item => {
-                            if (!aktualnaBaza[item.kategoria]) {
-                                aktualnaBaza[item.kategoria] = [];
-                            }
+                            if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
                             if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
                                 aktualnaBaza[item.kategoria].push(item.nazwa);
                             }
@@ -572,31 +579,12 @@
                 } catch(e) {}
             }
 
-            ukryteZestawy.forEach(u => {
-                if (aktualnaBaza[u.kategoria]) {
-                    aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
-                }
-            });
-
-            nadpisaneZestawy.forEach(n => {
-                if (aktualnaBaza[n.kategoria]) {
-                    let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
-                    if (idx > -1) {
-                        aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
-                    } else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) {
-                        aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
-                    }
-                }
-            });
-
             return aktualnaBaza;
         }
 
         function aktualizujListeBezElementu(tablica, element) {
             let index = tablica.indexOf(element);
-            if (index > -1) {
-                tablica.splice(index, 1);
-            }
+            if (index > -1) tablica.splice(index, 1);
         }
 
         function inicjalizujCeleDlaNowegoUzytkownika() {
@@ -1339,6 +1327,7 @@
             });
         }
 
+        // Poprawiona funkcja dodawania z niezawodnym zapisem lokalnym i chmurowym
         async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
@@ -1352,9 +1341,16 @@
                     bazyCwiczen[kat].push(nazwa);
                 }
 
+                // Zapisz w lokalnym localStorage jako własne ćwiczenia
+                let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                if (!wlasneMap[kat]) wlasneMap[kat] = [];
+                if (!wlasneMap[kat].includes(nazwa)) wlasneMap[kat].push(nazwa);
+                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+
                 let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
                 if (inputNazwa) inputNazwa.value = '';
 
+                // Próba zapisu do Supabase
                 if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                     try {
                         const { error } = await supabaseClient.from('baza_cwiczen').insert([{
@@ -1365,12 +1361,14 @@
                         if (error) {
                             console.error("Supabase insert error:", error);
                         }
-                    } catch(e) {}
+                    } catch(e) {
+                        console.error("Supabase exception:", e);
+                    }
                 }
 
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-                showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
+                showNotification("✅ Ćwiczenie zostało dodane!");
             } else {
                 showNotification("⚠️ Wpisz nazwę ćwiczenia!");
             }
@@ -1387,6 +1385,19 @@
                         }
 
                         let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
+
+                        if (czyDomyslne) {
+                            let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                            nadpisaneMap[kat] = { stara: staraNazwa, nowa: nowa };
+                            bezpiecznyZapisStorage('nadpisane_cwiczenia_map', nadpisaneMap);
+                        } else {
+                            let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                            if (wlasneMap[kat]) {
+                                let wIdx = wlasneMap[kat].indexOf(staraNazwa);
+                                if (wIdx > -1) wlasneMap[kat][wIdx] = nowa;
+                                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                            }
+                        }
 
                         if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                             try {
@@ -1423,6 +1434,18 @@
                         
                         let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(nazwa);
 
+                        if (czyDomyslne) {
+                            let ukryteList = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
+                            ukryteList.push({ kategoria: kat, nazwa: nazwa });
+                            bezpiecznyZapisStorage('ukryte_cwiczenia_map', ukryteList);
+                        } else {
+                            let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                            if (wlasneMap[kat]) {
+                                wlasneMap[kat] = wlasneMap[kat].filter(c => c !== nazwa);
+                                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                            }
+                        }
+
                         if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                             try {
                                 if (czyDomyslne) {
@@ -1449,7 +1472,7 @@
 
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
-                        showNotification("🗑️ Usunięto i zsynchronizowano!");
+                        showNotification("🗑️ Usunięto pomyślnie!");
                     }
                 }
             });
