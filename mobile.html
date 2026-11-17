@@ -1342,31 +1342,37 @@
         async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
+            
             if (kat && nazwa) {
-                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) bazyCwiczen[kat] = [];
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) {
+                    bazyCwiczen[kat] = [];
+                }
+                
                 if (!bazyCwiczen[kat].includes(nazwa)) {
                     bazyCwiczen[kat].push(nazwa);
-                    let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
-                    if(inputNazwa) inputNazwa.value = '';
-
-                    if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                        try {
-                            const { error } = await supabaseClient.from('baza_cwiczen').insert([{
-                                user_id: String(zalogowanyUzytkownik.id),
-                                kategoria: kat,
-                                nazwa: nazwa
-                            }]);
-                            if (error) {
-                                console.error("Supabase insert error:", error);
-                            }
-                        } catch(e) {}
-                    }
-
-                    bazyCwiczen = await pobierzBazeCwiczenZChmury();
-                    odswiezListeMenedzera();
-                    inicjalizujKategorie();
-                    showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
                 }
+
+                let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
+                if (inputNazwa) inputNazwa.value = '';
+
+                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                    try {
+                        const { error } = await supabaseClient.from('baza_cwiczen').insert([{
+                            user_id: String(zalogowanyUzytkownik.id),
+                            kategoria: kat,
+                            nazwa: nazwa
+                        }]);
+                        if (error) {
+                            console.error("Supabase insert error:", error);
+                        }
+                    } catch(e) {}
+                }
+
+                odswiezListeMenedzera();
+                inicjalizujKategorie();
+                showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
+            } else {
+                showNotification("⚠️ Wpisz nazwę ćwiczenia!");
             }
         }
 
@@ -1401,7 +1407,6 @@
                             } catch(e) {}
                         }
 
-                        bazyCwiczen = await pobierzBazeCwiczenZChmury();
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
                         showNotification("✅ Nazwa ćwiczenia została zaktualizowana!");
@@ -1442,7 +1447,6 @@
                             bezpiecznyZapisStorage('cele', celeZapisane);
                         }
 
-                        bazyCwiczen = await pobierzBazeCwiczenZChmury();
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
                         showNotification("🗑️ Usunięto i zsynchronizowano!");
