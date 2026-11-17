@@ -528,10 +528,11 @@
 
         let bazyCwiczen = {};
 
-        // Asynchroniczne ładowanie pełnej bazy ćwiczeń z Supabase (własne + ukryte domyślne)
+        // Asynchroniczne ładowanie pełnej bazy ćwiczeń z Supabase (własne, ukryte oraz nadpisane domyślne)
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
             let ukryteZestawy = [];
+            let nadpisaneZestawy = []; // Mapowanie starych nazw na nowe dla domyślnych
 
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
@@ -545,7 +546,17 @@
                         ukryteZestawy = ukryteData;
                     }
 
-                    // 2. Pobierz własne ćwiczenia użytkownika
+                    // 2. Pobierz zmodyfikowane/nadpisane nazwy domyślnych ćwiczeń
+                    const { data: nadpisaneData, error: errNadpisane } = await supabaseClient
+                        .from('nadpisane_domyslne_cwiczenia')
+                        .select('kategoria, stara_nazwa, nowa_nazwa')
+                        .eq('user_id', zalogowanyUzytkownik.id);
+
+                    if (!errNadpisane && nadpisaneData) {
+                        nadpisaneZestawy = nadpisaneData;
+                    }
+
+                    // 3. Pobierz własne ćwiczenia użytkownika
                     const { data: wlasneData, error: errWlasne } = await supabaseClient
                         .from('baza_cwiczen')
                         .select('kategoria, nazwa')
@@ -568,6 +579,18 @@
             ukryteZestawy.forEach(u => {
                 if (aktualnaBaza[u.kategoria]) {
                     aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
+                }
+            });
+
+            // Podmień nazwy domyślnych ćwiczeń na te zmodyfikowane przez użytkownika
+            nadpisaneZestawy.forEach(n => {
+                if (aktualnaBaza[n.kategoria]) {
+                    let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
+                    if (idx > -1) {
+                        aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
+                    } else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) {
+                        aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
+                    }
                 }
             });
 
@@ -1295,13 +1318,11 @@
             container.innerHTML = '';
             if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
                 bazyCwiczen[kat].forEach((cwiczenie) => {
-                    let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(cwiczenie);
-                    let przyciskEdycji = !czyDomyslne ? `<button class="btn-small" style="background:#2b6cb0;" onclick="edytujCwiczenie('${kat}', '${cwiczenie}')">✏️</button>` : '';
                     container.innerHTML += `
                         <div class="list-item-cwiczenie">
                             <span style="word-break: break-all; flex: 1;">${cwiczenie}</span>
                             <div style="display: flex; gap: 5px; flex-shrink: 0;">
-                                ${przyciskEdycji}
+                                <button class="btn-small" style="background:#2b6cb0;" onclick="edytujCwiczenie('${kat}', '${cwiczenie}')">✏️</button>
                                 <button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌</button>
                             </div>
                         </div>`;
@@ -1333,7 +1354,6 @@
                     let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
                     if(inputNazwa) inputNazwa.value = '';
 
-                    // Zapisz w chmurze Supabase w tabeli baza_cwiczen
                     if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                         try {
                             await supabaseClient.from('baza_cwiczen').insert([{
@@ -1361,13 +1381,25 @@
                             bazyCwiczen[kat][idx] = nowa;
                         }
 
+                        let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
+
                         if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                             try {
-                                await supabaseClient.from('baza_cwiczen')
-                                    .update({ nazwa: nowa })
-                                    .eq('user_id', zalogowanyUzytkownik.id)
-                                    .eq('kategoria', kat)
-                                    .eq('nazwa', staraNazwa);
+                                if (czyDomyslne) {
+                                    // Sprawdź czy już jest wpis nadpisany dla tego domyślnego ćwiczenia
+                                    await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
+                                        user_id: zalogowanyUzytkownik.id,
+                                        kategoria: kat,
+                                        stara_nazwa: staraNazwa,
+                                        nowa_nazwa: nowa
+                                    }]);
+                                } else {
+                                    await supabaseClient.from('baza_cwiczen')
+                                        .update({ nazwa: nowa })
+                                        .eq('user_id', zalogowanyUzytkownik.id)
+                                        .eq('kategoria', kat)
+                                        .eq('nazwa', staraNazwa);
+                                }
                             } catch(e) {}
                         }
 
