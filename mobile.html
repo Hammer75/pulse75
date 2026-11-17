@@ -528,6 +528,59 @@
 
         let bazyCwiczen = {};
 
+        // Asynchroniczne ładowanie pełnej bazy ćwiczeń z Supabase (własne + ukryte domyślne)
+        async function pobierzBazeCwiczenZChmury() {
+            let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
+            let ukryteZestawy = [];
+
+            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    // 1. Pobierz ukryte domyślne ćwiczenia
+                    const { data: ukryteData, error: errUkryte } = await supabaseClient
+                        .from('ukryte_domyslne_cwiczenia')
+                        .select('kategoria, nazwa_cwiczenia')
+                        .eq('user_id', zalogowanyUzytkownik.id);
+                    
+                    if (!errUkryte && ukryteData) {
+                        ukryteZestawy = ukryteData;
+                    }
+
+                    // 2. Pobierz własne ćwiczenia użytkownika
+                    const { data: wlasneData, error: errWlasne } = await supabaseClient
+                        .from('baza_cwiczen')
+                        .select('kategoria, nazwa')
+                        .eq('user_id', zalogowanyUzytkownik.id);
+
+                    if (!errWlasne && wlasneData) {
+                        wlasneData.forEach(item => {
+                            if (!aktualnaBaza[item.kategoria]) {
+                                aktualnaBaza[item.kategoria] = [];
+                            }
+                            if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
+                                aktualnaBaza[item.kategoria].push(item.nazwa);
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+
+            // Odrzuć domyślne ćwiczenia, które użytkownik ukrył
+            ukryteZestawy.forEach(u => {
+                if (aktualnaBaza[u.kategoria]) {
+                    aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
+                }
+            });
+
+            return aktualnaBaza;
+        }
+
+        function aktualizujListeBezElementu(tablica, element) {
+            let index = tablica.indexOf(element);
+            if (index > -1) {
+                tablica.splice(index, 1);
+            }
+        }
+
         function inicjalizujCeleDlaNowegoUzytkownika() {
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             if (!celeZapisane || Object.keys(celeZapisane).length === 0) {
@@ -663,10 +716,7 @@
         }
 
         async function inicjalizujPoZalogowaniu() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
+            bazyCwiczen = await pobierzBazeCwiczenZChmury();
             inicjalizujCeleDlaNowegoUzytkownika();
             inicjalizujKategorie();
             
@@ -689,11 +739,6 @@
         }
 
         function inicjalizujKategorie() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
-
             ['dziennik-partia', 'analiza-partia', 'cel-kategoria'].forEach(id => {
                 let el = document.getElementById(id);
                 if(el) {
@@ -769,11 +814,6 @@
         }
 
         function aktualizujCwiczenia(tryb) {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
-
             let partiaId = tryb === 'dziennik' ? 'dziennik-partia' : (tryb === 'analiza' ? 'analiza-partia' : 'cel-kategoria');
             let cwiczenieId = tryb === 'dziennik' ? 'dziennik-cwiczenie' : (tryb === 'analiza' ? 'analiza-cwiczenie' : 'cel-cwiczenie');
             let partiaEl = document.getElementById(partiaId);
@@ -854,11 +894,6 @@
         }
 
         function zmienionoKategorieCelu() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
-
             let katEl = document.getElementById('cel-kategoria');
             let celCwiczenieEl = document.getElementById('cel-cwiczenie');
             let inputCelWartosc = document.getElementById('cel-wartosc');
@@ -1099,10 +1134,6 @@
         }
 
         function oczyscCeleISynchronizuj() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
                 celeZapisane = {};
@@ -1124,10 +1155,6 @@
 
         function inicjalizujListeCelow() {
             oczyscCeleISynchronizuj();
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
             
             let celKatEl = document.getElementById('cel-kategoria');
             if(!celKatEl) return;
@@ -1227,14 +1254,12 @@
             });
         }
 
-        function odswiezPanelBazy() {
+        async function odswiezPanelBazy() {
+            // Odśwież pełną bazę z chmury przed wyświetleniem panelu zarządzania
+            bazyCwiczen = await pobierzBazeCwiczenZChmury();
             let select = document.getElementById('menedzer-kategoria');
             if(!select) return;
             select.innerHTML = '';
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
-            if (!bazyCwiczen || typeof bazyCwiczen !== 'object' || Array.isArray(bazyCwiczen)) {
-                bazyCwiczen = domyslnaBazaCwiczen;
-            }
             Object.keys(bazyCwiczen).forEach(kat => {
                 let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
                 select.appendChild(opt);
@@ -1256,17 +1281,19 @@
 
         function dodajKategorie() {
             showPromptModal("Podaj nazwę nowej kategorii:", "", (nowa) => {
-                if (nowa && nowa.trim() !== "" && !bazyCwiczen[nowa.trim()]) {
-                    bazyCwiczen[nowa.trim()] = [];
-                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
-                    inicjalizujKategorie();
-                    odswiezPanelBazy();
-                    showNotification("✅ Kategoria dodana!");
+                if (nowa && nowa.trim() !== "") {
+                    let nazwaKat = nowa.trim();
+                    if (!bazyCwiczen[nazwaKat]) {
+                        bazyCwiczen[nazwaKat] = [];
+                        odswiezPanelBazy();
+                        inicjalizujKategorie();
+                        showNotification("✅ Kategoria dodana lokalnie!");
+                    }
                 }
             });
         }
 
-        function dodajCwiczenie() {
+        async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
             if (kat && nazwa) {
@@ -1275,28 +1302,63 @@
                     bazyCwiczen[kat].push(nazwa);
                     let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
                     if(inputNazwa) inputNazwa.value = '';
-                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+
+                    // Zapisz w chmurze Supabase w tabeli baza_cwiczen
+                    if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                        try {
+                            await supabaseClient.from('baza_cwiczen').insert([{
+                                user_id: zalogowanyUzytkownik.id,
+                                kategoria: kat,
+                                nazwa: nazwa
+                            }]);
+                        } catch(e) {}
+                    }
+
                     odswiezListeMenedzera();
                     inicjalizujKategorie();
-                    showNotification("✅ Ćwiczenie dodane!");
+                    showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
                 }
             }
         }
 
-        function usunCwiczenie(kat, nazwa) {
-            showConfirmModal(`Usunąć "${nazwa}"?`, (potwierdzono) => {
+        async function usunCwiczenie(kat, nazwa) {
+            showConfirmModal(`Usunąć / ukryć "${nazwa}"?`, async (potwierdzono) => {
                 if (potwierdzono) {
                     if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
                         bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
+                        
+                        // Sprawdź czy to ćwiczenie było w domyślnej bazie czy własne w chmurze
+                        let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(nazwa);
+
+                        if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                            try {
+                                if (czyDomyslne) {
+                                    // Zapisz w tabeli ukryte_domyslne_cwiczenia
+                                    await supabaseClient.from('ukryte_domyslne_cwiczenia').insert([{
+                                        user_id: zalogowanyUzytkownik.id,
+                                        kategoria: kat,
+                                        nazwa_cwiczenia: nazwa
+                                    }]);
+                                } else {
+                                    // Usuń z tabeli baza_cwiczen
+                                    await supabaseClient.from('baza_cwiczen')
+                                        .delete()
+                                        .eq('user_id', zalogowanyUzytkownik.id)
+                                        .eq('kategoria', kat)
+                                        .eq('nazwa', nazwa);
+                                }
+                            } catch(e) {}
+                        }
+
                         let celeZapisane = bezpiecznyOdczytStorage('cele', {});
                         if (celeZapisane && celeZapisane[nazwa] !== undefined) {
                             delete celeZapisane[nazwa];
                             bezpiecznyZapisStorage('cele', celeZapisane);
                         }
-                        bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
-                        showNotification("🗑️ Usunięto!");
+                        showNotification("🗑️ Usunięto i zsynchronizowano!");
                     }
                 }
             });
