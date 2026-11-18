@@ -433,6 +433,22 @@
             inicjalizujPoZalogowaniu();
         });
 
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    const { data: serverTreningi, error } = await supabaseClient
+                        .from('treningi')
+                        .select('*')
+                        .eq('user_id', String(zalogowanyUzytkownik.id))
+                        .order('data', { ascending: false });
+                    if (!error && serverTreningi) {
+                        bezpiecznyZapisStorage('historia_treningow', serverTreningi);
+                        odswiezInlineAccordion();
+                    }
+                } catch(e) {}
+            }
+        });
+
         function pobierzKluczStorage(klucz) {
             if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return `pulse75_guest_${klucz}`;
             return `pulse75_user_${zalogowanyUzytkownik.id}_${klucz}`;
@@ -442,10 +458,18 @@
             try {
                 let realKey = pobierzKluczStorage(klucz);
                 let val = localStorage.getItem(realKey);
-                if (val !== null) return JSON.parse(val);
+                if (val !== null) {
+                    let parsed = JSON.parse(val);
+                    if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
+                    if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                }
                 
                 let globalVal = localStorage.getItem(`ironmetric_${klucz}`) || localStorage.getItem(`pulse75_${klucz}`);
-                if (globalVal !== null) return JSON.parse(globalVal);
+                if (globalVal !== null) {
+                    let parsed = JSON.parse(globalVal);
+                    if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
+                    if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                }
 
                 return domyslnaWartosc;
             } catch (e) {
@@ -532,7 +556,99 @@
             'Regeneracja': ['Odpoczynek całkowity', 'Lekkie cardio / spacer', 'Stretching', 'Rolowanie (foam roller)', 'Basen', 'Sauna', 'Joga regeneracyjna', 'Ćwiczenia mobilnościowe', 'Kąpiel solankowa']
         };
 
-        let bazyCwiczen = {};
+        let bazyCwiczen = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
+
+        function aktualizujListeBezElementu(lista, element) {
+            const index = lista.indexOf(element);
+            if (index > -1) lista.splice(index, 1);
+        }
+
+        // Hybrydowe ładowanie bazy ćwiczeń z Supabase
+        async function pobierzBazeCwiczenZChmury() {
+            let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
+            
+            let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+            let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
+            let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+
+            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    const { data: wlasneData, error } = await supabaseClient
+                        .from('baza_cwiczen')
+                        .select('kategoria, nazwa')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (!error && wlasneData) {
+                        wlasneData.forEach(item => {
+                            if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
+                            if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
+                                aktualnaBaza[item.kategoria].push(item.nazwa);
+                            }
+                        });
+                    }
+
+                    const { data: ukryteData } = await supabaseClient
+                        .from('ukryte_domyslne_cwiczenia')
+                        .select('kategoria, nazwa_cwiczenia')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (ukryteData) {
+                        ukryteData.forEach(u => {
+                            if (aktualnaBaza[u.kategoria]) {
+                                aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
+                            }
+                        });
+                    }
+
+                    const { data: nadpisaneData } = await supabaseClient
+                        .from('nadpisane_domyslne_cwiczenia')
+                        .select('kategoria, stara_nazwa, nowa_nazwa')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (nadpisaneData) {
+                        nadpisaneData.forEach(n => {
+                            if (aktualnaBaza[n.kategoria]) {
+                                let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
+                                if (idx > -1) {
+                                    aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
+                                } else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) {
+                                    aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+
+            // Nałożenie lokalnych modyfikacji
+            Object.keys(lokalneWlasne).forEach(kat => {
+                if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
+                lokalneWlasne[kat].forEach(cw => {
+                    if (!aktualnaBaza[kat].includes(cw)) aktualnaBaza[kat].push(cw);
+                });
+            });
+
+            lokalneUkryte.forEach(u => {
+                if (aktualnaBaza[u.kategoria]) {
+                    aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa);
+                }
+            });
+
+            Object.keys(lokalneNadpisane).forEach(kat => {
+                if (aktualnaBaza[kat]) {
+                    let mapNadpisan = lokalneNadpisane[kat];
+                    Object.keys(mapNadpisan).forEach(stara => {
+                        let nowa = mapNadpisan[stara];
+                        let idx = aktualnaBaza[kat].indexOf(stara);
+                        if (idx > -1) {
+                            aktualnaBaza[kat][idx] = nowa;
+                        }
+                    });
+                }
+            });
+
+            return aktualnaBaza;
+        }
 
         function toggleInlineAccordion() {
             isAccordionOpen = !isAccordionOpen;
@@ -630,7 +746,6 @@
             if (!w) return;
             
             document.getElementById('edit-entry-index').value = index;
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             let container = document.getElementById('edit-fields-container');
             
             let katOptions = '';
@@ -801,7 +916,7 @@
         }
 
         async function inicjalizujPoZalogowaniu() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
+            bazyCwiczen = await pobierzBazeCwiczenZChmury();
             inicjalizujKategorie();
             zainicjalizujDatyAnalizy();
             odswiezInlineAccordion();
@@ -824,7 +939,6 @@
         }
 
         function inicjalizujKategorie() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             ['dziennik-partia', 'analiza-partia', 'cel-kategoria', 'menedzer-kategoria'].forEach(id => {
                 let el = document.getElementById(id);
                 if(el) {
@@ -911,7 +1025,6 @@
         }
 
         function aktualizujCwiczenia(tryb) {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             let partiaId = tryb === 'dziennik' ? 'dziennik-partia' : (tryb === 'analiza' ? 'analiza-partia' : 'cel-kategoria');
             let cwiczenieId = tryb === 'dziennik' ? 'dziennik-cwiczenie' : (tryb === 'analiza' ? 'analiza-cwiczenie' : 'cel-cwiczenie');
             let partiaEl = document.getElementById(partiaId);
@@ -951,7 +1064,6 @@
         }
 
         function zmienionoKategorieCelu() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             let kat = document.getElementById('cel-kategoria').value;
             let celCwiczenieEl = document.getElementById('cel-cwiczenie');
             if(!celCwiczenieEl) return;
@@ -1027,7 +1139,6 @@
         }
 
         function inicjalizujListeCelow() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             let celKatEl = document.getElementById('cel-kategoria');
             if(!celKatEl) return;
             celKatEl.innerHTML = '';
@@ -1191,7 +1302,6 @@
             silaWzglednaEl.parentElement.querySelector('h3').textContent = '🏆 Wskaźniki Siły Względnej (Masa ciała: 89 kg)';
             objemoscEl.parentElement.querySelector('h3').textContent = '📊 Objętość Tygodniowa (Volume Landmarks)';
 
-            // 1. PROGNOZA 1RM (SVG Line Chart)
             if (wpisyCwiczenia.length >= 2) {
                 let pierwszy = wpisyCwiczenia[0].onerm || 0;
                 let ostatni = wpisyCwiczenia[wpisyCwiczenia.length - 1].onerm || 0;
@@ -1229,7 +1339,6 @@
                 prognozaEl.innerHTML = `Wymagane co najmniej 2 treningi tego ćwiczenia w wybranym zakresie do prognozy.`;
             }
 
-            // 2. AUDYT PUSH VS PULL (SVG Bar Chart)
             let pushKat = ['Klatka', 'Barki', 'Ramiona'];
             let pullKat = ['Plecy'];
             let pushTonnage = 0, pullTonnage = 0;
@@ -1251,7 +1360,6 @@
                 </svg>
             `;
 
-            // 3. RIR TREND (SVG Chart)
             let rirVals = wpisyCwiczenia.filter(w => w.rir !== null && w.rir !== undefined && w.rir !== '').map(w => {
                 let r = w.rir.toString().replace('+', '');
                 return parseFloat(r) || 0;
@@ -1290,7 +1398,6 @@
                 rirEl.innerHTML = `Brak danych RIR w wybranym zakresie. Oznaczaj RIR przy zapisie serii.`;
             }
 
-            // 4. SIŁA WZGLĘDNA (SVG Bar)
             let max1rm = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0;
             let wagaCiala = 89;
             let ratio = (max1rm / wagaCiala).toFixed(2);
@@ -1305,7 +1412,6 @@
                 </svg>
             `;
 
-            // 5. OBJĘTOŚĆ TYGODNIOWA (Volume Landmarks SVG Bar)
             let partiaAktualna = document.getElementById('analiza-partia').value;
             let serieWtygodniu = wpisyCwiczenia.length;
             let statusObj = serieWtygodniu < 6 ? 'Poniżej MEV (Minimalna objętość)' : (serieWtygodniu <= 20 ? 'Optymalna objętość (MAV) 🟢' : 'Ryzyko MRV (Maksymalna objętość) ⚠️');
@@ -1427,62 +1533,239 @@
         }
 
         function odswiezPanelBazy() {
-            bazyCwiczen = bezpiecznyOdczytStorage('baza_cwiczen', domyslnaBazaCwiczen);
             let select = document.getElementById('menedzer-kategoria');
             if(!select) return;
+            let wybranaKat = select.value;
             select.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
                 let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
                 select.appendChild(opt);
             });
+            if (wybranaKat && Array.from(select.options).some(o => o.value === wybranaKat)) {
+                select.value = wybranaKat;
+            }
             odswiezListeMenedzera();
         }
 
         function odswiezListeMenedzera() {
-            let kat = document.getElementById('menedzer-kategoria').value;
+            let kat = document.getElementById('menedzer-kategoria')?.value;
             let container = document.getElementById('lista-cwiczen-menedzer');
             if(!kat || !container) return;
             container.innerHTML = '';
-            if (bazyCwiczen[kat]) {
+            if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
                 bazyCwiczen[kat].forEach((cwiczenie) => {
-                    container.innerHTML += `<div class="list-item-cwiczenie"><span>${cwiczenie}</span><button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌ Usuń</button></div>`;
+                    container.innerHTML += `
+                        <div class="list-item-cwiczenie">
+                            <span style="word-break: break-all; flex: 1;">${cwiczenie}</span>
+                            <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                                <button class="btn-small" style="background:#2b6cb0;" onclick="edytujCwiczenie('${kat}', '${cwiczenie}')">✏️ Edytuj</button>
+                                <button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌ Usuń</button>
+                            </div>
+                        </div>`;
                 });
             }
         }
 
         function dodajKategorie() {
             showPromptModal("Podaj nazwę nowej kategorii:", "", (nowa) => {
-                if (nowa && nowa.trim() !== "" && !bazyCwiczen[nowa.trim()]) {
-                    bazyCwiczen[nowa.trim()] = [];
-                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
-                    inicjalizujKategorie();
-                    odswiezPanelBazy();
-                    showNotification("✅ Kategoria dodana!");
+                if (nowa && nowa.trim() !== "") {
+                    let nazwaKat = nowa.trim();
+                    if (!bazyCwiczen[nazwaKat]) {
+                        bazyCwiczen[nazwaKat] = [];
+                        odswiezPanelBazy();
+                        inicjalizujKategorie();
+                        showNotification("✅ Kategoria dodana!");
+                    }
                 }
             });
         }
 
-        function dodajCwiczenie() {
-            let kat = document.getElementById('menedzer-kategoria').value;
-            let nazwa = document.getElementById('nowe-cwiczenie-nazwa').value.trim();
-            if (kat && nazwa && !bazyCwiczen[kat].includes(nazwa)) {
-                bazyCwiczen[kat].push(nazwa);
-                document.getElementById('nowe-cwiczenie-nazwa').value = '';
-                bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+        async function dodajCwiczenie() {
+            let kat = document.getElementById('menedzer-kategoria')?.value;
+            let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
+            
+            if (kat && nazwa) {
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) {
+                    bazyCwiczen[kat] = [];
+                }
+                
+                if (!bazyCwiczen[kat].includes(nazwa)) {
+                    bazyCwiczen[kat].push(nazwa);
+                }
+
+                let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                if (!wlasneMap[kat]) wlasneMap[kat] = [];
+                if (!wlasneMap[kat].includes(nazwa)) wlasneMap[kat].push(nazwa);
+                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+
+                let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
+                if (inputNazwa) inputNazwa.value = '';
+
+                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                    try {
+                        const { error } = await supabaseClient.from('baza_cwiczen').insert([{
+                            user_id: String(zalogowanyUzytkownik.id),
+                            kategoria: kat,
+                            nazwa: nazwa
+                        }]);
+                        if (error) {
+                            showNotification("⚠️ Zapisano w pamięci (błąd zapisu do chmury)");
+                        } else {
+                            showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
+                        }
+                    } catch(e) {
+                        showNotification("✅ Zapisano lokalnie");
+                    }
+                } else {
+                    showNotification("✅ Ćwiczenie dodane lokalnie!");
+                }
+
                 odswiezListeMenedzera();
-                aktualizujCwiczenia('dziennik');
-                showNotification("✅ Ćwiczenie dodane!");
+                inicjalizujKategorie();
+            } else {
+                showNotification("⚠️ Wpisz nazwę ćwiczenia!");
             }
         }
 
-        function usunCwiczenie(kat, nazwa) {
-            showConfirmModal(`Usunąć "${nazwa}"?`, (potwierdzono) => {
+        async function edytujCwiczenie(kat, staraNazwa) {
+            showPromptModal(`Edytuj nazwę ćwiczenia dla "${staraNazwa}":`, staraNazwa, async (nowaNazwa) => {
+                if (!nowaNazwa || nowaNazwa.trim() === "" || nowaNazwa.trim() === staraNazwa) return;
+                let nowa = nowaNazwa.trim();
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) return;
+
+                let idx = bazyCwiczen[kat].indexOf(staraNazwa);
+                if (idx === -1) return;
+
+                let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
+                let oryginalnaNazwa = staraNazwa;
+
+                if (!czyDomyslne) {
+                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                    if (nadpisaneMap[kat]) {
+                        for (let orig in nadpisaneMap[kat]) {
+                            if (nadpisaneMap[kat][orig] === staraNazwa) {
+                                oryginalnaNazwa = orig;
+                                czyDomyslne = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    oryginalnaNazwa = staraNazwa;
+                }
+
+                let przywracanieDomyslnej = czyDomyslne && (nowa === oryginalnaNazwa);
+                bazyCwiczen[kat][idx] = nowa;
+
+                if (czyDomyslne) {
+                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                    if (!nadpisaneMap[kat]) nadpisaneMap[kat] = {};
+
+                    if (przywracanieDomyslnej) {
+                        delete nadpisaneMap[kat][oryginalnaNazwa];
+                        if (Object.keys(nadpisaneMap[kat]).length === 0) delete nadpisaneMap[kat];
+                    } else {
+                        nadpisaneMap[kat][oryginalnaNazwa] = nowa;
+                    }
+                    bezpiecznyZapisStorage('nadpisane_cwiczenia_map', nadpisaneMap);
+                } else {
+                    let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                    if (wlasneMap[kat]) {
+                        let wIdx = wlasneMap[kat].indexOf(staraNazwa);
+                        if (wIdx > -1) wlasneMap[kat][wIdx] = nowa;
+                        bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                    }
+                }
+
+                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                    try {
+                        if (czyDomyslne) {
+                            if (przywracanieDomyslnej) {
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia')
+                                    .delete()
+                                    .eq('user_id', String(zalogowanyUzytkownik.id))
+                                    .eq('kategoria', kat)
+                                    .eq('stara_nazwa', oryginalnaNazwa);
+                            } else {
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia')
+                                    .delete()
+                                    .eq('user_id', String(zalogowanyUzytkownik.id))
+                                    .eq('kategoria', kat)
+                                    .eq('stara_nazwa', oryginalnaNazwa);
+
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
+                                    user_id: String(zalogowanyUzytkownik.id),
+                                    kategoria: kat,
+                                    stara_nazwa: oryginalnaNazwa,
+                                    nowa_nazwa: nowa
+                                }]);
+                            }
+                        } else {
+                            await supabaseClient.from('baza_cwiczen')
+                                .update({ nazwa: nowa })
+                                .eq('user_id', String(zalogowanyUzytkownik.id))
+                                .eq('kategoria', kat)
+                                .eq('nazwa', staraNazwa);
+                        }
+                    } catch(e) {}
+                }
+
+                odswiezListeMenedzera();
+                inicjalizujKategorie();
+                showNotification(przywracanieDomyslnej ? "✅ Przywrócono domyślną nazwę!" : "✅ Nazwa ćwiczenia zaktualizowana!");
+            });
+        }
+
+        async function usunCwiczenie(kat, nazwa) {
+            showConfirmModal(`Usunąć / ukryć "${nazwa}"?`, async (potwierdzono) => {
                 if (potwierdzono) {
-                    bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
-                    bezpiecznyZapisStorage('baza_cwiczen', bazyCwiczen);
+                    let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(nazwa);
+
+                    if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
+                        bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
+                    }
+
+                    if (czyDomyslne) {
+                        let ukryteList = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
+                        ukryteList.push({ kategoria: kat, nazwa: nazwa });
+                        bezpiecznyZapisStorage('ukryte_cwiczenia_map', ukryteList);
+
+                        if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                            try {
+                                await supabaseClient.from('ukryte_domyslne_cwiczenia').insert([{
+                                    user_id: String(zalogowanyUzytkownik.id),
+                                    kategoria: kat,
+                                    nazwa_cwiczenia: nazwa
+                                }]);
+                            } catch(e) {}
+                        }
+                    } else {
+                        let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                        if (wlasneMap[kat]) {
+                            wlasneMap[kat] = wlasneMap[kat].filter(c => c !== nazwa);
+                            bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                        }
+
+                        if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                            try {
+                                await supabaseClient.from('baza_cwiczen')
+                                    .delete()
+                                    .eq('user_id', String(zalogowanyUzytkownik.id))
+                                    .eq('kategoria', kat)
+                                    .eq('nazwa', nazwa);
+                            } catch(e) {}
+                        }
+                    }
+
+                    let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+                    if (celeZapisane && celeZapisane[nazwa] !== undefined) {
+                        delete celeZapisane[nazwa];
+                        bezpiecznyZapisStorage('cele', celeZapisane);
+                    }
+
                     odswiezListeMenedzera();
-                    aktualizujCwiczenia('dziennik');
-                    showNotification("🗑️ Usunięto!");
+                    inicjalizujKategorie();
+                    showNotification("🗑️ Usunięto pomyślnie!");
                 }
             });
         }
@@ -1494,7 +1777,7 @@
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
             if (!data || !cwiczenie) { showNotification('Uzupełnij dane'); return; }
 
-            let wpis = { user_id: zalogowanyUzytkownik.id, data, partia, cwiczenie, typ: 'Trening' };
+            let wpis = { user_id: String(zalogowanyUzytkownik.id), data, partia, cwiczenie, typ: 'Trening' };
 
             if (partia === 'Cardio') {
                 wpis.seria = 1; wpis.ciezar = parseFloat(document.getElementById('dziennik-dystans').value) || 0; wpis.powt = parseInt(document.getElementById('dziennik-czas').value) || 0; wpis.onerm = 0;
