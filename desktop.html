@@ -1634,6 +1634,14 @@
                 let idx = bazyCwiczen[kat].indexOf(staraNazwa);
                 if (idx === -1) return;
 
+                // Automatyczna migracja celu ze starej nazwy na nową (wykonana przed zmianą w tablicy)
+                let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+                if (celeZapisane[staraNazwa] !== undefined) {
+                    celeZapisane[nowa] = celeZapisane[staraNazwa];
+                    delete celeZapisane[staraNazwa];
+                    bezpiecznyZapisStorage('cele', celeZapisane);
+                }
+
                 let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
                 let oryginalnaNazwa = staraNazwa;
 
@@ -1654,14 +1662,6 @@
 
                 let przywracanieDomyslnej = czyDomyslne && (nowa === oryginalnaNazwa);
                 bazyCwiczen[kat][idx] = nowa;
-
-                // Automatyczna migracja celu ze starej nazwy na nową
-                let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-                if (celeZapisane[staraNazwa] !== undefined) {
-                    celeZapisane[nowa] = celeZapisane[staraNazwa];
-                    delete celeZapisane[staraNazwa];
-                    bezpiecznyZapisStorage('cele', celeZapisane);
-                }
 
                 if (czyDomyslne) {
                     let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
