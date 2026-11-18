@@ -859,7 +859,7 @@
             if (isNaN(index) || !historia[index]) return;
             
             let w = historia[index];
-            let staraNazwaCwiczenia = w.cwiczenie; // Zapamiętujemy poprzednią nazwę do migracji celów
+            let staraNazwaCwiczenia = w.cwiczenie;
             let nowaPartia = document.getElementById('edit-partia').value;
             let noweCwiczenie = document.getElementById('edit-cwiczenie').value;
             
@@ -891,7 +891,6 @@
                 aktualizowanyWpis.rir = document.getElementById('edit-rir').value || null;
             }
             
-            // Automatyczna migracja celu, jeśli zmieniono nazwę ćwiczenia we wpisie historycznym
             if (staraNazwaCwiczenia !== noweCwiczenie) {
                 let celeZapisane = bezpiecznyOdczytStorage('cele', {});
                 if (celeZapisane[staraNazwaCwiczenia] !== undefined) {
@@ -1112,14 +1111,29 @@
             let fill = document.getElementById('progress-fill');
             let text = document.getElementById('progress-text');
             if(!fill || !text || !celCwiczenie) return;
+            
+            // Pobieramy zawsze aktualną historię (wraz ze zsynchronizowanymi danymi)
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
-            let aktualnaWartosc = celKat === 'Cardio' ? (wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.ciezar || 0)) : 0) : (wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0);
+            
+            let aktualnaWartosc = 0;
+            if (wpisyCwiczenia.length > 0) {
+                if (celKat === 'Cardio') {
+                    aktualnaWartosc = Math.max(...wpisyCwiczenia.map(w => parseFloat(w.ciezar) || 0));
+                } else {
+                    aktualnaWartosc = Math.max(...wpisyCwiczenia.map(w => parseFloat(w.onerm) || 0));
+                }
+            }
 
-            if (docelowaWartosc <= 0) { fill.style.width = '0%'; text.textContent = '0%'; return; }
+            if (docelowaWartosc <= 0) { 
+                fill.style.width = '0%'; 
+                text.textContent = `Aktualnie: ${aktualnaWartosc} (Ustaw cel > 0)`; 
+                return; 
+            }
+            
             let procent = Math.min(Math.floor((aktualnaWartosc / docelowaWartosc) * 100), 100);
             fill.style.width = procent + '%';
-            text.textContent = procent + '%';
+            text.textContent = `${procent}% (Obecnie: ${aktualnaWartosc} / Cel: ${docelowaWartosc})`;
         }
 
         function obliczWlocie() {
@@ -1143,7 +1157,9 @@
                 if(ap) ap.selectedIndex = 0;
                 aktualizujCwiczenia('analiza');
             }
-            if (nazwa === 'cele') inicjalizujListeCelow();
+            if (nazwa === 'cele') {
+                inicjalizujListeCelow();
+            }
             if (nazwa === 'baza') odswiezPanelBazy();
         }
 
