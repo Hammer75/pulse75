@@ -528,7 +528,6 @@
 
         let bazyCwiczen = {};
 
-        // Hybrydowe ładowanie bazy ćwiczeń z natychmiastową synchronizacją Supabase
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
             
@@ -536,7 +535,7 @@
             let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
             let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
 
-            // 1. Pobierz z Supabase do bazy, jeśli użytkownik jest zalogowany
+            // 1. Pobierz z Supabase
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
                     const { data: wlasneData, error } = await supabaseClient
@@ -575,15 +574,18 @@
                         nadpisaneData.forEach(n => {
                             if (aktualnaBaza[n.kategoria]) {
                                 let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
-                                if (idx > -1) aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
-                                else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
+                                if (idx > -1) {
+                                    aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
+                                } else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) {
+                                    aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
+                                }
                             }
                         });
                     }
                 } catch(e) {}
             }
 
-            // 2. Połącz z lokalnymi wpisami
+            // 2. Nałóż lokalne modyfikacje
             Object.keys(lokalneWlasne).forEach(kat => {
                 if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
                 lokalneWlasne[kat].forEach(cw => {
@@ -599,11 +601,14 @@
 
             Object.keys(lokalneNadpisane).forEach(kat => {
                 if (aktualnaBaza[kat]) {
-                    let stara = lokalneNadpisane[kat].stara;
-                    let nowa = lokalneNadpisane[kat].nowa;
-                    let idx = aktualnaBaza[kat].indexOf(stara);
-                    if (idx > -1) aktualnaBaza[kat][idx] = nowa;
-                    else if (!aktualnaBaza[kat].includes(nowa)) aktualnaBaza[kat].push(nowa);
+                    let mapNadpisan = lokalneNadpisane[kat];
+                    Object.keys(mapNadpisan).forEach(stara => {
+                        let nowa = mapNadpisan[stara];
+                        let idx = aktualnaBaza[kat].indexOf(stara);
+                        if (idx > -1) {
+                            aktualnaBaza[kat][idx] = nowa;
+                        }
+                    });
                 }
             });
 
@@ -1355,7 +1360,6 @@
             });
         }
 
-        // Dodawanie ćwiczenia z bezpośrednim wysyłaniem do Supabase
         async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
@@ -1377,7 +1381,6 @@
                 let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
                 if (inputNazwa) inputNazwa.value = '';
 
-                // Wysyłka do Supabase z logowaniem ewentualnych błędów
                 if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                     try {
                         const { data, error } = await supabaseClient.from('baza_cwiczen').insert([{
@@ -1408,53 +1411,92 @@
 
         async function edytujCwiczenie(kat, staraNazwa) {
             showPromptModal(`Edytuj nazwę ćwiczenia dla "${staraNazwa}":`, staraNazwa, async (nowaNazwa) => {
-                if (nowaNazwa && nowaNazwa.trim() !== "" && nowaNazwa.trim() !== staraNazwa) {
-                    let nowa = nowaNazwa.trim();
-                    if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
-                        let idx = bazyCwiczen[kat].indexOf(staraNazwa);
-                        if (idx > -1) {
-                            bazyCwiczen[kat][idx] = nowa;
-                        }
+                if (!nowaNazwa || nowaNazwa.trim() === "" || nowaNazwa.trim() === staraNazwa) return;
+                let nowa = nowaNazwa.trim();
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) return;
 
-                        let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
+                let idx = bazyCwiczen[kat].indexOf(staraNazwa);
+                if (idx === -1) return;
 
-                        if (czyDomyslne) {
-                            let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
-                            nadpisaneMap[kat] = { stara: staraNazwa, nowa: nowa };
-                            bezpiecznyZapisStorage('nadpisane_cwiczenia_map', nadpisaneMap);
-                        } else {
-                            let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
-                            if (wlasneMap[kat]) {
-                                let wIdx = wlasneMap[kat].indexOf(staraNazwa);
-                                if (wIdx > -1) wlasneMap[kat][wIdx] = nowa;
-                                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
+                let oryginalnaNazwa = staraNazwa;
+
+                if (!czyDomyslne) {
+                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                    if (nadpisaneMap[kat]) {
+                        for (let orig in nadpisaneMap[kat]) {
+                            if (nadpisaneMap[kat][orig] === staraNazwa) {
+                                oryginalnaNazwa = orig;
+                                czyDomyslne = true;
+                                break;
                             }
                         }
+                    }
+                } else {
+                    oryginalnaNazwa = staraNazwa;
+                }
 
-                        if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                            try {
-                                if (czyDomyslne) {
-                                    await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
-                                        user_id: String(zalogowanyUzytkownik.id),
-                                        kategoria: kat,
-                                        stara_nazwa: staraNazwa,
-                                        nowa_nazwa: nowa
-                                    }]);
-                                } else {
-                                    await supabaseClient.from('baza_cwiczen')
-                                        .update({ nazwa: nowa })
-                                        .eq('user_id', String(zalogowanyUzytkownik.id))
-                                        .eq('kategoria', kat)
-                                        .eq('nazwa', staraNazwa);
-                                }
-                            } catch(e) {}
-                        }
+                let przywracanieDomyslnej = czyDomyslne && (nowa === oryginalnaNazwa);
+                bazyCwiczen[kat][idx] = nowa;
 
-                        odswiezListeMenedzera();
-                        inicjalizujKategorie();
-                        showNotification("✅ Nazwa ćwiczenia została zaktualizowana!");
+                if (czyDomyslne) {
+                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                    if (!nadpisaneMap[kat]) nadpisaneMap[kat] = {};
+
+                    if (przywracanieDomyslnej) {
+                        delete nadpisaneMap[kat][oryginalnaNazwa];
+                        if (Object.keys(nadpisaneMap[kat]).length === 0) delete nadpisaneMap[kat];
+                    } else {
+                        nadpisaneMap[kat][oryginalnaNazwa] = nowa;
+                    }
+                    bezpiecznyZapisStorage('nadpisane_cwiczenia_map', nadpisaneMap);
+                } else {
+                    let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                    if (wlasneMap[kat]) {
+                        let wIdx = wlasneMap[kat].indexOf(staraNazwa);
+                        if (wIdx > -1) wlasneMap[kat][wIdx] = nowa;
+                        bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
                     }
                 }
+
+                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                    try {
+                        if (czyDomyslne) {
+                            if (przywracanieDomyslnej) {
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia')
+                                    .delete()
+                                    .eq('user_id', String(zalogowanyUzytkownik.id))
+                                    .eq('kategoria', kat)
+                                    .eq('stara_nazwa', oryginalnaNazwa);
+                            } else {
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia')
+                                    .delete()
+                                    .eq('user_id', String(zalogowanyUzytkownik.id))
+                                    .eq('kategoria', kat)
+                                    .eq('stara_nazwa', oryginalnaNazwa);
+
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
+                                    user_id: String(zalogowanyUzytkownik.id),
+                                    kategoria: kat,
+                                    stara_nazwa: oryginalnaNazwa,
+                                    nowa_nazwa: nowa
+                                }]);
+                            }
+                        } else {
+                            await supabaseClient.from('baza_cwiczen')
+                                .update({ nazwa: nowa })
+                                .eq('user_id', String(zalogowanyUzytkownik.id))
+                                .eq('kategoria', kat)
+                                .eq('nazwa', staraNazwa);
+                        }
+                    } catch(e) {
+                        console.error("Błąd synchronizacji edycji:", e);
+                    }
+                }
+
+                odswiezListeMenedzera();
+                inicjalizujKategorie();
+                showNotification(przywracanieDomyslnej ? "✅ Przywrócono domyślną nazwę!" : "✅ Nazwa ćwiczenia zaktualizowana!");
             });
         }
 
