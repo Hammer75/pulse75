@@ -917,6 +917,7 @@
                 bezpiecznyZapisStorage('historia_treningow', historia);
                 zamknijEdycjeWpisu();
                 odswiezInlineAccordion();
+                obliczPostepCelu(); // Natychmiastowe przeliczenie celów po edycji
                 showNotification("✅ Zaktualizowano wpis w bazie i aplikacji!");
             } catch (err) {
                 showNotification("⚠️ Błąd aktualizacji w bazie: " + (err.message || err));
@@ -1112,7 +1113,6 @@
             let text = document.getElementById('progress-text');
             if(!fill || !text || !celCwiczenie) return;
             
-            // Pobieramy zawsze aktualną historię (wraz ze zsynchronizowanymi danymi)
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
             
@@ -1840,6 +1840,7 @@
             historia.unshift(wpis);
             bezpiecznyZapisStorage('historia_treningow', historia);
             odswiezInlineAccordion();
+            obliczPostepCelu(); // Natychmiastowe przeliczenie celów po nowym zapisie
         }
     </script>
 </body>
