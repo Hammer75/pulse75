@@ -528,15 +528,62 @@
 
         let bazyCwiczen = {};
 
-        // Hybrydowe ładowanie bazy ćwiczeń (lokalny localStorage + próba pobrania z Supabase)
+        // Hybrydowe ładowanie bazy ćwiczeń z natychmiastową synchronizacją Supabase
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
             
-            // 1. Najpierw załaduj z localStorage (gwarancja że nic nie zniknie offline/lokalnie)
             let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
             let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
             let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
 
+            // 1. Pobierz z Supabase do bazy, jeśli użytkownik jest zalogowany
+            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    const { data: wlasneData, error } = await supabaseClient
+                        .from('baza_cwiczen')
+                        .select('kategoria, nazwa')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (!error && wlasneData) {
+                        wlasneData.forEach(item => {
+                            if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
+                            if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
+                                aktualnaBaza[item.kategoria].push(item.nazwa);
+                            }
+                        });
+                    }
+
+                    const { data: ukryteData } = await supabaseClient
+                        .from('ukryte_domyslne_cwiczenia')
+                        .select('kategoria, nazwa_cwiczenia')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (ukryteData) {
+                        ukryteData.forEach(u => {
+                            if (aktualnaBaza[u.kategoria]) {
+                                aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
+                            }
+                        });
+                    }
+
+                    const { data: nadpisaneData } = await supabaseClient
+                        .from('nadpisane_domyslne_cwiczenia')
+                        .select('kategoria, stara_nazwa, nowa_nazwa')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (nadpisaneData) {
+                        nadpisaneData.forEach(n => {
+                            if (aktualnaBaza[n.kategoria]) {
+                                let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
+                                if (idx > -1) aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
+                                else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+
+            // 2. Połącz z lokalnymi wpisami
             Object.keys(lokalneWlasne).forEach(kat => {
                 if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
                 lokalneWlasne[kat].forEach(cw => {
@@ -559,25 +606,6 @@
                     else if (!aktualnaBaza[kat].includes(nowa)) aktualnaBaza[kat].push(nowa);
                 }
             });
-
-            // 2. Próba synchronizacji z Supabase w tle
-            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                try {
-                    const { data: wlasneData } = await supabaseClient
-                        .from('baza_cwiczen')
-                        .select('kategoria, nazwa')
-                        .eq('user_id', String(zalogowanyUzytkownik.id));
-
-                    if (wlasneData) {
-                        wlasneData.forEach(item => {
-                            if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
-                            if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
-                                aktualnaBaza[item.kategoria].push(item.nazwa);
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
 
             return aktualnaBaza;
         }
@@ -1327,7 +1355,7 @@
             });
         }
 
-        // Poprawiona funkcja dodawania z niezawodnym zapisem lokalnym i chmurowym
+        // Dodawanie ćwiczenia z bezpośrednim wysyłaniem do Supabase
         async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
@@ -1341,7 +1369,6 @@
                     bazyCwiczen[kat].push(nazwa);
                 }
 
-                // Zapisz w lokalnym localStorage jako własne ćwiczenia
                 let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
                 if (!wlasneMap[kat]) wlasneMap[kat] = [];
                 if (!wlasneMap[kat].includes(nazwa)) wlasneMap[kat].push(nazwa);
@@ -1350,25 +1377,30 @@
                 let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
                 if (inputNazwa) inputNazwa.value = '';
 
-                // Próba zapisu do Supabase
+                // Wysyłka do Supabase z logowaniem ewentualnych błędów
                 if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                     try {
-                        const { error } = await supabaseClient.from('baza_cwiczen').insert([{
+                        const { data, error } = await supabaseClient.from('baza_cwiczen').insert([{
                             user_id: String(zalogowanyUzytkownik.id),
                             kategoria: kat,
                             nazwa: nazwa
                         }]);
                         if (error) {
                             console.error("Supabase insert error:", error);
+                            showNotification("⚠️ Zapisano w pamięci (błąd zapisu do chmury)");
+                        } else {
+                            showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
                         }
                     } catch(e) {
                         console.error("Supabase exception:", e);
+                        showNotification("✅ Zapisano lokalnie");
                     }
+                } else {
+                    showNotification("✅ Ćwiczenie dodane lokalnie!");
                 }
 
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-                showNotification("✅ Ćwiczenie zostało dodane!");
             } else {
                 showNotification("⚠️ Wpisz nazwę ćwiczenia!");
             }
