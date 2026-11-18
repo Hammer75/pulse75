@@ -563,7 +563,6 @@
             if (index > -1) lista.splice(index, 1);
         }
 
-        // Hybrydowe ładowanie bazy ćwiczeń z Supabase
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
             
@@ -620,7 +619,6 @@
                 } catch(e) {}
             }
 
-            // Nałożenie lokalnych modyfikacji
             Object.keys(lokalneWlasne).forEach(kat => {
                 if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
                 lokalneWlasne[kat].forEach(cw => {
@@ -1656,6 +1654,14 @@
 
                 let przywracanieDomyslnej = czyDomyslne && (nowa === oryginalnaNazwa);
                 bazyCwiczen[kat][idx] = nowa;
+
+                // Automatyczna migracja celu ze starej nazwy na nową
+                let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+                if (celeZapisane[staraNazwa] !== undefined) {
+                    celeZapisane[nowa] = celeZapisane[staraNazwa];
+                    delete celeZapisane[staraNazwa];
+                    bezpiecznyZapisStorage('cele', celeZapisane);
+                }
 
                 if (czyDomyslne) {
                     let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
