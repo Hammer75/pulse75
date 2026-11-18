@@ -315,7 +315,7 @@
                 </div>
             </div>
 
-            <!-- 3. ZAKŁADKA CELE (SYNCHRONIZOWANA Z SUPABASE) -->
+            <!-- 3. ZAKŁADKA CELE -->
             <div id="tab-cele" class="tab-content">
                 <div class="card">
                     <h2>Wizualizacja Celów (1RM)</h2>
@@ -742,11 +742,54 @@
             }
             
             if (partia === 'Cardio') {
-                specContainer.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div><label>Dystans (km):</label><input type="number" id="edit-dystans" step="0.1" min="0"></div><div><label>Czas (min):</label><input type="number" id="edit-czas" step="1" min="0"></div></div>`;
+                specContainer.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                        <div>
+                            <label>Dystans (km):</label>
+                            <input type="number" id="edit-dystans" step="0.1" min="0" style="margin-bottom:0;">
+                        </div>
+                        <div>
+                            <label>Czas trwania (minuty):</label>
+                            <input type="number" id="edit-czas" step="1" min="0" style="margin-bottom:0;">
+                        </div>
+                    </div>
+                `;
             } else if (partia === 'Regeneracja') {
                 specContainer.innerHTML = '';
             } else {
-                specContainer.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div><label>Seria:</label><select id="edit-seria"><option>1</option><option>2</option><option>3</option><option>4</option></select></div><div><label>Ciężar (kg):</label><input type="number" id="edit-ciezar" step="0.5" min="0"></div></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"><div><label>Powtórzenia:</label><select id="edit-powt"><option>1</option><option>8</option><option>10</option><option>12</option></select></div><div><label>RIR:</label><select id="edit-rir"><option value="">Brak</option><option value="0">0</option><option value="1">1</option><option value="2">2</option></select></div></div>`;
+                specContainer.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                        <div>
+                            <label>Numer Serii:</label>
+                            <select id="edit-seria" style="margin-bottom:0;">
+                                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Ciężar (kg):</label>
+                            <input type="number" id="edit-ciezar" step="0.5" min="0" style="margin-bottom:0;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                        <div>
+                            <label>Powtórzenia:</label>
+                            <select id="edit-powt" style="margin-bottom:0;">
+                                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Zapas sił w serii (RIR):</label>
+                            <select id="edit-rir" style="margin-bottom:0;">
+                                <option value="">-- Brak / Nie dotyczy --</option>
+                                <option value="0">RIR 0 (Upadek mięśniowy)</option>
+                                <option value="1">RIR 1 (1 powtórzenie w zapasie)</option>
+                                <option value="2">RIR 2 (2 powtórzenia – optymalnie)</option>
+                                <option value="3">RIR 3 (3 powtórzenia w zapasie)</option>
+                                <option value="4+">RIR 4+ (Bardzo lekko)</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -769,8 +812,9 @@
                 aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-dystans').value) || 0;
                 aktualizowanyWpis.powt = parseInt(document.getElementById('edit-czas').value) || 0;
                 aktualizowanyWpis.onerm = 0;
+                aktualizowanyWpis.rir = null;
             } else if (nowaPartia === 'Regeneracja') {
-                aktualizowanyWpis.seria = 1; aktualizowanyWpis.ciezar = 0; aktualizowanyWpis.powt = 0; aktualizowanyWpis.onerm = 0;
+                aktualizowanyWpis.seria = 1; aktualizowanyWpis.ciezar = 0; aktualizowanyWpis.powt = 0; aktualizowanyWpis.onerm = 0; aktualizowanyWpis.rir = null;
             } else {
                 aktualizowanyWpis.seria = parseInt(document.getElementById('edit-seria').value) || 1;
                 aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-ciezar').value) || 0;
@@ -947,8 +991,6 @@
             if(!celCwiczenie || !inputCelWartosc) return;
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             inputCelWartosc.value = celeZapisane[celCwiczenie] || 0;
-            
-            // GŁÓWNA ZMIANA: Pobieramy świeże dane bezpośrednio z Supabase przy zmianie ćwiczenia/wejściu w cele
             obliczPostepCeluZSupabase();
         }
 
@@ -961,7 +1003,6 @@
             obliczPostepCeluZSupabase();
         }
 
-        // NOWA FUNKCJA POBIERAJĄCA NAJWYŻSZE WARTOŚCI BEZPOŚREDNIO Z SUPABASE
         async function obliczPostepCeluZSupabase() {
             let celKat = document.getElementById('cel-kategoria').value;
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
@@ -982,7 +1023,6 @@
                         .eq('cwiczenie', celCwiczenie);
                     if (!error && data) {
                         wpisyCwiczenia = data;
-                        // Aktualizujemy też lokalną historię w tle
                         let historiaLokalna = bezpiecznyOdczytStorage('historia_treningow', []);
                         data.forEach(srv => {
                             if (!historiaLokalna.some(l => l.id === srv.id)) historiaLokalna.push(srv);
@@ -992,7 +1032,6 @@
                 } catch(e) {}
             }
 
-            // Jeśli brak z sieci, bierzemy z localstorage
             if (wpisyCwiczenia.length === 0) {
                 let historia = bezpiecznyOdczytStorage('historia_treningow', []);
                 wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
