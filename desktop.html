@@ -859,6 +859,7 @@
             if (isNaN(index) || !historia[index]) return;
             
             let w = historia[index];
+            let staraNazwaCwiczenia = w.cwiczenie; // Zapamiętujemy poprzednią nazwę do migracji celów
             let nowaPartia = document.getElementById('edit-partia').value;
             let noweCwiczenie = document.getElementById('edit-cwiczenie').value;
             
@@ -890,6 +891,16 @@
                 aktualizowanyWpis.rir = document.getElementById('edit-rir').value || null;
             }
             
+            // Automatyczna migracja celu, jeśli zmieniono nazwę ćwiczenia we wpisie historycznym
+            if (staraNazwaCwiczenia !== noweCwiczenie) {
+                let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+                if (celeZapisane[staraNazwaCwiczenia] !== undefined) {
+                    celeZapisane[noweCwiczenie] = celeZapisane[staraNazwaCwiczenia];
+                    delete celeZapisane[staraNazwaCwiczenia];
+                    bezpiecznyZapisStorage('cele', celeZapisane);
+                }
+            }
+
             try {
                 if (w.id) {
                     let { error } = await supabaseClient.from('treningi').update(aktualizowanyWpis).eq('id', w.id);
@@ -1634,7 +1645,6 @@
                 let idx = bazyCwiczen[kat].indexOf(staraNazwa);
                 if (idx === -1) return;
 
-                // Automatyczna migracja celu ze starej nazwy na nową (wykonana przed zmianą w tablicy)
                 let celeZapisane = bezpiecznyOdczytStorage('cele', {});
                 if (celeZapisane[staraNazwa] !== undefined) {
                     celeZapisane[nowa] = celeZapisane[staraNazwa];
