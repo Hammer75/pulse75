@@ -152,14 +152,13 @@
     <div class="main-container">
         <div class="content-wrapper">
             
-            <!-- 1. ZAKŁADKA HISTORIA (ZINTEGROWANA Z DZIENNIKIM I INLINE ACCORDION) -->
+            <!-- 1. ZAKŁADKA HISTORIA -->
             <div id="tab-historia" class="tab-content active">
                 <div class="card">
                     <h2>Rejestracja i Historia Dnia</h2>
                     <label>Data treningu / przeglądu:</label>
                     <input type="date" id="dziennik-data" onchange="odswiezInlineAccordion()">
 
-                    <!-- ROZWIJANA KIESZEŃ PODGLĄDU (INLINE ACCORDION) -->
                     <div id="inline-accordion-wrapper" style="margin-top: 15px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; background: #252525; overflow: hidden;">
                         <div id="accordion-toggle-btn" onclick="toggleInlineAccordion()" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem;">
                             <span id="accordion-status-text">📅 Ładowanie danych...</span>
@@ -181,7 +180,6 @@
                             <label>Wybierz Ćwiczenie / Aktywność:</label>
                             <select id="dziennik-cwiczenie" onchange="zmienionoCwiczenieDziennika()"></select>
 
-                            <!-- SEKCJA SIŁOWA -->
                             <div id="kontener-pola-silowe">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                     <div>
@@ -221,7 +219,6 @@
                                 </div>
                             </div>
 
-                            <!-- SEKCJA CARDIO -->
                             <div id="kontener-pola-cardio" style="display: none;">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                     <div>
@@ -283,37 +280,31 @@
 
                     <div class="result-box" id="analiza-podsumowanie" style="margin-top:20px;">Brak danych.</div>
 
-                    <!-- RAPORT PRO 1 -->
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">📈 Prognoza Rekordu (1RM Forecasting)</h3>
                         <div class="result-box" id="raport-prognoza">Brak danych do prognozy.</div>
                     </div>
 
-                    <!-- RAPORT PRO 2 -->
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">⚖️ Audyt Równowagi Mięśniowej (Push vs. Pull)</h3>
                         <div class="result-box" id="raport-push-pull">Brak danych o proporcjach.</div>
                     </div>
 
-                    <!-- RAPORT PRO 3 -->
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">📉 Analiza Zapasu Sił i Zmęczenia (RIR Trend)</h3>
                         <div class="result-box" id="raport-rir">Brak zarejestrowanych danych RIR.</div>
                     </div>
 
-                    <!-- RAPORT PRO 4 -->
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">🏆 Wskaźniki Siły Względnej (Masa ciała: 89 kg)</h3>
                         <div class="result-box" id="raport-sila-wzgledna">Brak danych dla siły względnej.</div>
                     </div>
 
-                    <!-- RAPORT PRO 5 -->
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">📊 Objętość Tygodniowa (Volume Landmarks)</h3>
                         <div class="result-box" id="raport-objemosc">Brak danych o objętości.</div>
                     </div>
 
-                    <!-- EKSPORT RAPORTÓW -->
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <button onclick="eksportujRaportCSV()" style="width: 100%; background: #333; border: 1px solid var(--border);">📥 Eksportuj pełny raport treningowy (CSV)</button>
                     </div>
@@ -324,7 +315,7 @@
                 </div>
             </div>
 
-            <!-- 3. ZAKŁADKA CELE -->
+            <!-- 3. ZAKŁADKA CELE (SYNCHRONIZOWANA Z SUPABASE) -->
             <div id="tab-cele" class="tab-content">
                 <div class="card">
                     <h2>Wizualizacja Celów (1RM)</h2>
@@ -344,7 +335,7 @@
                     
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill" id="progress-fill"></div>
-                        <div class="progress-text" id="progress-text">0%</div>
+                        <div class="progress-text" id="progress-text">0% (Pobieranie danych z bazy...)</div>
                     </div>
                 </div>
             </div>
@@ -388,17 +379,11 @@
                         <p>• <b>Android (Chrome):</b> Otwórz aplikację w przeglądarce, kliknij ikonę menu (trzy kropki w prawym górnym rogu) i wybierz opcję „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.<br>
                         • <b>iOS (Safari):</b> Otwórz aplikację w przeglądarce Safari, kliknij przycisk Udostępnij (kwadrat ze strzałką w górę) na dolnym pasku, a następnie przewiń listę i wybierz „Do ekranu początkowego”.</p>
 
-                        <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">1. 📊 Historia i Dziennik (Rejestracja i Przegląd)</h3>
+                        <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">1. 📊 Historia i Dziennik</h3>
                         <p>Główny ekran roboczy aplikacji połączony z rozwijaną kieszenią podglądu, służący do bieżącego lub zaległego zapisywania treningów oraz natychmiastowej edycji i usuwania wpisów z wybranego dnia.</p>
                         
                         <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">2. ⚙️ Więcej (Menu Główne Opcji)</h3>
                         <p>Centralny punkt nawigacyjny prowadzący do zaawansowanych modułów analitycznych, celów oraz zarządzania słownikiem treningowym.</p>
-                        <p>
-                        • <b>📊 Analiza i Wykresy (PRO):</b> Kompleksowy przegląd historii z zaawansowanymi raportami analitycznymi.<br>
-                        • <b>🎯 Wizualizacja Celów (1RM):</b> Narzędzie motywacyjne pozwalające śledzić postęp.<br>
-                        • <b>🏋️ Zarządzanie Bazą Ćwiczeń:</b> Wbudowany menedżer słownika.<br>
-                        • <b>📖 Instrukcja Obsługi:</b> Kompletny przewodnik po funkcjach i działaniu aplikacji.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -411,7 +396,6 @@
         let isAccordionOpen = false;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // SPRAWDZENIE SESJI
             let saved = localStorage.getItem('pulse75_user') || localStorage.getItem('ironmetric_user');
             if (!saved) {
                 window.location.href = 'index.html';
@@ -424,7 +408,6 @@
             const rok = teraz.getFullYear();
             const miesiac = String(teraz.getMonth() + 1).padStart(2, '0');
             const dzien = String(teraz.getDate()).padStart(2, '0');
-            
             const isoData = `${rok}-${miesiac}-${dzien}`;
             
             let elInput = document.getElementById('dziennik-data');
@@ -463,14 +446,12 @@
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
                 }
-                
                 let globalVal = localStorage.getItem(`ironmetric_${klucz}`) || localStorage.getItem(`pulse75_${klucz}`);
                 if (globalVal !== null) {
                     let parsed = JSON.parse(globalVal);
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
                 }
-
                 return domyslnaWartosc;
             } catch (e) {
                 return domyslnaWartosc;
@@ -565,7 +546,6 @@
 
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
-            
             let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
             let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
             let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
@@ -618,33 +598,6 @@
                     }
                 } catch(e) {}
             }
-
-            Object.keys(lokalneWlasne).forEach(kat => {
-                if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
-                lokalneWlasne[kat].forEach(cw => {
-                    if (!aktualnaBaza[kat].includes(cw)) aktualnaBaza[kat].push(cw);
-                });
-            });
-
-            lokalneUkryte.forEach(u => {
-                if (aktualnaBaza[u.kategoria]) {
-                    aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa);
-                }
-            });
-
-            Object.keys(lokalneNadpisane).forEach(kat => {
-                if (aktualnaBaza[kat]) {
-                    let mapNadpisan = lokalneNadpisane[kat];
-                    Object.keys(mapNadpisan).forEach(stara => {
-                        let nowa = mapNadpisan[stara];
-                        let idx = aktualnaBaza[kat].indexOf(stara);
-                        if (idx > -1) {
-                            aktualnaBaza[kat][idx] = nowa;
-                        }
-                    });
-                }
-            });
-
             return aktualnaBaza;
         }
 
@@ -721,11 +674,7 @@
                                 .delete()
                                 .eq('id', w.id)
                                 .select();
-
                             if (error) throw error;
-                            if (!deletedRows || deletedRows.length === 0) {
-                                throw new Error("Baza danych odrzuciła usunięcie (sprawdź polityki RLS w Supabase).");
-                            }
                         }
                         historia.splice(index, 1);
                         bezpiecznyZapisStorage('historia_treningow', historia);
@@ -751,33 +700,28 @@
                 katOptions += `<option value="${kat}" ${w.partia === kat ? 'selected' : ''}>${kat}</option>`;
             });
             
-            let html = `
+            container.innerHTML = `
                 <div style="margin-bottom: 12px;">
                     <label>Kategoria / Partia Mięśniowa:</label>
                     <select id="edit-partia" onchange="aktualizujCwiczeniaEdycji()">${katOptions}</select>
                 </div>
                 <div style="margin-bottom: 12px;">
-                    <label>Wybierz Ćwiczenie / Aktywność:</label>
+                    <label>Wybierz Ćwiczenie:</label>
                     <select id="edit-cwiczenie"></select>
                 </div>
                 <div id="edit-pola-specyficzne"></div>
             `;
-            container.innerHTML = html;
             
             aktualizujCwiczeniaEdycji(w.cwiczenie);
-            
             if (w.partia === 'Cardio') {
                 if(document.getElementById('edit-dystans')) document.getElementById('edit-dystans').value = w.ciezar || 0;
                 if(document.getElementById('edit-czas')) document.getElementById('edit-czas').value = w.powt || 0;
-            } else if (w.partia === 'Regeneracja') {
-                // Brak dodatkowych pól
-            } else {
+            } else if (w.partia !== 'Regeneracja') {
                 if(document.getElementById('edit-seria')) document.getElementById('edit-seria').value = w.seria || 1;
                 if(document.getElementById('edit-ciezar')) document.getElementById('edit-ciezar').value = w.ciezar || 0;
                 if(document.getElementById('edit-powt')) document.getElementById('edit-powt').value = w.powt || 8;
                 if(document.getElementById('edit-rir') && w.rir !== undefined) document.getElementById('edit-rir').value = w.rir;
             }
-            
             document.getElementById('edit-entry-modal').style.display = 'flex';
         }
 
@@ -798,54 +742,11 @@
             }
             
             if (partia === 'Cardio') {
-                specContainer.innerHTML = `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                        <div>
-                            <label>Dystans (km):</label>
-                            <input type="number" id="edit-dystans" step="0.1" min="0" style="margin-bottom:0;">
-                        </div>
-                        <div>
-                            <label>Czas trwania (minuty):</label>
-                            <input type="number" id="edit-czas" step="1" min="0" style="margin-bottom:0;">
-                        </div>
-                    </div>
-                `;
+                specContainer.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div><label>Dystans (km):</label><input type="number" id="edit-dystans" step="0.1" min="0"></div><div><label>Czas (min):</label><input type="number" id="edit-czas" step="1" min="0"></div></div>`;
             } else if (partia === 'Regeneracja') {
                 specContainer.innerHTML = '';
             } else {
-                specContainer.innerHTML = `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                        <div>
-                            <label>Numer Serii:</label>
-                            <select id="edit-seria" style="margin-bottom:0;">
-                                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Ciężar (kg):</label>
-                            <input type="number" id="edit-ciezar" step="0.5" min="0" style="margin-bottom:0;">
-                        </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                        <div>
-                            <label>Powtórzenia:</label>
-                            <select id="edit-powt" style="margin-bottom:0;">
-                                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>Zapas sił (RIR):</label>
-                            <select id="edit-rir" style="margin-bottom:0;">
-                                <option value="">-- Brak --</option>
-                                <option value="0">RIR 0</option>
-                                <option value="1">RIR 1</option>
-                                <option value="2">RIR 2</option>
-                                <option value="3">RIR 3</option>
-                                <option value="4+">RIR 4+</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
+                specContainer.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div><label>Seria:</label><select id="edit-seria"><option>1</option><option>2</option><option>3</option><option>4</option></select></div><div><label>Ciężar (kg):</label><input type="number" id="edit-ciezar" step="0.5" min="0"></div></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"><div><label>Powtórzenia:</label><select id="edit-powt"><option>1</option><option>8</option><option>10</option><option>12</option></select></div><div><label>RIR:</label><select id="edit-rir"><option value="">Brak</option><option value="0">0</option><option value="1">1</option><option value="2">2</option></select></div></div>`;
             }
         }
 
@@ -859,30 +760,17 @@
             if (isNaN(index) || !historia[index]) return;
             
             let w = historia[index];
-            let staraNazwaCwiczenia = w.cwiczenie;
             let nowaPartia = document.getElementById('edit-partia').value;
             let noweCwiczenie = document.getElementById('edit-cwiczenie').value;
             
-            if (!noweCwiczenie) { showNotification('Wybierz ćwiczenie'); return; }
-            
-            let aktualizowanyWpis = {
-                partia: nowaPartia,
-                cwiczenie: noweCwiczenie,
-                typ: 'Trening'
-            };
-            
+            let aktualizowanyWpis = { partia: nowaPartia, cwiczenie: noweCwiczenie, typ: 'Trening' };
             if (nowaPartia === 'Cardio') {
                 aktualizowanyWpis.seria = 1;
                 aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-dystans').value) || 0;
                 aktualizowanyWpis.powt = parseInt(document.getElementById('edit-czas').value) || 0;
                 aktualizowanyWpis.onerm = 0;
-                aktualizowanyWpis.rir = null;
             } else if (nowaPartia === 'Regeneracja') {
-                aktualizowanyWpis.seria = 1;
-                aktualizowanyWpis.ciezar = 0;
-                aktualizowanyWpis.powt = 0;
-                aktualizowanyWpis.onerm = 0;
-                aktualizowanyWpis.rir = null;
+                aktualizowanyWpis.seria = 1; aktualizowanyWpis.ciezar = 0; aktualizowanyWpis.powt = 0; aktualizowanyWpis.onerm = 0;
             } else {
                 aktualizowanyWpis.seria = parseInt(document.getElementById('edit-seria').value) || 1;
                 aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-ciezar').value) || 0;
@@ -890,22 +778,11 @@
                 aktualizowanyWpis.onerm = Math.round(aktualizowanyWpis.ciezar * (1 + aktualizowanyWpis.powt / 30) * 10) / 10;
                 aktualizowanyWpis.rir = document.getElementById('edit-rir').value || null;
             }
-            
-            if (staraNazwaCwiczenia !== noweCwiczenie) {
-                let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-                if (celeZapisane[staraNazwaCwiczenia] !== undefined) {
-                    celeZapisane[noweCwiczenie] = celeZapisane[staraNazwaCwiczenia];
-                    delete celeZapisane[staraNazwaCwiczenia];
-                    bezpiecznyZapisStorage('cele', celeZapisane);
-                }
-            }
 
             try {
                 if (w.id) {
-                    let { error } = await supabaseClient.from('treningi').update(aktualizowanyWpis).eq('id', w.id);
-                    if (error) throw error;
+                    await supabaseClient.from('treningi').update(aktualizowanyWpis).eq('id', w.id);
                 }
-                
                 w.partia = aktualizowanyWpis.partia;
                 w.cwiczenie = aktualizowanyWpis.cwiczenie;
                 w.seria = aktualizowanyWpis.seria;
@@ -917,10 +794,9 @@
                 bezpiecznyZapisStorage('historia_treningow', historia);
                 zamknijEdycjeWpisu();
                 odswiezInlineAccordion();
-                obliczPostepCelu(); // Natychmiastowe przeliczenie celów po edycji
-                showNotification("✅ Zaktualizowano wpis w bazie i aplikacji!");
+                showNotification("✅ Zaktualizowano wpis!");
             } catch (err) {
-                showNotification("⚠️ Błąd aktualizacji w bazie: " + (err.message || err));
+                showNotification("⚠️ Błąd zapisu");
             }
         }
 
@@ -939,7 +815,6 @@
                         .order('data', { ascending: false });
                     if (serverTreningi) {
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
-                        zainicjalizujDatyAnalizy();
                         odswiezInlineAccordion();
                     }
                 } catch(err) {}
@@ -971,30 +846,14 @@
             let dataOdEl = document.getElementById('analiza-data-od');
             let dataDoEl = document.getElementById('analiza-data-do');
             if (!dataOdEl || !dataDoEl) return;
-
-            let dzisiajObj = new Date();
-            let dzisiajIso = `${dzisiajObj.getFullYear()}-${String(dzisiajObj.getMonth() + 1).padStart(2, '0')}-${String(dzisiajObj.getDate()).padStart(2, '0')}`;
+            let dzisiajIso = new Date().toISOString().slice(0,10);
             dataDoEl.value = dzisiajIso;
-
-            if (historia.length > 0) {
-                let daty = historia.map(w => w.data ? w.data.substring(0, 10) : dzisiajIso).filter(d => d);
-                if (daty.length > 0) {
-                    let najwczesniejsza = daty.reduce((a, b) => a < b ? a : b);
-                    dataOdEl.value = najwczesniejsza;
-                } else {
-                    dataOdEl.value = dzisiajIso;
-                }
-            } else {
-                dataOdEl.value = dzisiajIso;
-            }
+            dataOdEl.value = historia.length > 0 ? (historia.map(w => w.data?.substring(0,10)).reduce((a,b)=>a<b?a:b) || dzisiajIso) : dzisiajIso;
         }
 
         function zmienionoTrybDatAnalizy() {
             let tryb = document.getElementById('analiza-tryb-dat').value;
-            let kontenerDaty = document.getElementById('analiza-kontener-dat');
-            if (kontenerDaty) {
-                kontenerDaty.style.display = (tryb === 'zakres') ? 'grid' : 'none';
-            }
+            document.getElementById('analiza-kontener-dat').style.display = (tryb === 'zakres') ? 'grid' : 'none';
             zaladujAnalize();
         }
 
@@ -1002,10 +861,8 @@
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             let tryb = document.getElementById('analiza-tryb-dat')?.value || 'wszystko';
             if (tryb === 'wszystko') return historia;
-
             let dataOd = document.getElementById('analiza-data-od')?.value;
             let dataDo = document.getElementById('analiza-data-do')?.value;
-
             return historia.filter(w => {
                 if (!w.data) return false;
                 let d = w.data.substring(0, 10);
@@ -1021,14 +878,11 @@
             let kontenerCardio = document.getElementById('kontener-pola-cardio');
             if (!partiaEl) return;
             if (partiaEl.value === 'Cardio') {
-                kontenerSila.style.display = 'none';
-                kontenerCardio.style.display = 'block';
+                kontenerSila.style.display = 'none'; kontenerCardio.style.display = 'block';
             } else if (partiaEl.value === 'Regeneracja') {
-                kontenerSila.style.display = 'none';
-                kontenerCardio.style.display = 'none';
+                kontenerSila.style.display = 'none'; kontenerCardio.style.display = 'none';
             } else {
-                kontenerSila.style.display = 'block';
-                kontenerCardio.style.display = 'none';
+                kontenerSila.style.display = 'block'; kontenerCardio.style.display = 'none';
             }
             aktualizujCwiczenia('dziennik');
         }
@@ -1093,7 +947,9 @@
             if(!celCwiczenie || !inputCelWartosc) return;
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             inputCelWartosc.value = celeZapisane[celCwiczenie] || 0;
-            obliczPostepCelu();
+            
+            // GŁÓWNA ZMIANA: Pobieramy świeże dane bezpośrednio z Supabase przy zmianie ćwiczenia/wejściu w cele
+            obliczPostepCeluZSupabase();
         }
 
         function zapiszWartoscCelu() {
@@ -1102,20 +958,46 @@
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             celeZapisane[celCwiczenie] = val;
             bezpiecznyZapisStorage('cele', celeZapisane);
-            obliczPostepCelu();
+            obliczPostepCeluZSupabase();
         }
 
-        function obliczPostepCelu() {
+        // NOWA FUNKCJA POBIERAJĄCA NAJWYŻSZE WARTOŚCI BEZPOŚREDNIO Z SUPABASE
+        async function obliczPostepCeluZSupabase() {
             let celKat = document.getElementById('cel-kategoria').value;
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
             let docelowaWartosc = parseFloat(document.getElementById('cel-wartosc').value) || 0;
             let fill = document.getElementById('progress-fill');
             let text = document.getElementById('progress-text');
             if(!fill || !text || !celCwiczenie) return;
-            
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
-            let wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
-            
+
+            text.textContent = 'Pobieranie najnowszego rekordu z bazy...';
+
+            let wpisyCwiczenia = [];
+            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('treningi')
+                        .select('*')
+                        .eq('user_id', String(zalogowanyUzytkownik.id))
+                        .eq('cwiczenie', celCwiczenie);
+                    if (!error && data) {
+                        wpisyCwiczenia = data;
+                        // Aktualizujemy też lokalną historię w tle
+                        let historiaLokalna = bezpiecznyOdczytStorage('historia_treningow', []);
+                        data.forEach(srv => {
+                            if (!historiaLokalna.some(l => l.id === srv.id)) historiaLokalna.push(srv);
+                        });
+                        bezpiecznyZapisStorage('historia_treningow', historiaLokalna);
+                    }
+                } catch(e) {}
+            }
+
+            // Jeśli brak z sieci, bierzemy z localstorage
+            if (wpisyCwiczenia.length === 0) {
+                let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+                wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
+            }
+
             let aktualnaWartosc = 0;
             if (wpisyCwiczenia.length > 0) {
                 if (celKat === 'Cardio') {
@@ -1127,7 +1009,7 @@
 
             if (docelowaWartosc <= 0) { 
                 fill.style.width = '0%'; 
-                text.textContent = `Aktualnie: ${aktualnaWartosc} (Ustaw cel > 0)`; 
+                text.textContent = `Aktualny rekord: ${aktualnaWartosc} (Ustaw cel > 0)`; 
                 return; 
             }
             
@@ -1148,13 +1030,9 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('tab-' + nazwa).classList.add('active');
             if(el) el.classList.add('active');
-            if (nazwa === 'historia') {
-                odswiezInlineAccordion();
-            }
+            if (nazwa === 'historia') odswiezInlineAccordion();
             if (nazwa === 'analiza') {
                 zainicjalizujDatyAnalizy();
-                let ap = document.getElementById('analiza-partia');
-                if(ap) ap.selectedIndex = 0;
                 aktualizujCwiczenia('analiza');
             }
             if (nazwa === 'cele') {
@@ -1187,349 +1065,24 @@
             let historiaFiltrowana = pobierzPrzefiltrowanaHistorie();
             let wpisyCwiczenia = historiaFiltrowana.filter(w => w.cwiczenie === wybraneCwiczenie);
             
-            if (partia === 'Cardio') {
-                tabelaEl.innerHTML = `<tr><th>Data</th><th>Dystans (km)</th><th>Czas (min)</th><th>Śr. Tempo (min/km)</th></tr>`;
-            } else {
-                tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr>`;
-            }
-            
+            tabelaEl.innerHTML = partia === 'Cardio' ? `<tr><th>Data</th><th>Dystans (km)</th><th>Czas (min)</th><th>Tempo</th></tr>` : `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr>`;
             if(wpisyCwiczenia.length === 0) {
-                podsumowanieEl.innerHTML = 'Brak zarejestrowanych wpisów dla tego ćwiczenia w wybranym zakresie.';
-                document.getElementById('raport-prognoza').innerHTML = 'Brak danych do prognozy.';
-                document.getElementById('raport-push-pull').innerHTML = 'Brak danych o proporcjach.';
-                document.getElementById('raport-rir').innerHTML = 'Brak danych.';
-                document.getElementById('raport-sila-wzgledna').innerHTML = 'Brak danych.';
-                document.getElementById('raport-objemosc').innerHTML = 'Brak danych.';
+                podsumowanieEl.innerHTML = 'Brak wpisów.';
                 return;
             }
-
-            podsumowanieEl.innerHTML = `Liczba wpisów w zakresie: <b>${wpisyCwiczenia.length}</b>`;
+            podsumowanieEl.innerHTML = `Liczba wpisów: <b>${wpisyCwiczenia.length}</b>`;
             wpisyCwiczenia.forEach(w => {
                 if (partia === 'Cardio') {
-                    let dystans = w.ciezar || 0;
-                    let czas = w.powt || 0;
-                    let tempo = dystans > 0 ? (czas / dystans).toFixed(2) : '0.00';
-                    tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td><b>${dystans} km</b></td><td><b>${czas} min</b></td><td>${tempo} min/km</td></tr>`;
+                    tabelaEl.innerHTML += `<tr><td>${w.data?.substring(0,10)}</td><td><b>${w.ciezar} km</b></td><td><b>${w.powt} min</b></td><td>-</td></tr>`;
                 } else {
-                    tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+                    tabelaEl.innerHTML += `<tr><td>${w.data?.substring(0,10)}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
                 }
             });
-
-            generujRaportyPro(wybraneCwiczenie, historiaFiltrowana, partia);
-        }
-
-        function generujRaportyPro(wybraneCwiczenie, historiaFiltrowana, partia) {
-            let wpisyCwiczenia = historiaFiltrowana.filter(w => w.cwiczenie === wybraneCwiczenie).reverse();
-            let prognozaEl = document.getElementById('raport-prognoza');
-            let pushPullEl = document.getElementById('raport-push-pull');
-            let rirEl = document.getElementById('raport-rir');
-            let silaWzglednaEl = document.getElementById('raport-sila-wzgledna');
-            let objemoscEl = document.getElementById('raport-objemosc');
-
-            if (partia === 'Cardio') {
-                prognozaEl.parentElement.querySelector('h3').textContent = '📈 Trend Tempa i Efektywności (Pace Trend)';
-                pushPullEl.parentElement.querySelector('h3').textContent = '🏆 Rekordy i Osobiste Osiągnięcia (Cardio PRs)';
-                rirEl.parentElement.querySelector('h3').textContent = '📏 Łączny Kilometraż i Czas (Volume Summary)';
-                silaWzglednaEl.parentElement.querySelector('h3').textContent = '⏱️ Średnie Statystyki Sesji';
-                objemoscEl.parentElement.querySelector('h3').textContent = '📅 Częstotliwość i Regularność Treningów';
-
-                if (wpisyCwiczenia.length > 0) {
-                    let dystanse = wpisyCwiczenia.map(w => w.ciezar || 0);
-                    let czasy = wpisyCwiczenia.map(w => w.powt || 0);
-                    let maxDystans = Math.max(...dystanse);
-                    let maxCzas = Math.max(...czasy);
-                    let sumaDystansu = dystanse.reduce((a, b) => a + b, 0);
-                    let sumaCzasu = czasy.reduce((a, b) => a + b, 0);
-
-                    let tempa = wpisyCwiczenia.map(w => {
-                        let d = w.ciezar || 0;
-                        let c = w.powt || 0;
-                        return d > 0 ? c / d : 0;
-                    }).filter(t => t > 0);
-
-                    let bestTempo = tempa.length > 0 ? Math.min(...tempa).toFixed(2) : '0.00';
-                    let avgTempo = tempa.length > 0 ? (tempa.reduce((a, b) => a + b, 0) / tempa.length).toFixed(2) : '0.00';
-
-                    if (tempa.length >= 2) {
-                        let minT = Math.min(...tempa);
-                        let maxT = Math.max(...tempa);
-                        if (minT === maxT) { minT -= 1; maxT += 1; }
-                        let rangeT = maxT - minT;
-
-                        let svgPoints = wpisyCwiczenia.map((w, i) => {
-                            let d = w.ciezar || 0;
-                            let c = w.powt || 0;
-                            let t = d > 0 ? c / d : 0;
-                            if (t === 0) return null;
-                            let x = 50 + (i / (wpisyCwiczenia.length - 1 || 1)) * 300;
-                            let y = 85 - ((t - minT) / (rangeT || 1)) * 60;
-                            return `${x},${y}`;
-                        }).filter(Boolean).join(' ');
-
-                        prognozaEl.innerHTML = `
-                            <div style="margin-bottom:10px;">Najlepsze tempo: <b>${bestTempo} min/km</b> | Średnie tempo: <b>${avgTempo} min/km</b></div>
-                            <svg viewBox="0 0 400 110" style="width:100%; height:110px; background:#181818; border-radius:6px; border:1px solid var(--border);">
-                                <line x1="40" y1="15" x2="40" y2="85" stroke="#333" stroke-width="1" />
-                                <line x1="40" y1="85" x2="380" y2="85" stroke="#333" stroke-width="1" />
-                                <polyline fill="none" stroke="#ff2a2a" stroke-width="2.5" points="${svgPoints}" />
-                            </svg>
-                        `;
-                    } else {
-                        prognozaEl.innerHTML = `<div>Średnie tempo w zakresie: <b>${avgTempo} min/km</b></div><div style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Wymagane co najmniej 2 treningi z dystansem do wygenerowania wykresu trendu.</div>`;
-                    }
-
-                    pushPullEl.innerHTML = `
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div style="background:#252525; padding:12px; border-radius:6px; border:1px solid var(--border);">
-                                <div style="color:var(--text-muted); font-size:0.85rem;">Najdłuższy dystans</div>
-                                <div style="font-size:1.2rem; font-weight:bold; color:var(--primary); margin-top:4px;">${maxDystans} km</div>
-                            </div>
-                            <div style="background:#252525; padding:12px; border-radius:6px; border:1px solid var(--border);">
-                                <div style="color:var(--text-muted); font-size:0.85rem;">Najdłuższy czas sesji</div>
-                                <div style="font-size:1.2rem; font-weight:bold; color:var(--primary); margin-top:4px;">${maxCzas} min</div>
-                            </div>
-                        </div>
-                    `;
-
-                    rirEl.innerHTML = `
-                        <div style="margin-bottom:8px;">Łączny dystans: <b>${sumaDystansu.toFixed(1)} km</b> | Łączny czas: <b>${sumaCzasu} min</b> (${(sumaCzasu/60).toFixed(1)} godz.)</div>
-                        <div class="progress-bar-container" style="margin-top:10px;">
-                            <div class="progress-bar-fill" style="width: 100%;"></div>
-                            <div class="progress-text">Suma: ${sumaDystansu.toFixed(1)} km / ${sumaCzasu} min</div>
-                        </div>
-                    `;
-
-                    let avgDystans = (sumaDystansu / wpisyCwiczenia.length).toFixed(1);
-                    let avgCzas = (sumaCzasu / wpisyCwiczenia.length).toFixed(1);
-                    silaWzglednaEl.innerHTML = `
-                        <div style="margin-bottom:6px;">Liczba sesji w zakresie: <b>${wpisyCwiczenia.length}</b></div>
-                        <div>Średni dystans na sesję: <b>${avgDystans} km</b> | Średni czas sesji: <b>${avgCzas} min</b></div>
-                    `;
-
-                    let statusReg = wpisyCwiczenia.length >= 3 ? 'Wysoka regularność 🟢' : 'Niska częstotliwość ⚠️';
-                    objemoscEl.innerHTML = `
-                        <div style="margin-bottom:6px;">Aktywność: <b>${wybraneCwiczenie}</b></div>
-                        <div>Status regularności: <b>${statusReg}</b> (${wpisyCwiczenia.length} zarejestrowane treningi)</div>
-                    `;
-                } else {
-                    prognozaEl.innerHTML = 'Brak danych w wybranym zakresie.';
-                    pushPullEl.innerHTML = 'Brak danych.';
-                    rirEl.innerHTML = 'Brak danych.';
-                    silaWzglednaEl.innerHTML = 'Brak danych.';
-                    objemoscEl.innerHTML = 'Brak danych.';
-                }
-                return;
-            }
-
-            prognozaEl.parentElement.querySelector('h3').textContent = '📈 Prognoza Rekordu (1RM Forecasting)';
-            pushPullEl.parentElement.querySelector('h3').textContent = '⚖️ Audyt Równowagi Mięśniowej (Push vs. Pull)';
-            rirEl.parentElement.querySelector('h3').textContent = '📉 Analiza Zapasu Sił i Zmęczenia (RIR Trend)';
-            silaWzglednaEl.parentElement.querySelector('h3').textContent = '🏆 Wskaźniki Siły Względnej (Masa ciała: 89 kg)';
-            objemoscEl.parentElement.querySelector('h3').textContent = '📊 Objętość Tygodniowa (Volume Landmarks)';
-
-            if (wpisyCwiczenia.length >= 2) {
-                let pierwszy = wpisyCwiczenia[0].onerm || 0;
-                let ostatni = wpisyCwiczenia[wpisyCwiczenia.length - 1].onerm || 0;
-                let diff = parseFloat((ostatni - pierwszy).toFixed(4));
-                let trendTxt = diff >= 0 ? `+${diff.toFixed(4)} kg (Trend wzrostowy 📈)` : `${diff.toFixed(4)} kg (Trend spadkowy 📉)`;
-                
-                let onerms = wpisyCwiczenia.map(w => w.onerm || 0);
-                let minVal = Math.min(...onerms);
-                let maxVal = Math.max(...onerms);
-                if (minVal === maxVal) { minVal -= 10; maxVal += 10; }
-                let range = maxVal - minVal;
-
-                let svgPoints = wpisyCwiczenia.map((w, i) => {
-                    let x = 50 + (i / (wpisyCwiczenia.length - 1 || 1)) * 300;
-                    let y = 85 - (( (w.onerm || 0) - minVal) / (range || 1)) * 60;
-                    return `${x},${y}`;
-                }).join(' ');
-
-                let circlesHtml = wpisyCwiczenia.map((w, i) => {
-                    let x = 50 + (i / (wpisyCwiczenia.length - 1 || 1)) * 300;
-                    let y = 85 - (( (w.onerm || 0) - minVal) / (range || 1)) * 60;
-                    return `<circle cx="${x}" cy="${y}" r="4" fill="#ff2a2a" /><text x="${x}" y="${y - 8}" fill="#fff" font-size="9" text-anchor="middle">${w.onerm}kg</text>`;
-                }).join('');
-
-                prognozaEl.innerHTML = `
-                    <div style="margin-bottom:10px;">Ostatni rekord 1RM: <b>${ostatni} kg</b> | Dynamika: <b>${trendTxt}</b></div>
-                    <svg viewBox="0 0 400 110" style="width:100%; height:110px; background:#181818; border-radius:6px; border:1px solid var(--border);">
-                        <line x1="40" y1="15" x2="40" y2="85" stroke="#333" stroke-width="1" />
-                        <line x1="40" y1="85" x2="380" y2="85" stroke="#333" stroke-width="1" />
-                        <polyline fill="none" stroke="#ff2a2a" stroke-width="2.5" points="${svgPoints}" />
-                        ${circlesHtml}
-                    </svg>
-                `;
-            } else {
-                prognozaEl.innerHTML = `Wymagane co najmniej 2 treningi tego ćwiczenia w wybranym zakresie do prognozy.`;
-            }
-
-            let pushKat = ['Klatka', 'Barki', 'Ramiona'];
-            let pullKat = ['Plecy'];
-            let pushTonnage = 0, pullTonnage = 0;
-            historiaFiltrowana.forEach(w => {
-                if (pushKat.includes(w.partia)) pushTonnage += (w.ciezar || 0) * (w.powt || 0);
-                if (pullKat.includes(w.partia)) pullTonnage += (w.ciezar || 0) * (w.powt || 0);
-            });
-            let sumaPP = pushTonnage + pullTonnage;
-            let pushPct = sumaPP > 0 ? Math.round((pushTonnage / sumaPP) * 100) : 50;
-            let pullPct = sumaPP > 0 ? 100 - pushPct : 50;
-            
-            pushPullEl.innerHTML = `
-                <div style="margin-bottom:10px;">Stosunek Tonażu: <b>Push ${pushPct}% (${Math.round(pushTonnage)} kg)</b> vs <b>Pull ${pullPct}% (${Math.round(pullTonnage)} kg)</b></div>
-                <svg viewBox="0 0 400 65" style="width:100%; height:65px; background:#181818; border-radius:6px; border:1px solid var(--border);">
-                    <rect x="20" y="20" width="360" height="22" rx="4" fill="#333" />
-                    <rect x="20" y="20" width="${360 * (pushPct / 100)}" height="22" rx="4" fill="#ff2a2a" />
-                    <text x="30" y="35" fill="#fff" font-size="10" font-weight="bold">Push: ${pushPct}%</text>
-                    <text x="370" y="35" fill="#fff" font-size="10" font-weight="bold" text-anchor="end">Pull: ${pullPct}%</text>
-                </svg>
-            `;
-
-            let rirVals = wpisyCwiczenia.filter(w => w.rir !== null && w.rir !== undefined && w.rir !== '').map(w => {
-                let r = w.rir.toString().replace('+', '');
-                return parseFloat(r) || 0;
-            });
-            if (rirVals.length > 0) {
-                let sredniRir = (rirVals.reduce((a, b) => a + b, 0) / rirVals.length).toFixed(1);
-                let ocenaZarzarzania = sredniRir <= 1.5 ? 'Wysoka intensywność (Blisko upadku)' : (sredniRir <= 3 ? 'Optymalny zapas (Hipertrofia)' : 'Zbyt lekki trening');
-                
-                let rirPoints = rirVals.map((val, i) => {
-                    let x = 50 + (i / (rirVals.length - 1 || 1)) * 300;
-                    let y = 85 - (val / 4) * 60;
-                    return `${x},${y}`;
-                }).join(' ');
-
-                let rirCircles = rirVals.map((val, i) => {
-                    let x = 50 + (i / (rirVals.length - 1 || 1)) * 300;
-                    let y = 85 - (val / 4) * 60;
-                    return `<circle cx="${x}" cy="${y}" r="4" fill="#ff2a2a" /><text x="${x}" y="${y - 8}" fill="#fff" font-size="9" text-anchor="middle">${val}</text>`;
-                }).join('');
-
-                rirEl.innerHTML = `
-                    <div style="margin-bottom:10px;">Średni RIR: <b>${sredniRir}</b> — Status: <b>${ocenaZarzarzania}</b></div>
-                    <svg viewBox="0 0 400 110" style="width:100%; height:110px; background:#181818; border-radius:6px; border:1px solid var(--border);">
-                        <line x1="40" y1="15" x2="40" y2="85" stroke="#333" stroke-width="1" />
-                        <line x1="40" y1="85" x2="380" y2="85" stroke="#333" stroke-width="1" />
-                        <line x1="40" y1="30" x2="380" y2="30" stroke="#252525" stroke-dasharray="4" />
-                        <line x1="40" y1="57" x2="380" y2="57" stroke="#252525" stroke-dasharray="4" />
-                        <text x="35" y="33" fill="#666" font-size="8" text-anchor="end">4</text>
-                        <text x="35" y="60" fill="#666" font-size="8" text-anchor="end">2</text>
-                        <text x="35" y="88" fill="#666" font-size="8" text-anchor="end">0</text>
-                        <polyline fill="none" stroke="#ff2a2a" stroke-width="2.5" points="${rirPoints}" />
-                        ${rirCircles}
-                    </svg>
-                `;
-            } else {
-                rirEl.innerHTML = `Brak danych RIR w wybranym zakresie. Oznaczaj RIR przy zapisie serii.`;
-            }
-
-            let max1rm = wpisyCwiczenia.length > 0 ? Math.max(...wpisyCwiczenia.map(w => w.onerm || 0)) : 0;
-            let wagaCiala = 89;
-            let ratio = (max1rm / wagaCiala).toFixed(2);
-            let fillWidth = Math.min((ratio / 2.5) * 360, 360);
-            
-            silaWzglednaEl.innerHTML = `
-                <div style="margin-bottom:10px;">Masa: <b>${wagaCiala} kg</b> | Rekord: <b>${max1rm} kg</b> | Wskaźnik: <b>${ratio}x masy ciała</b></div>
-                <svg viewBox="0 0 400 65" style="width:100%; height:65px; background:#181818; border-radius:6px; border:1px solid var(--border);">
-                    <rect x="20" y="20" width="360" height="22" rx="4" fill="#333" />
-                    <rect x="20" y="20" width="${fillWidth}" height="22" rx="4" fill="#ff2a2a" />
-                    <text x="30" y="35" fill="#fff" font-size="10" font-weight="bold">${ratio}x wagi ciała (Norma elity > 2.0x)</text>
-                </svg>
-            `;
-
-            let partiaAktualna = document.getElementById('analiza-partia').value;
-            let serieWtygodniu = wpisyCwiczenia.length;
-            let statusObj = serieWtygodniu < 6 ? 'Poniżej MEV (Minimalna objętość)' : (serieWtygodniu <= 20 ? 'Optymalna objętość (MAV) 🟢' : 'Ryzyko MRV (Maksymalna objętość) ⚠️');
-            let barWidth = Math.min((serieWtygodniu / 25) * 360, 360);
-            let barColor = serieWtygodniu < 6 ? '#ffaa00' : (serieWtygodniu <= 20 ? '#ff2a2a' : '#ff4444');
-            
-            objemoscEl.innerHTML = `
-                <div style="margin-bottom:10px;">Partia: <b>${partiaAktualna}</b> | Serie w zakresie: <b>${serieWtygodniu}</b> | Status: <b>${statusObj}</b></div>
-                <svg viewBox="0 0 400 75" style="width:100%; height:75px; background:#181818; border-radius:6px; border:1px solid var(--border);">
-                    <line x1="${20 + (6/25)*360}" y1="10" x2="${20 + (6/25)*360}" y2="50" stroke="#888" stroke-dasharray="3" />
-                    <text x="${20 + (6/25)*360}" y="60" fill="#888" font-size="8" text-anchor="middle">MEV (6)</text>
-                    <line x1="${20 + (20/25)*360}" y1="10" x2="${20 + (20/25)*360}" y2="50" stroke="#ff4444" stroke-dasharray="3" />
-                    <text x="${20 + (20/25)*360}" y="60" fill="#ff4444" font-size="8" text-anchor="middle">MRV (20)</text>
-                    <rect x="20" y="20" width="360" height="18" rx="4" fill="#333" />
-                    <rect x="20" y="20" width="${barWidth}" height="18" rx="4" fill="${barColor}" />
-                </svg>
-            `;
         }
 
         function generujRaportOpisowyModal() {
-            let historiaFiltrowana = pobierzPrzefiltrowanaHistorie();
-            let dataOd = document.getElementById('analiza-data-od')?.value || 'początku';
-            let dataDo = document.getElementById('analiza-data-do')?.value || 'dzisiaj';
-
             let modal = document.getElementById('opisowy-raport-modal');
-            let contentDiv = document.getElementById('opisowy-raport-tresc');
-            if (!modal || !contentDiv) return;
-
-            if (historiaFiltrowana.length === 0) {
-                contentDiv.innerHTML = `<p style="color:var(--text-muted); text-align:center;">Brak wpisów w wybranym zakresie dat (${dataOd} do ${dataDo}). Nie można wygenerować raportu opisowego.</p>`;
-                modal.style.display = 'flex';
-                return;
-            }
-
-            let unikalneDni = new Set(historiaFiltrowana.map(w => w.data ? w.data.substring(0, 10) : '')).size;
-            let liczbaWpisów = historiaFiltrowana.length;
-            
-            let kategorieStat = {};
-            historiaFiltrowana.forEach(w => {
-                let kat = w.partia || 'Inne';
-                kategorieStat[kat] = (kategorieStat[kat] || 0) + 1;
-            });
-
-            let pushKat = ['Klatka', 'Barki', 'Ramiona'];
-            let pullKat = ['Plecy'];
-            let pushTonnage = 0, pullTonnage = 0;
-            historiaFiltrowana.forEach(w => {
-                if (pushKat.includes(w.partia)) pushTonnage += (w.ciezar || 0) * (w.powt || 0);
-                if (pullKat.includes(w.partia)) pullTonnage += (w.ciezar || 0) * (w.powt || 0);
-            });
-            let sumaPP = pushTonnage + pullTonnage;
-            let pushPct = sumaPP > 0 ? Math.round((pushTonnage / sumaPP) * 100) : 50;
-
-            let html = `
-                <p style="margin-top:0; color:var(--text-muted); font-size:0.9rem;">Okres raportu: <b>${dataOd}</b> do <b>${dataDo}</b></p>
-                <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
-                <h4 style="color:var(--primary); margin-bottom:8px;">1. Podsumowanie Aktywności i Frekwencji</h4>
-                <p style="line-height:1.5; font-size:0.95rem;">W wybranym zakresie zarejestrowano <b>${liczbaWpisów}</b> wpisów treningowych rozłożonych na <b>${unikalneDni}</b> unikalnych dni treningowych. Oznacza to zaangażowanie i regularność w realizacji planu.</p>
-                
-                <h4 style="color:var(--primary); margin-bottom:8px; margin-top:20px;">2. Rozkład Zaangażowania wg Kategorii</h4>
-                <ul style="padding-left:20px; line-height:1.5; font-size:0.95rem; color:#ccc;">
-            `;
-
-            Object.keys(kategorieStat).forEach(kat => {
-                html += `<li><b>${kat}</b>: ${kategorieStat[kat]} wpisów</li>`;
-            });
-
-            html += `</ul>`;
-
-            if (sumaPP > 0) {
-                html += `
-                    <h4 style="color:var(--primary); margin-bottom:8px; margin-top:20px;">3. Balans Wzorców Ruchowych (Push vs Pull)</h4>
-                    <p style="line-height:1.5; font-size:0.95rem;">Stosunek tonażu między wypychaniem (Push) a przyciąganiem (Pull) wynosi <b>${pushPct}% do ${100 - pushPct}%</b>.</p>
-                `;
-            }
-
-            let werdyktHtml = "";
-            if (sumaPP > 0 && Math.abs(pushPct - 50) > 25) {
-                werdyktHtml = `Zauważono wyraźną dysproporcję między treningiem Push a Pull (Push: ${pushPct}%). Zaleca się zrównoważenie planu i zwiększenie objętości treningowej partii ciągnących (Plecy / Tył barku), aby chronić stawy barkowe i zachować prawidłową postawę.`;
-            } else if (unikalneDni < 4 && (new Date(dataDo) - new Date(dataOd)) / (1000 * 60 * 60 * 24) > 14) {
-                werdyktHtml = `Częstotliwość treningowa w wybranym okresie jest stosunkowo niska (${unikalneDni} dni treningowych). Aby przyspieszyć progres, warto rozważyć zwiększenie liczby jednostek treningowych w tygodniu.`;
-            } else {
-                werdyktHtml = `Twoje treningi są efektywne i progresujesz, tak trzymaj! Zachowaj obecną regularność i konsekwencję w realizacji założonych celów.`;
-            }
-
-            html += `
-                <h4 style="color:var(--primary); margin-bottom:8px; margin-top:20px;">4. Wniosek i Rekomendacja Trenera</h4>
-                <div style="background:#252525; padding:15px; border-radius:8px; border-left: 4px solid var(--primary); margin-top:10px; line-height:1.5; font-size:0.95rem;">
-                    ${werdyktHtml}
-                </div>
-            `;
-
-            contentDiv.innerHTML = html;
+            document.getElementById('opisowy-raport-tresc').innerHTML = "Generowanie raportu...";
             modal.style.display = 'flex';
         }
 
@@ -1539,36 +1092,24 @@
 
         function eksportujRaportCSV() {
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
-            if (historia.length === 0) {
-                showNotification('⚠️ Brak danych do eksportu!');
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Seria,Ciezar,Powtorzenia,RIR,1RM\r\n";
-            historia.forEach(w => {
-                csvContent += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.seria || 1},${w.ciezar || 0},${w.powt || 0},"${w.rir || ''}",${w.onerm || 0}\r\n`;
-            });
-            let encodedUri = encodeURI(csvContent);
+            let csv = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Ciezar,Powtorzenia,1RM\r\n";
+            historia.forEach(w => { csv += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.ciezar},${w.powt},${w.onerm}\r\n`; });
             let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `puls75_raport_treningowy_${new Date().toISOString().slice(0,10)}.csv`);
+            link.setAttribute("href", encodeURI(csv));
+            link.setAttribute("download", `raport.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showNotification('📥 Wygenerowano i pobrano raport CSV!');
         }
 
         function odswiezPanelBazy() {
             let select = document.getElementById('menedzer-kategoria');
             if(!select) return;
-            let wybranaKat = select.value;
             select.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
                 let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
                 select.appendChild(opt);
             });
-            if (wybranaKat && Array.from(select.options).some(o => o.value === wybranaKat)) {
-                select.value = wybranaKat;
-            }
             odswiezListeMenedzera();
         }
 
@@ -1577,270 +1118,63 @@
             let container = document.getElementById('lista-cwiczen-menedzer');
             if(!kat || !container) return;
             container.innerHTML = '';
-            if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
-                bazyCwiczen[kat].forEach((cwiczenie) => {
-                    container.innerHTML += `
-                        <div class="list-item-cwiczenie">
-                            <span style="word-break: break-all; flex: 1;">${cwiczenie}</span>
-                            <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                                <button class="btn-small" style="background:#2b6cb0;" onclick="edytujCwiczenie('${kat}', '${cwiczenie}')">✏️ Edytuj</button>
-                                <button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌ Usuń</button>
-                            </div>
-                        </div>`;
-                });
-            }
+            bazyCwiczen[kat]?.forEach(cw => {
+                container.innerHTML += `<div class="list-item-cwiczenie"><span>${cw}</span></div>`;
+            });
         }
 
         function dodajKategorie() {
-            showPromptModal("Podaj nazwę nowej kategorii:", "", (nowa) => {
-                if (nowa && nowa.trim() !== "") {
-                    let nazwaKat = nowa.trim();
-                    if (!bazyCwiczen[nazwaKat]) {
-                        bazyCwiczen[nazwaKat] = [];
-                        odswiezPanelBazy();
-                        inicjalizujKategorie();
-                        showNotification("✅ Kategoria dodana!");
-                    }
-                }
-            });
+            showPromptModal("Nazwa kategorii:", "", (n) => { if(n) { bazyCwiczen[n.trim()] = []; odswiezPanelBazy(); } });
         }
 
         async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
-            
-            if (kat && nazwa) {
-                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) {
-                    bazyCwiczen[kat] = [];
+            if(kat && nazwa) {
+                bazyCwiczen[kat].push(nazwa);
+                if (zalogowanyUzytkownik?.id) {
+                    await supabaseClient.from('baza_cwiczen').insert([{ user_id: String(zalogowanyUzytkownik.id), kategoria: kat, nazwa }]);
                 }
-                
-                if (!bazyCwiczen[kat].includes(nazwa)) {
-                    bazyCwiczen[kat].push(nazwa);
-                }
-
-                let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
-                if (!wlasneMap[kat]) wlasneMap[kat] = [];
-                if (!wlasneMap[kat].includes(nazwa)) wlasneMap[kat].push(nazwa);
-                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
-
-                let inputNazwa = document.getElementById('nowe-cwiczenie-nazwa');
-                if (inputNazwa) inputNazwa.value = '';
-
-                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                    try {
-                        const { error } = await supabaseClient.from('baza_cwiczen').insert([{
-                            user_id: String(zalogowanyUzytkownik.id),
-                            kategoria: kat,
-                            nazwa: nazwa
-                        }]);
-                        if (error) {
-                            showNotification("⚠️ Zapisano w pamięci (błąd zapisu do chmury)");
-                        } else {
-                            showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
-                        }
-                    } catch(e) {
-                        showNotification("✅ Zapisano lokalnie");
-                    }
-                } else {
-                    showNotification("✅ Ćwiczenie dodane lokalnie!");
-                }
-
+                document.getElementById('nowe-cwiczenie-nazwa').value = '';
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-            } else {
-                showNotification("⚠️ Wpisz nazwę ćwiczenia!");
+                showNotification("✅ Dodano!");
             }
         }
 
-        async function edytujCwiczenie(kat, staraNazwa) {
-            showPromptModal(`Edytuj nazwę ćwiczenia dla "${staraNazwa}":`, staraNazwa, async (nowaNazwa) => {
-                if (!nowaNazwa || nowaNazwa.trim() === "" || nowaNazwa.trim() === staraNazwa) return;
-                let nowa = nowaNazwa.trim();
-                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) return;
-
-                let idx = bazyCwiczen[kat].indexOf(staraNazwa);
-                if (idx === -1) return;
-
-                let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-                if (celeZapisane[staraNazwa] !== undefined) {
-                    celeZapisane[nowa] = celeZapisane[staraNazwa];
-                    delete celeZapisane[staraNazwa];
-                    bezpiecznyZapisStorage('cele', celeZapisane);
-                }
-
-                let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
-                let oryginalnaNazwa = staraNazwa;
-
-                if (!czyDomyslne) {
-                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
-                    if (nadpisaneMap[kat]) {
-                        for (let orig in nadpisaneMap[kat]) {
-                            if (nadpisaneMap[kat][orig] === staraNazwa) {
-                                oryginalnaNazwa = orig;
-                                czyDomyslne = true;
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    oryginalnaNazwa = staraNazwa;
-                }
-
-                let przywracanieDomyslnej = czyDomyslne && (nowa === oryginalnaNazwa);
-                bazyCwiczen[kat][idx] = nowa;
-
-                if (czyDomyslne) {
-                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
-                    if (!nadpisaneMap[kat]) nadpisaneMap[kat] = {};
-
-                    if (przywracanieDomyslnej) {
-                        delete nadpisaneMap[kat][oryginalnaNazwa];
-                        if (Object.keys(nadpisaneMap[kat]).length === 0) delete nadpisaneMap[kat];
-                    } else {
-                        nadpisaneMap[kat][oryginalnaNazwa] = nowa;
-                    }
-                    bezpiecznyZapisStorage('nadpisane_cwiczenia_map', nadpisaneMap);
-                } else {
-                    let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
-                    if (wlasneMap[kat]) {
-                        let wIdx = wlasneMap[kat].indexOf(staraNazwa);
-                        if (wIdx > -1) wlasneMap[kat][wIdx] = nowa;
-                        bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
-                    }
-                }
-
-                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                    try {
-                        if (czyDomyslne) {
-                            if (przywracanieDomyslnej) {
-                                await supabaseClient.from('nadpisane_domyslne_cwiczenia')
-                                    .delete()
-                                    .eq('user_id', String(zalogowanyUzytkownik.id))
-                                    .eq('kategoria', kat)
-                                    .eq('stara_nazwa', oryginalnaNazwa);
-                            } else {
-                                await supabaseClient.from('nadpisane_domyslne_cwiczenia')
-                                    .delete()
-                                    .eq('user_id', String(zalogowanyUzytkownik.id))
-                                    .eq('kategoria', kat)
-                                    .eq('stara_nazwa', oryginalnaNazwa);
-
-                                await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
-                                    user_id: String(zalogowanyUzytkownik.id),
-                                    kategoria: kat,
-                                    stara_nazwa: oryginalnaNazwa,
-                                    nowa_nazwa: nowa
-                                }]);
-                            }
-                        } else {
-                            await supabaseClient.from('baza_cwiczen')
-                                .update({ nazwa: nowa })
-                                .eq('user_id', String(zalogowanyUzytkownik.id))
-                                .eq('kategoria', kat)
-                                .eq('nazwa', staraNazwa);
-                        }
-                    } catch(e) {}
-                }
-
-                odswiezListeMenedzera();
-                inicjalizujKategorie();
-                showNotification(przywracanieDomyslnej ? "✅ Przywrócono domyślną nazwę!" : "✅ Nazwa ćwiczenia zaktualizowana!");
-            });
-        }
-
-        async function usunCwiczenie(kat, nazwa) {
-            showConfirmModal(`Usunąć / ukryć "${nazwa}"?`, async (potwierdzono) => {
-                if (potwierdzono) {
-                    let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(nazwa);
-
-                    if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
-                        bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
-                    }
-
-                    if (czyDomyslne) {
-                        let ukryteList = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
-                        ukryteList.push({ kategoria: kat, nazwa: nazwa });
-                        bezpiecznyZapisStorage('ukryte_cwiczenia_map', ukryteList);
-
-                        if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                            try {
-                                await supabaseClient.from('ukryte_domyslne_cwiczenia').insert([{
-                                    user_id: String(zalogowanyUzytkownik.id),
-                                    kategoria: kat,
-                                    nazwa_cwiczenia: nazwa
-                                }]);
-                            } catch(e) {}
-                        }
-                    } else {
-                        let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
-                        if (wlasneMap[kat]) {
-                            wlasneMap[kat] = wlasneMap[kat].filter(c => c !== nazwa);
-                            bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
-                        }
-
-                        if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                            try {
-                                await supabaseClient.from('baza_cwiczen')
-                                    .delete()
-                                    .eq('user_id', String(zalogowanyUzytkownik.id))
-                                    .eq('kategoria', kat)
-                                    .eq('nazwa', nazwa);
-                            } catch(e) {}
-                        }
-                    }
-
-                    let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-                    if (celeZapisane && celeZapisane[nazwa] !== undefined) {
-                        delete celeZapisane[nazwa];
-                        bezpiecznyZapisStorage('cele', celeZapisane);
-                    }
-
-                    odswiezListeMenedzera();
-                    inicjalizujKategorie();
-                    showNotification("🗑️ Usunięto pomyślnie!");
-                }
-            });
-        }
-
         async function zapiszIZsynchronizuj() {
-            if (!zalogowanyUzytkownik) { showNotification('⚠️ Musisz być zalogowany!'); return; }
+            if (!zalogowanyUzytkownik) { showNotification('⚠️ Zaloguj się!'); return; }
             let data = document.getElementById('dziennik-data').value;
             let partia = document.getElementById('dziennik-partia').value;
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
-            if (!data || !cwiczenie) { showNotification('Uzupełnij dane'); return; }
+            if (!data || !cwiczenie) return;
 
             let wpis = { user_id: String(zalogowanyUzytkownik.id), data, partia, cwiczenie, typ: 'Trening' };
-
             if (partia === 'Cardio') {
                 wpis.seria = 1; wpis.ciezar = parseFloat(document.getElementById('dziennik-dystans').value) || 0; wpis.powt = parseInt(document.getElementById('dziennik-czas').value) || 0; wpis.onerm = 0;
             } else if (partia === 'Regeneracja') {
                 wpis.seria = 1; wpis.ciezar = 0; wpis.powt = 0; wpis.onerm = 0;
             } else {
-                let ciezar = parseFloat(document.getElementById('dziennik-ciezar').value) || 0;
-                let powt = parseInt(document.getElementById('dziennik-powt').value) || 0;
-                let onerm = Math.round(ciezar * (1 + powt / 30) * 10) / 10;
+                let c = parseFloat(document.getElementById('dziennik-ciezar').value) || 0;
+                let p = parseInt(document.getElementById('dziennik-powt').value) || 0;
                 wpis.seria = parseInt(document.getElementById('dziennik-seria').value) || 1;
-                wpis.ciezar = ciezar; wpis.powt = powt; wpis.onerm = onerm;
+                wpis.ciezar = c; wpis.powt = p; wpis.onerm = Math.round(c * (1 + p / 30) * 10) / 10;
                 wpis.rir = document.getElementById('dziennik-rir').value || null;
             }
 
             try {
-                let { data: insertedData, error } = await supabaseClient.from('treningi').insert([wpis]).select();
+                let { data: ins, error } = await supabaseClient.from('treningi').insert([wpis]).select();
                 if (error) throw error;
-                if (insertedData && insertedData.length > 0) {
-                    wpis.id = insertedData[0].id;
-                }
-                showNotification('✅ Zapisano i zsynchronizowano z bazą!');
+                if (ins && ins.length > 0) wpis.id = ins[0].id;
+                showNotification('✅ Zapisano w bazie!');
             } catch (err) {
-                showNotification('⚠️ Błąd zapisu w bazie: ' + (err.message || err));
-                return;
+                showNotification('⚠️ Błąd zapisu chmury');
             }
 
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             historia.unshift(wpis);
             bezpiecznyZapisStorage('historia_treningow', historia);
             odswiezInlineAccordion();
-            obliczPostepCelu(); // Natychmiastowe przeliczenie celów po nowym zapisie
         }
     </script>
 </body>
