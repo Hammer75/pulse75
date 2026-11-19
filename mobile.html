@@ -245,7 +245,7 @@
                 </div>
             </div>
 
-            <!-- PODMENU CELE -->
+            <!-- PODMENU CELE (SYNCHRONIZOWANE Z SUPABASE - TABELA CELE) -->
             <div id="subtab-cele" class="tab-content">
                 <div class="card">
                     <button onclick="wracajDoWiecej()" class="menu-btn" style="margin-bottom: 15px; padding: 10px 15px; font-size: 0.9rem;">⬅ Powrót do menu</button>
@@ -360,6 +360,7 @@
         let timerInterval = null;
         let pozostalyCzasSekundy = 0;
         let flagaPrzejsciaPoOsiagnieciuCelu = false;
+        let cacheCelowSupabase = {}; // Pamięć podręczna celów z tabeli 'cele'
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
@@ -406,6 +407,7 @@
                         zaladujHistorieDnia();
                         
                         if (document.getElementById('subtab-cele').classList.contains('active')) {
+                            await pobierzCeleZSupabase();
                             inicjalizujListeCelow();
                         }
                         if (document.getElementById('subtab-historia').classList.contains('active')) {
@@ -620,6 +622,32 @@
             if (index > -1) tablica.splice(index, 1);
         }
 
+        // POBIERANIE CELÓW Z SUPABASE DO PAMIĘCI PODRĘCZNEJ I LOKALNEJ
+        async function pobierzCeleZSupabase() {
+            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
+            if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
+                celeZapisane = {};
+            }
+            cacheCelowSupabase = { ...celeZapisane };
+
+            if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cele')
+                    .select('cwiczenie, wartosc_celu')
+                    .eq('user_id', String(zalogowanyUzytkownik.id));
+                
+                if (!error && data) {
+                    data.forEach(item => {
+                        let wart = parseFloat(item.wartosc_celu) || 0;
+                        cacheCelowSupabase[item.cwiczenie] = wart;
+                        celeZapisane[item.cwiczenie] = wart;
+                    });
+                    bezpiecznyZapisStorage('cele', celeZapisane);
+                }
+            } catch (e) {}
+        }
+
         function inicjalizujCeleDlaNowegoUzytkownika() {
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             if (!celeZapisane || Object.keys(celeZapisane).length === 0) {
@@ -757,6 +785,7 @@
         async function inicjalizujPoZalogowaniu() {
             bazyCwiczen = await pobierzBazeCwiczenZChmury();
             inicjalizujCeleDlaNowegoUzytkownika();
+            await pobierzCeleZSupabase();
             inicjalizujKategorie();
             
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
@@ -996,13 +1025,17 @@
             if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
                 celeZapisane = {};
             }
-            
-            if (celeZapisane[celCwiczenie] === undefined) {
+
+            let docelowaWartosc = 0;
+            if (cacheCelowSupabase[celCwiczenie] !== undefined) {
+                docelowaWartosc = cacheCelowSupabase[celCwiczenie];
+            } else if (celeZapisane[celCwiczenie] !== undefined) {
+                docelowaWartosc = celeZapisane[celCwiczenie];
+            } else {
                 celeZapisane[celCwiczenie] = 0;
+                cacheCelowSupabase[celCwiczenie] = 0;
                 bezpiecznyZapisStorage('cele', celeZapisane);
             }
-
-            let docelowaWartosc = celeZapisane[celCwiczenie];
             
             if (flagaPrzejsciaPoOsiagnieciuCelu && ostatnioPobityCel === celCwiczenie && ostatnioPobityWynik > 0) {
                 docelowaWartosc = ostatnioPobityWynik;
@@ -1012,16 +1045,32 @@
             obliczPostepCelu();
         }
 
-        function zapiszWartoscCelu() {
+        async function zapiszWartoscCelu() {
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
             if (!celCwiczenie || celCwiczenie === "Brak ćwiczeń") return;
             let val = parseFloat(document.getElementById('cel-wartosc').value) || 0;
+            
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
                 celeZapisane = {};
             }
             celeZapisane[celCwiczenie] = val;
+            cacheCelowSupabase[celCwiczenie] = val;
             bezpiecznyZapisStorage('cele', celeZapisane);
+
+            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                try {
+                    await supabaseClient
+                        .from('cele')
+                        .upsert({
+                            user_id: String(zalogowanyUzytkownik.id),
+                            cwiczenie: celCwiczenie,
+                            wartosc_celu: val,
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: 'user_id,cwiczenie' });
+                } catch (e) {}
+            }
+
             obliczPostepCelu();
         }
 
@@ -1085,7 +1134,9 @@
                     if(btnPowrotTimer) btnPowrotTimer.style.display = 'none';
                     if(kawaWrapper) kawaWrapper.style.display = 'none';
                 }
-                inicjalizujListeCelow();
+                pobierzCeleZSupabase().then(() => {
+                    inicjalizujListeCelow();
+                });
             } else {
                 flagaPrzejsciaPoOsiagnieciuCelu = false;
                 if(btnPowrotTimer) btnPowrotTimer.style.display = 'none';
@@ -1264,7 +1315,9 @@
             if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
                 celeZapisane = {};
             }
-            let docelowaWartosc = celeZapisane[cwiczenie] !== undefined ? celeZapisane[cwiczenie] : 0;
+            let docelowaWartosc = cacheCelowSupabase[cwiczenie] !== undefined
+                ? cacheCelowSupabase[cwiczenie]
+                : (celeZapisane[cwiczenie] !== undefined ? celeZapisane[cwiczenie] : 0);
             
             if (nowyWynik > 0 && (docelowaWartosc === 0 || nowyWynik >= docelowaWartosc)) {
                 ostatnioPobityCel = cwiczenie;
@@ -1543,6 +1596,7 @@
                             delete celeZapisane[nazwa];
                             bezpiecznyZapisStorage('cele', celeZapisane);
                         }
+                        delete cacheCelowSupabase[nazwa];
 
                         odswiezListeMenedzera();
                         inicjalizujKategorie();
