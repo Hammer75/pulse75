@@ -142,8 +142,11 @@
                 </div>
                 <span id="header-logout-symbol" style="font-size: 1rem;" title="Wyloguj">⏻</span>
             </button>
-            <button onclick="window.open('https://suppi.pl/h75', '_blank')" style="background: linear-gradient(135deg, #2a1b1b 0%, #1a1a1a 100%); color: var(--primary); border: 1px solid var(--primary); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center;">
-                ☕ Postaw mi kawę ❤️
+            <button onclick="otworzOknoSubskrypcji()" style="background: linear-gradient(135deg, #2a1b1b 0%, #1a1a1a 100%); color: var(--primary); border: 1px solid var(--primary); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                💳 Subskrypcja / Opłać
+            </button>
+            <button onclick="window.location.href='mobile.html'" style="background: #252525; color: #ffffff; border: 1px solid var(--border); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                📱 Wersja mobilna
             </button>
         </div>
     </nav>
@@ -486,6 +489,10 @@
                     window.location.href = 'index.html';
                 }
             });
+        }
+
+        function otworzOknoSubskrypcji() {
+            showNotification('💳 Okno subskrypcji i płatności – moduł w przygotowaniu.');
         }
 
         function showNotification(msg, duration = 3000) {
