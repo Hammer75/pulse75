@@ -315,7 +315,7 @@
                 </div>
             </div>
 
-            <!-- 3. ZAKŁADKA CELE -->
+            <!-- 3. ZAKŁADKA CELE (SYNCHRONIZOWANA Z SUPABASE - TABELA CELE) -->
             <div id="tab-cele" class="tab-content">
                 <div class="card">
                     <h2>Wizualizacja Celów (1RM)</h2>
@@ -326,16 +326,16 @@
                         </div>
                         <div>
                             <label>Wybierz Ćwiczenie:</label>
-                            <select id="cel-cwiczenie" onchange="zmienionoKategorieCelu()"></select>
+                            <select id="cel-cwiczenie" onchange="zmienionoKategorieCeluWartosc()"></select>
                         </div>
                     </div>
 
                     <label id="label-cel-wartosc" style="margin-top: 15px;">Twój docelowy rekord 1RM (kg):</label>
-                    <input type="number" id="cel-wartosc" placeholder="np. 100" step="0.5" min="0" oninput="zapiszWartoscCelu()">
+                    <input type="number" id="cel-wartosc" placeholder="np. 150" step="0.5" min="0" oninput="zapiszWartoscCeluSupabase()">
                     
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill" id="progress-fill"></div>
-                        <div class="progress-text" id="progress-text">0% (Pobieranie danych z bazy...)</div>
+                        <div class="progress-text" id="progress-text">Pobieranie danych z Supabase...</div>
                     </div>
                 </div>
             </div>
@@ -394,6 +394,7 @@
     <script>
         let zalogowanyUzytkownik = null;
         let isAccordionOpen = false;
+        let cacheCelowSupabase = {}; // Pamięć podręczna celów z tabeli 'cele'
 
         document.addEventListener('DOMContentLoaded', () => {
             let saved = localStorage.getItem('pulse75_user') || localStorage.getItem('ironmetric_user');
@@ -546,10 +547,6 @@
 
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
-            let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
-            let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
-            let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
-
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
                     const { data: wlasneData, error } = await supabaseClient
@@ -562,37 +559,6 @@
                             if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
                             if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
                                 aktualnaBaza[item.kategoria].push(item.nazwa);
-                            }
-                        });
-                    }
-
-                    const { data: ukryteData } = await supabaseClient
-                        .from('ukryte_domyslne_cwiczenia')
-                        .select('kategoria, nazwa_cwiczenia')
-                        .eq('user_id', String(zalogowanyUzytkownik.id));
-
-                    if (ukryteData) {
-                        ukryteData.forEach(u => {
-                            if (aktualnaBaza[u.kategoria]) {
-                                aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
-                            }
-                        });
-                    }
-
-                    const { data: nadpisaneData } = await supabaseClient
-                        .from('nadpisane_domyslne_cwiczenia')
-                        .select('kategoria, stara_nazwa, nowa_nazwa')
-                        .eq('user_id', String(zalogowanyUzytkownik.id));
-
-                    if (nadpisaneData) {
-                        nadpisaneData.forEach(n => {
-                            if (aktualnaBaza[n.kategoria]) {
-                                let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
-                                if (idx > -1) {
-                                    aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
-                                } else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) {
-                                    aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
-                                }
                             }
                         });
                     }
@@ -669,11 +635,7 @@
 
                     try {
                         if (w.id) {
-                            let { data: deletedRows, error } = await supabaseClient
-                                .from('treningi')
-                                .delete()
-                                .eq('id', w.id)
-                                .select();
+                            let { error } = await supabaseClient.from('treningi').delete().eq('id', w.id);
                             if (error) throw error;
                         }
                         historia.splice(index, 1);
@@ -846,6 +808,7 @@
 
         async function inicjalizujPoZalogowaniu() {
             bazyCwiczen = await pobierzBazeCwiczenZChmury();
+            await pobierzCeleZSupabase(); // Pobranie celów z nowej tabeli na starcie
             inicjalizujKategorie();
             zainicjalizujDatyAnalizy();
             odswiezInlineAccordion();
@@ -864,6 +827,24 @@
                 } catch(err) {}
             }
             aktualizujCwiczenia('analiza');
+        }
+
+        // POBIERANIE CELÓW Z SUPABASE DO PAMIĘCI PODRĘCZNEJ
+        async function pobierzCeleZSupabase() {
+            if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cele')
+                    .select('cwiczenie, wartosc_celu')
+                    .eq('user_id', String(zalogowanyUzytkownik.id));
+                
+                if (!error && data) {
+                    cacheCelowSupabase = {};
+                    data.forEach(item => {
+                        cacheCelowSupabase[item.cwiczenie] = item.wartosc_celu;
+                    });
+                }
+            } catch (e) {}
         }
 
         function inicjalizujKategorie() {
@@ -948,7 +929,7 @@
                 });
             }
             if(tryb === 'analiza') zaladujAnalize();
-            else if(tryb === 'cel') zmienionoKategorieCelu();
+            else if(tryb === 'cel') zmienionoKategorieCeluWartosc();
             else if(tryb === 'dziennik') zmienionoCwiczenieDziennika();
         }
 
@@ -989,17 +970,31 @@
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
             let inputCelWartosc = document.getElementById('cel-wartosc');
             if(!celCwiczenie || !inputCelWartosc) return;
-            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-            inputCelWartosc.value = celeZapisane[celCwiczenie] || 0;
+            
+            // Pobieramy wartość celu z cache lub 0
+            inputCelWartosc.value = cacheCelowSupabase[celCwiczenie] || '';
             obliczPostepCeluZSupabase();
         }
 
-        function zapiszWartoscCelu() {
+        // ZAPIS CELU DO TABELI 'cele' W SUPABASE
+        async function zapiszWartoscCeluSupabase() {
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
             let val = parseFloat(document.getElementById('cel-wartosc').value) || 0;
-            let celeZapisane = bezpiecznyOdczytStorage('cele', {});
-            celeZapisane[celCwiczenie] = val;
-            bezpiecznyZapisStorage('cele', celeZapisane);
+            if (!celCwiczenie || !zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return;
+
+            cacheCelowSupabase[celCwiczenie] = val;
+
+            try {
+                await supabaseClient
+                    .from('cele')
+                    .upsert({
+                        user_id: String(zalogowanyUzytkownik.id),
+                        cwiczenie: celCwiczenie,
+                        wartosc_celu: val,
+                        updated_at: new Date()
+                    }, { onConflict: 'user_id,cwiczenie' });
+            } catch (e) {}
+
             obliczPostepCeluZSupabase();
         }
 
@@ -1048,13 +1043,13 @@
 
             if (docelowaWartosc <= 0) { 
                 fill.style.width = '0%'; 
-                text.textContent = `Aktualny rekord: ${aktualnaWartosc} (Ustaw cel > 0)`; 
+                text.textContent = `Aktualny rekord: ${aktualnaWartosc} kg (Wpisz swój docelowy cel powyżej)`; 
                 return; 
             }
             
-            let procent = Math.min(Math.floor((aktualnaWartosc / docelowaWartosc) * 100), 100);
+            let procent = Math.min(Math.round((aktualnaWartosc / docelowaWartosc) * 100), 100);
             fill.style.width = procent + '%';
-            text.textContent = `${procent}% (Obecnie: ${aktualnaWartosc} / Cel: ${docelowaWartosc})`;
+            text.textContent = `${procent}% (Obecnie: ${aktualnaWartosc} kg / Cel: ${docelowaWartosc} kg)`;
         }
 
         function obliczWlocie() {
@@ -1075,7 +1070,9 @@
                 aktualizujCwiczenia('analiza');
             }
             if (nazwa === 'cele') {
-                inicjalizujListeCelow();
+                pobierzCeleZSupabase().then(() => {
+                    inicjalizujListeCelow();
+                });
             }
             if (nazwa === 'baza') odswiezPanelBazy();
         }
