@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PULSE 75 – Dziennik Treningowy (Desktop)</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest-desktop.json">
     <meta name="theme-color" content="#121212">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     
@@ -15,6 +15,8 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_H_1J8r61TEougxrdNvtRMQ_yS93Gtvf';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     </script>
+    <!-- DANE DEMONSTRACYJNE (TRYB DEMO) -->
+    <script src="demo-data.js"></script>
 
     <style>
         :root { --bg-color: #121212; --card-bg: #1e1e1e; --primary: #ff2a2a; --primary-glow: rgba(255, 42, 42, 0.3); --text-main: #ffffff; --text-muted: #aaaaaa; --border: #333333; }
@@ -40,6 +42,10 @@
         /* GŁÓWNY OBSZAR TREŚCI PO PRAWEJ */
         .main-container { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background-color: var(--bg-color); }
         .content-wrapper { padding: 40px; max-width: 900px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+        .demo-banner { display: none; background: linear-gradient(90deg, #2b1717 0%, #1e1e1e 100%); border: 1px solid var(--primary); border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; align-items: center; justify-content: space-between; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.35); }
+        .demo-banner-text { font-size: 0.9rem; line-height: 1.45; color: #f0f0f0; }
+        .demo-banner-btn { width: auto; padding: 8px 14px; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
         
         .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; }
         h2 { font-size: 1.3rem; margin-top: 0; color: var(--primary); margin-bottom: 20px; }
@@ -52,7 +58,9 @@
         
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .result-box { background-color: #252525; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.95rem; border: 1px solid var(--border); }
+        .result-box { background-color: #252525; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.95rem; border: 1px solid var(--border); line-height: 1.55; }
+        .chart-box { background-color: #181818; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 12px; overflow-x: auto; }
+        .chart-svg { width: 100%; min-width: 420px; height: 170px; display: block; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
         th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: center; }
         th { background-color: #222; color: var(--primary); }
@@ -60,8 +68,12 @@
         .progress-bar-container { background-color: #2a2a2a; border-radius: 8px; overflow: hidden; height: 28px; width: 100%; margin-top: 15px; border: 1px solid var(--border); position: relative; }
         .progress-bar-fill { background-color: var(--primary); height: 100%; width: 0%; transition: width 0.4s ease; }
         .progress-text { position: absolute; width: 100%; top: 0; left: 0; line-height: 28px; text-align: center; font-size: 0.9rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+
+        .ratio-bar-track { display: flex; width: 100%; height: 24px; border-radius: 6px; overflow: hidden; background: #181818; border: 1px solid var(--border); margin-top: 10px; }
+        .ratio-bar-push { background: var(--primary); height: 100%; transition: width 0.35s ease; }
+        .ratio-bar-pull { background: #3b82f6; height: 100%; transition: width 0.35s ease; }
         
-        .list-item-cwiczenie { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 12px 15px; border-radius: 6px; font-size: 0.95rem; margin-bottom: 10px; border: 1px solid var(--border); }
+        .list-item-cwiczenie { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #252525; padding: 12px 15px; border-radius: 6px; font-size: 0.95rem; margin-bottom: 10px; border: 1px solid var(--border); }
         .btn-small { width: auto; padding: 6px 12px; font-size: 0.85rem; background: #555; }
         
         #custom-toast { display: none; position: fixed; bottom: 30px; right: 30px; background: #222; border: 1px solid var(--primary); color: #fff; padding: 15px 25px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.7); font-size: 1rem; text-align: center; max-width: 400px; }
@@ -154,6 +166,13 @@
     <!-- GŁÓWNY KONTENER -->
     <div class="main-container">
         <div class="content-wrapper">
+
+            <div id="demo-mode-banner" class="demo-banner">
+                <div class="demo-banner-text">
+                    <b>TRYB DEMO</b> – przeglądasz przykładowe dane, aby zobaczyć funkcje aplikacji desktopowej. Zmiany w tym trybie działają wyłącznie w bieżącej sesji i nie zapisują się w bazie.
+                </div>
+                <button type="button" class="demo-banner-btn" onclick="otworzOknoSubskrypcji()">💳 Subskrypcja</button>
+            </div>
             
             <!-- 1. ZAKŁADKA HISTORIA -->
             <div id="tab-historia" class="tab-content active">
@@ -261,11 +280,11 @@
                         <div>
                             <label>Zakres danych:</label>
                             <select id="analiza-tryb-dat" onchange="zmienionoTrybDatAnalizy()">
-                                <option value="wszystko">Wszystko</option>
-                                <option value="zakres" selected>Zakres dat</option>
+                                <option value="wszystko" selected>Wszystko</option>
+                                <option value="zakres">Zakres dat</option>
                             </select>
                         </div>
-                        <div id="analiza-kontener-dat" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div id="analiza-kontener-dat" style="grid-column: span 2; display: none; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div>
                                 <label>Data od:</label>
                                 <input type="date" id="analiza-data-od" onchange="zaladujAnalize()">
@@ -286,6 +305,7 @@
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">📈 Prognoza Rekordu (1RM Forecasting)</h3>
                         <div class="result-box" id="raport-prognoza">Brak danych do prognozy.</div>
+                        <div class="chart-box" id="wykres-1rm-svg"></div>
                     </div>
 
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
@@ -296,6 +316,7 @@
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">📉 Analiza Zapasu Sił i Zmęczenia (RIR Trend)</h3>
                         <div class="result-box" id="raport-rir">Brak zarejestrowanych danych RIR.</div>
+                        <div class="chart-box" id="wykres-rir-svg"></div>
                     </div>
 
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
@@ -306,6 +327,7 @@
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
                         <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">📊 Objętość Tygodniowa (Volume Landmarks)</h3>
                         <div class="result-box" id="raport-objemosc">Brak danych o objętości.</div>
+                        <div class="chart-box" id="wykres-objetosc-svg"></div>
                     </div>
 
                     <div style="margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px;">
@@ -318,7 +340,7 @@
                 </div>
             </div>
 
-            <!-- 3. ZAKŁADKA CELE (SYNCHRONIZOWANA Z SUPABASE - TABELA CELE) -->
+            <!-- 3. ZAKŁADKA CELE -->
             <div id="tab-cele" class="tab-content">
                 <div class="card">
                     <h2>Wizualizacja Celów (1RM)</h2>
@@ -338,7 +360,7 @@
                     
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill" id="progress-fill"></div>
-                        <div class="progress-text" id="progress-text">Pobieranie danych z Supabase...</div>
+                        <div class="progress-text" id="progress-text">Pobieranie danych...</div>
                     </div>
                 </div>
             </div>
@@ -347,7 +369,7 @@
             <div id="tab-baza" class="tab-content">
                 <div class="card">
                     <h2>Zarządzanie Bazą Ćwiczeń</h2>
-                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Zarządzaj słownikiem kategorii i ćwiczeń w bazie danych.</p>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Zarządzaj słownikiem kategorii i ćwiczeń.</p>
                     
                     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
@@ -386,7 +408,7 @@
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">Panel boczny, Subskrypcja i Wersja mobilna</h3>
                         <p>Po lewej stronie ekranu znajduje się stały panel nawigacyjny. W jego dolnej części umieszczono trzy kluczowe przyciski systemowe:</p>
                         <p>
-                        • <b>Moje konto / Wyloguj:</b> Wyświetla status połączenia z kontem użytkownika oraz umożliwia bezpieczne wylogowanie się z aplikacji.<br>
+                        • <b>Moje konto / DEMO / Wyloguj:</b> Wyświetla status połączenia z kontem użytkownika (lub napis <b>DEMO</b> w trybie demonstracyjnym) oraz umożliwia bezpieczne wylogowanie się z aplikacji.<br>
                         • <b>💳 Subskrypcja / Opłać:</b> Przenosi do okna aktywacji dostępu do pełnej wersji desktopowej. Aplikacja mobilna pozostaje w pełni darmowa, natomiast pełny dostęp do wersji komputerowej działa w wygodnym modelu przedpłaconym (prepaid, bez automatycznego odnawiania opłat) w dwóch wariantach: <b>10 zł za 1 miesiąc</b> lub <b>100 zł za 12 miesięcy</b>. W przypadku braku aktywnej subskrypcji wersja desktop uruchamia się w trybie demonstracyjnym (Demo) na przykładowych danych.<br>
                         • <b>📱 Wersja mobilna:</b> Pozwala jednym kliknięciem przełączyć się bezpośrednio do interfejsu mobilnego na ekranie komputera.
                         </p>
@@ -400,27 +422,23 @@
                         </p>
 
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">2. 📈 Analiza i Wykresy (Raporty PRO)</h3>
-                        <p>Zaawansowane centrum analityczne przetwarzające historię treningów na konkretne wskaźniki siłowe, objętościowe i regeneracyjne. Na górze zakładki wybierasz <b>kategorię</b>, konkretne <b>ćwiczenie</b> oraz <b>zakres danych</b> (cała historia lub określony przedział dat <i>od – do</i>), dla którego przeliczane są statystyki i tabela wpisów.</p>
+                        <p>Zaawansowane centrum analityczne przetwarzające historię treningów na konkretne wskaźniki siłowe, objętościowe i regeneracyjne. Na górze zakładki wybierasz <b>kategorię</b>, konkretne <b>ćwiczenie</b> oraz <b>zakres danych</b> (cała historia lub określony przedział dat <i>od – do</i>), dla którego przeliczane są statystyki, wykresy i tabela wpisów.</p>
                         <p>
                         • <b>📄 Generuj opisowy raport trenerski:</b> Tworzy czytelne podsumowanie tekstowe (Executive Summary) Twojej aktualnej dyspozycji, progresu siłowego oraz wniosków treningowych w oknie modalnym.<br>
-                        • <b>📈 Prognoza Rekordu (1RM Forecasting):</b> Wylicza szacowany rekord maksymalny na jedno powtórzenie na podstawie wzoru Epleya: $\text{1RM} = \text{Ciężar} \times (1 + \frac{\text{Powtórzenia}}{30})$. Następnie analizuje historyczny przyrost 1RM w czasie (liniową dynamikę progresu między kolejnymi sesjami) i prognozuje przewidywany wynik maksymalny w kolejnych tygodniach, pokazując tempo rozwoju siły.<br>
-                        • <b>⚖️ Audyt Równowagi Mięśniowej (Push vs. Pull):</b> Porównuje całkowitą pracę wykonaną w ruchach wypychających (<i>Push</i>: Klatka, Barki, Triceps, czworogłowe ud) z pracą w ruchach przyciągających (<i>Pull</i>: Plecy, Biceps, tył uda i pośladki). Raport zlicza sumaryczny tonaż ($\text{Ciężar} \times \text{Powtórzenia}$) oraz liczbę serii roboczych obu grup i wylicza ich wzajemny stosunek procentowy/liczbowy, pomagając wykryć dysproporcje posturalne i ryzyko przeciążeń stawów.<br>
-                        • <b>📉 Analiza Zapasu Sił i Zmęczenia (RIR Trend):</b> Analizuje deklarowany w seriach wskaźnik <i>Reps in Reserve</i> (ile powtórzeń zostało w zapasie do upadku mięśniowego). Raport wylicza średni poziom RIR w badanym okresie oraz śledzi jego kierunek zmian: utrzymujące się RIR bliskie 0 oznacza trening na granicy upadku i wysokie zmęczenie układu nerwowego (sygnał do rozważenia tygodnia roztrenowania – deloadu), natomiast RIR 1–3 wskazuje na optymalną strefę hipertrofii i budowania siły.<br>
-                        • <b>🏆 Wskaźniki Siły Względnej:</b> Odnosi Twój najlepszy wynik 1RM w danym ćwiczeniu do masy ciała ($\text{Siła względna} = \frac{\text{1RM}}{\text{Masa ciała}}$). Pozwala to obiektywnie ocenić poziom wytrenowania niezależnie od wahań wagi ciała (np. wyciskanie $1.0\times$ masy ciała, przysiady $1.5\times$ masy ciała, martwy ciąg $2.0\times$ masy ciała).<br>
-                        • <b>📊 Objętość Tygodniowa (Volume Landmarks):</b> Zlicza łączną liczbę wykonanych serii roboczych przypadających na poszczególne partie mięśniowe w ujęciu tygodniowym oraz sumaryczny tonaż. Pozwala kontrolować, czy dana partia otrzymuje bodziec powyżej minimalnej objętości podtrzymującej/wzrostowej (MEV), mieści się w optymalnej objętości adaptacyjnej (MAV), czy zbliża się do maksymalnej objętości regeneracyjnej (MRV).<br>
-                        • <b>📥 Eksportuj pełny raport treningowy (CSV):</b> Pobiera na dysk komputera kompletny arkusz danych (Data, Partia, Ćwiczenie, Ciężar, Powtórzenia, 1RM) gotowy do otwarcia w programie Excel lub LibreOffice Calc.<br>
-                        • <b>Tabela historii ćwiczenia:</b> Zestawienie wszystkich zarejestrowanych serii dla wybranego ćwiczenia w wybranym okresie wraz z wyliczonym 1RM (lub dystansem i czasem dla Cardio).
+                        • <b>📈 Prognoza Rekordu (1RM Forecasting):</b> Wylicza szacowany rekord maksymalny na jedno powtórzenie na podstawie wzoru Epleya i rysuje wykres zmian 1RM w czasie wraz z prognozą.<br>
+                        • <b>⚖️ Audyt Równowagi Mięśniowej (Push vs. Pull):</b> Porównuje całkowitą pracę wykonaną w ruchach wypychających (<i>Push</i>) z pracą w ruchach przyciągających (<i>Pull</i>) za pomocą wskaźnika procentowego i tonażu.<br>
+                        • <b>📉 Analiza Zapasu Sił i Zmęczenia (RIR Trend):</b> Analizuje deklarowany w seriach wskaźnik <i>Reps in Reserve</i> i prezentuje rozkład/trend RIR na wykresie.<br>
+                        • <b>🏆 Wskaźniki Siły Względnej:</b> Odnosi Twój najlepszy wynik 1RM w danym ćwiczeniu do masy ciała.<br>
+                        • <b>📊 Objętość Tygodniowa (Volume Landmarks):</b> Zlicza łączną liczbę wykonanych serii roboczych i tonaż w ujęciu tygodniowym oraz prezentuje je na wykresie słupkowym.<br>
+                        • <b>📥 Eksportuj pełny raport treningowy (CSV):</b> Pobiera na dysk komputera kompletny arkusz danych gotowy do otwarcia w arkuszu kalkulacyjnym.<br>
+                        • <b>Tabela historii ćwiczenia:</b> Zestawienie wszystkich zarejestrowanych serii dla wybranego ćwiczenia w wybranym okresie.
                         </p>
 
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">3. 🎯 Wizualizacja Celów (1RM)</h3>
-                        <p>Moduł wyznaczania i śledzenia długoterminowych celów siłowych oraz wytrzymałościowych, w pełni zsynchronizowany z bazą danych w chmurze.</p>
-                        <p>
-                        • Wybierz <b>Kategorię</b> oraz <b>Ćwiczenie</b>, a następnie wpisz wartość docelową (rekord 1RM w kilogramach dla ćwiczeń siłowych lub docelowy dystans w kilometrach dla Cardio).<br>
-                        • System automatycznie przeszukuje Twoją historię w bazie danych, odnajduje najlepszy dotychczasowy wynik i oblicza procent realizacji celu ($\frac{\text{Aktualny rekord}}{\text{Cel}} \times 100\%$), prezentując postęp na pasku wizualnym. Każdy zapisany cel jest natychmiast widoczny również w aplikacji mobilnej.
-                        </p>
+                        <p>Moduł wyznaczania i śledzenia długoterminowych celów siłowych oraz wytrzymałościowych, w pełni zsynchronizowany z bazą danych w chmurze (a w trybie demo działający na przykładowych celach i danych).</p>
 
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">4. 🏋️ Baza Ćwiczeń</h3>
-                        <p>Narzędzie do zarządzania słownikiem treningowym. Umożliwia przeglądanie ćwiczeń przypisanych do poszczególnych partii, dodawanie własnych pozycji do wybranej kategorii oraz tworzenie nowych kategorii treningowych, które po zapisaniu stają się dostępne w dzienniku, analizach i celach.</p>
+                        <p>Narzędzie do zarządzania słownikiem treningowym. Umożliwia przeglądanie ćwiczeń przypisanych do poszczególnych partii, dodawanie własnych pozycji do wybranej kategorii, edytowanie oraz usuwanie ćwiczeń, a także tworzenie nowych kategorii treningowych.</p>
                     </div>
                 </div>
             </div>
@@ -430,8 +448,12 @@
 
     <script>
         let zalogowanyUzytkownik = null;
+        let isDemoMode = false;
         let isAccordionOpen = false;
-        let cacheCelowSupabase = {}; // Pamięć podręczna celów z tabeli 'cele'
+        let cacheCelowSupabase = {};
+        let demoHistoria = [];
+        let demoCele = {};
+        const MASA_CIALA_KG = 89;
 
         document.addEventListener('DOMContentLoaded', () => {
             let saved = localStorage.getItem('pulse75_user') || localStorage.getItem('ironmetric_user');
@@ -440,7 +462,7 @@
                 return;
             }
             zalogowanyUzytkownik = JSON.parse(saved);
-            aktualizujStanKonta(zalogowanyUzytkownik);
+            aktualizujStanKonta(zalogowanyUzytkownik, false);
 
             const teraz = new Date();
             const rok = teraz.getFullYear();
@@ -455,6 +477,7 @@
         });
 
         document.addEventListener('visibilitychange', async () => {
+            if (isDemoMode) return;
             if (document.visibilityState === 'visible' && zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
                     const { data: serverTreningi, error } = await supabaseClient
@@ -469,6 +492,41 @@
                 } catch(e) {}
             }
         });
+
+        async function sprawdzAktywnoscSubskrypcji() {
+            if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return false;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('desktop_wazna_do')
+                    .eq('id', zalogowanyUzytkownik.id)
+                    .maybeSingle();
+
+                if (error || !data || !data.desktop_wazna_do) {
+                    return false;
+                }
+                const waznaDoTime = new Date(data.desktop_wazna_do).getTime();
+                return !Number.isNaN(waznaDoTime) && waznaDoTime > Date.now();
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function zaladujDaneDemoDoPamieci() {
+            const demoPayload = window.PULSE75_DEMO_DATA || {};
+            demoHistoria = Array.isArray(demoPayload.historia)
+                ? JSON.parse(JSON.stringify(demoPayload.historia))
+                : [];
+            demoCele = (demoPayload.cele && typeof demoPayload.cele === 'object')
+                ? JSON.parse(JSON.stringify(demoPayload.cele))
+                : {};
+            cacheCelowSupabase = { ...demoCele };
+        }
+
+        function pobierzHistorieAktywna() {
+            if (isDemoMode) return demoHistoria;
+            return bezpiecznyOdczytStorage('historia_treningow', []);
+        }
 
         function pobierzKluczStorage(klucz) {
             if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return `pulse75_guest_${klucz}`;
@@ -503,20 +561,30 @@
             } catch (e) {}
         }
 
-        function aktualizujStanKonta(user) {
+        function aktualizujStanKonta(user, demoActive = false) {
             const btnText = document.getElementById('header-user-text');
             const btnIcon = document.getElementById('header-user-icon');
-            if (user) {
+            const banner = document.getElementById('demo-mode-banner');
+            if (demoActive) {
+                btnText.textContent = 'DEMO';
+                btnIcon.textContent = '🟠';
+                if (banner) banner.style.display = 'flex';
+            } else if (user) {
                 btnText.textContent = user.username;
                 btnIcon.textContent = '🟢';
+                if (banner) banner.style.display = 'none';
             } else {
                 btnText.textContent = 'Niezalogowany';
                 btnIcon.textContent = '🔴';
+                if (banner) banner.style.display = 'none';
             }
         }
 
         function kliknieciePrzyciskuKonta() {
-            showConfirmModal('Czy na pewno chcesz się wylogować?', (potwierdzono) => {
+            const komunikat = isDemoMode
+                ? 'Działasz w trybie DEMO (konto nadal zalogowane do wersji mobilnej). Czy chcesz się wylogować?'
+                : 'Czy na pewno chcesz się wylogować?';
+            showConfirmModal(komunikat, (potwierdzono) => {
                 if (potwierdzono) {
                     localStorage.removeItem('pulse75_user');
                     localStorage.removeItem('ironmetric_user');
@@ -526,7 +594,7 @@
         }
 
         function otworzOknoSubskrypcji() {
-            showNotification('💳 Okno subskrypcji i płatności – moduł w przygotowaniu.');
+            showNotification('💳 Okno subskrypcji i płatności (10 zł / 1 mies. lub 100 zł / 12 mies.) – moduł w przygotowaniu.');
         }
 
         function showNotification(msg, duration = 3000) {
@@ -581,13 +649,20 @@
 
         let bazyCwiczen = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
 
-        function aktualizujListeBezElementu(lista, element) {
-            const index = lista.indexOf(element);
-            if (index > -1) lista.splice(index, 1);
-        }
-
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
+            if (isDemoMode) {
+                const demoKat = window.PULSE75_DEMO_DATA && window.PULSE75_DEMO_DATA.bazaCwiczen;
+                if (demoKat && typeof demoKat === 'object') {
+                    Object.keys(demoKat).forEach(kat => {
+                        if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
+                        demoKat[kat].forEach(nazwa => {
+                            if (!aktualnaBaza[kat].includes(nazwa)) aktualnaBaza[kat].push(nazwa);
+                        });
+                    });
+                }
+                return aktualnaBaza;
+            }
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
                     const { data: wlasneData, error } = await supabaseClient
@@ -625,7 +700,7 @@
             if (!inputDate || !statusText || !entriesList) return;
 
             let wybranaData = inputDate.value;
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             let wpisyDniaZIndeksami = [];
             historia.forEach((w, idx) => {
                 if (w.data && w.data.substring(0, 10) === wybranaData) {
@@ -670,9 +745,17 @@
         async function usunWpisPrzezAccordion(index) {
             showConfirmModal("Czy na pewno chcesz usunąć ten wpis z bazy i aplikacji?", async (potwierdzono) => {
                 if (potwierdzono) {
-                    let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+                    let historia = pobierzHistorieAktywna();
                     let w = historia[index];
                     if (!w) return;
+
+                    if (isDemoMode) {
+                        historia.splice(index, 1);
+                        odswiezInlineAccordion();
+                        if (document.getElementById('tab-analiza').classList.contains('active')) zaladujAnalize();
+                        showNotification("🗑️ Usunięto wpis w trybie DEMO (bez zmian w bazie).");
+                        return;
+                    }
 
                     try {
                         if (w.id) {
@@ -691,7 +774,7 @@
         }
 
         function otworzEdycjeWpisu(index) {
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             let w = historia[index];
             if (!w) return;
             
@@ -802,7 +885,7 @@
 
         async function zapiszEdytowanyWpis() {
             let index = parseInt(document.getElementById('edit-entry-index').value);
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             if (isNaN(index) || !historia[index]) return;
             
             let w = historia[index];
@@ -817,13 +900,28 @@
                 aktualizowanyWpis.onerm = 0;
                 aktualizowanyWpis.rir = null;
             } else if (nowaPartia === 'Regeneracja') {
-                aktualizowanyWpis.seria = 1; aktualizizowanyWpis.ciezar = 0; aktualizizowanyWpis.powt = 0; aktualizizowanyWpis.onerm = 0; aktualizowanyWpis.rir = null;
+                aktualizowanyWpis.seria = 1; aktualizizowanyWpis.ciezar = 0; aktualizizowanyWpis.powt = 0; aktualizizowanyWpis.onerm = 0; aktualizizowanyWpis.rir = null;
             } else {
                 aktualizowanyWpis.seria = parseInt(document.getElementById('edit-seria').value) || 1;
                 aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-ciezar').value) || 0;
                 aktualizowanyWpis.powt = parseInt(document.getElementById('edit-powt').value) || 0;
                 aktualizowanyWpis.onerm = Math.round(aktualizowanyWpis.ciezar * (1 + aktualizowanyWpis.powt / 30) * 10) / 10;
                 aktualizowanyWpis.rir = document.getElementById('edit-rir').value || null;
+            }
+
+            if (isDemoMode) {
+                w.partia = aktualizowanyWpis.partia;
+                w.cwiczenie = aktualizowanyWpis.cwiczenie;
+                w.seria = aktualizowanyWpis.seria;
+                w.ciezar = aktualizowanyWpis.ciezar;
+                w.powt = aktualizowanyWpis.powt;
+                w.onerm = aktualizowanyWpis.onerm;
+                w.rir = aktualizowanyWpis.rir;
+                zamknijEdycjeWpisu();
+                odswiezInlineAccordion();
+                if (document.getElementById('tab-analiza').classList.contains('active')) zaladujAnalize();
+                showNotification("✅ Zaktualizowano wpis w trybie DEMO (bez zmian w bazie).");
+                return;
             }
 
             try {
@@ -848,8 +946,22 @@
         }
 
         async function inicjalizujPoZalogowaniu() {
+            const aktywnaSubskrypcja = await sprawdzAktywnoscSubskrypcji();
+            isDemoMode = !aktywnaSubskrypcja;
+            aktualizujStanKonta(zalogowanyUzytkownik, isDemoMode);
+
+            if (isDemoMode) {
+                zaladujDaneDemoDoPamieci();
+                bazyCwiczen = await pobierzBazeCwiczenZChmury();
+                inicjalizujKategorie();
+                zainicjalizujDatyAnalizy();
+                odswiezInlineAccordion();
+                aktualizujCwiczenia('analiza');
+                return;
+            }
+
             bazyCwiczen = await pobierzBazeCwiczenZChmury();
-            await pobierzCeleZSupabase(); // Pobranie celów z nowej tabeli na starcie
+            await pobierzCeleZSupabase();
             inicjalizujKategorie();
             zainicjalizujDatyAnalizy();
             odswiezInlineAccordion();
@@ -870,8 +982,11 @@
             aktualizujCwiczenia('analiza');
         }
 
-        // POBIERANIE CELÓW Z SUPABASE DO PAMIĘCI PODRĘCZNEJ
         async function pobierzCeleZSupabase() {
+            if (isDemoMode) {
+                cacheCelowSupabase = { ...demoCele };
+                return;
+            }
             if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return;
             try {
                 const { data, error } = await supabaseClient
@@ -908,7 +1023,7 @@
         }
 
         function zainicjalizujDatyAnalizy() {
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             let dataOdEl = document.getElementById('analiza-data-od');
             let dataDoEl = document.getElementById('analiza-data-do');
             if (!dataOdEl || !dataDoEl) return;
@@ -924,7 +1039,7 @@
         }
 
         function pobierzPrzefiltrowanaHistorie() {
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             let tryb = document.getElementById('analiza-tryb-dat')?.value || 'wszystko';
             if (tryb === 'wszystko') return historia;
             let dataOd = document.getElementById('analiza-data-od')?.value;
@@ -978,7 +1093,7 @@
             let partia = document.getElementById('dziennik-partia').value;
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
             if (!cwiczenie) return;
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             let ostatniWpis = historia.find(w => w.cwiczenie === cwiczenie);
             if (ostatniWpis) {
                 if (partia === 'Cardio') {
@@ -1012,16 +1127,23 @@
             let inputCelWartosc = document.getElementById('cel-wartosc');
             if(!celCwiczenie || !inputCelWartosc) return;
             
-            // Pobieramy wartość celu z cache lub 0
-            inputCelWartosc.value = cacheCelowSupabase[celCwiczenie] || '';
+            const zrodloCelow = isDemoMode ? demoCele : cacheCelowSupabase;
+            const wartosc = zrodloCelow[celCwiczenie];
+            inputCelWartosc.value = (wartosc !== undefined && wartosc !== null) ? wartosc : '';
             obliczPostepCeluZSupabase();
         }
 
-        // ZAPIS CELU DO TABELI 'cele' W SUPABASE
         async function zapiszWartoscCeluSupabase() {
             let celCwiczenie = document.getElementById('cel-cwiczenie').value;
             let val = parseFloat(document.getElementById('cel-wartosc').value) || 0;
             if (!celCwiczenie || !zalogowanyUzytkownik || !zalogowanyUzytkownik.id) return;
+
+            if (isDemoMode) {
+                demoCele[celCwiczenie] = val;
+                cacheCelowSupabase = { ...demoCele };
+                obliczPostepCeluZSupabase();
+                return;
+            }
 
             cacheCelowSupabase[celCwiczenie] = val;
 
@@ -1047,30 +1169,35 @@
             let text = document.getElementById('progress-text');
             if(!fill || !text || !celCwiczenie) return;
 
-            text.textContent = 'Pobieranie najnowszego rekordu z bazy...';
-
             let wpisyCwiczenia = [];
-            if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('treningi')
-                        .select('*')
-                        .eq('user_id', String(zalogowanyUzytkownik.id))
-                        .eq('cwiczenie', celCwiczenie);
-                    if (!error && data) {
-                        wpisyCwiczenia = data;
-                        let historiaLokalna = bezpiecznyOdczytStorage('historia_treningow', []);
-                        data.forEach(srv => {
-                            if (!historiaLokalna.some(l => l.id === srv.id)) historiaLokalna.push(srv);
-                        });
-                        bezpiecznyZapisStorage('historia_treningow', historiaLokalna);
-                    }
-                } catch(e) {}
-            }
 
-            if (wpisyCwiczenia.length === 0) {
-                let historia = bezpiecznyOdczytStorage('historia_treningow', []);
-                wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
+            if (isDemoMode) {
+                text.textContent = 'Przeliczanie rekordu w trybie DEMO...';
+                wpisyCwiczenia = demoHistoria.filter(w => w.cwiczenie === celCwiczenie);
+            } else {
+                text.textContent = 'Pobieranie najnowszego rekordu z bazy...';
+                if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('treningi')
+                            .select('*')
+                            .eq('user_id', String(zalogowanyUzytkownik.id))
+                            .eq('cwiczenie', celCwiczenie);
+                        if (!error && data) {
+                            wpisyCwiczenia = data;
+                            let historiaLokalna = bezpiecznyOdczytStorage('historia_treningow', []);
+                            data.forEach(srv => {
+                                if (!historiaLokalna.some(l => l.id === srv.id)) historiaLokalna.push(srv);
+                            });
+                            bezpiecznyZapisStorage('historia_treningow', historiaLokalna);
+                        }
+                    } catch(e) {}
+                }
+
+                if (wpisyCwiczenia.length === 0) {
+                    let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+                    wpisyCwiczenia = historia.filter(w => w.cwiczenie === celCwiczenie);
+                }
             }
 
             let aktualnaWartosc = 0;
@@ -1082,15 +1209,17 @@
                 }
             }
 
+            const jednostka = celKat === 'Cardio' ? 'km' : 'kg';
+
             if (docelowaWartosc <= 0) { 
                 fill.style.width = '0%'; 
-                text.textContent = `Aktualny rekord: ${aktualnaWartosc} kg (Wpisz swój docelowy cel powyżej)`; 
+                text.textContent = `Aktualny rekord: ${aktualnaWartosc} ${jednostka} (Wpisz swój docelowy cel powyżej)`; 
                 return; 
             }
             
             let procent = Math.min(Math.round((aktualnaWartosc / docelowaWartosc) * 100), 100);
             fill.style.width = procent + '%';
-            text.textContent = `${procent}% (Obecnie: ${aktualnaWartosc} kg / Cel: ${docelowaWartosc} kg)`;
+            text.textContent = `${procent}% (Obecnie: ${aktualnaWartosc} ${jednostka} / Cel: ${docelowaWartosc} ${jednostka})`;
         }
 
         function obliczWlocie() {
@@ -1132,34 +1261,296 @@
             zmienionoKategorieCelu();
         }
 
+        function pobierzNumerTygodniaISO(dataStr) {
+            const d = new Date(dataStr.substring(0, 10) + 'T12:00:00');
+            if (Number.isNaN(d.getTime())) return 'Nieznany tydzień';
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+        }
+
+        function renderujWykresLiniowySVG(punkty, etykietaY, kolorLinii) {
+            if (!punkty || punkty.length === 0) {
+                return `<div style="color:var(--text-muted); font-size:0.85rem; padding:12px;">Brak punktów do narysowania wykresu.</div>`;
+            }
+            const width = 620, height = 165, padL = 44, padR = 20, padT = 18, padB = 30;
+            const plotW = width - padL - padR;
+            const plotH = height - padT - padB;
+            const vals = punkty.map(p => p.val);
+            let minVal = Math.min(...vals);
+            let maxVal = Math.max(...vals);
+            if (minVal === maxVal) {
+                minVal = Math.max(0, minVal - 5);
+                maxVal = maxVal + 5;
+            } else {
+                const margines = (maxVal - minVal) * 0.15;
+                minVal = Math.max(0, minVal - margines);
+                maxVal = maxVal + margines;
+            }
+            const span = Math.max(1, maxVal - minVal);
+
+            const coords = punkty.map((pt, idx) => {
+                const x = punkty.length === 1
+                    ? padL + plotW / 2
+                    : padL + (idx / (punkty.length - 1)) * plotW;
+                const y = padT + plotH - ((pt.val - minVal) / span) * plotH;
+                return { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, label: pt.label, val: pt.val };
+            });
+
+            const polylinePoints = coords.map(c => `${c.x},${c.y}`).join(' ');
+            const areaPoints = `${coords[0].x},${padT + plotH} ` + polylinePoints + ` ${coords[coords.length - 1].x},${padT + plotH}`;
+
+            let svg = `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+            svg += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + plotH}" stroke="#444" stroke-width="1"/>`;
+            svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${width - padR}" y2="${padT + plotH}" stroke="#444" stroke-width="1"/>`;
+            svg += `<text x="${padL - 6}" y="${padT + 8}" fill="#aaa" font-size="10" text-anchor="end">${Math.round(maxVal * 10) / 10}${etykietaY}</text>`;
+            svg += `<text x="${padL - 6}" y="${padT + plotH}" fill="#aaa" font-size="10" text-anchor="end">${Math.round(minVal * 10) / 10}${etykietaY}</text>`;
+
+            if (coords.length >= 2) {
+                svg += `<polygon points="${areaPoints}" fill="${kolorLinii}" fill-opacity="0.16"/>`;
+                svg += `<polyline fill="none" stroke="${kolorLinii}" stroke-width="2.5" points="${polylinePoints}"/>`;
+            }
+
+            coords.forEach((c, i) => {
+                svg += `<circle cx="${c.x}" cy="${c.y}" r="4.5" fill="${kolorLinii}" stroke="#121212" stroke-width="1.5"/>`;
+                svg += `<text x="${c.x}" y="${c.y - 8}" fill="#fff" font-size="10" text-anchor="middle">${Math.round(c.val * 10) / 10}</text>`;
+                if (i === 0 || i === coords.length - 1 || coords.length <= 5 || i % 2 === 0) {
+                    svg += `<text x="${c.x}" y="${height - 10}" fill="#aaa" font-size="10" text-anchor="middle">${c.label}</text>`;
+                }
+            });
+
+            svg += `</svg>`;
+            return svg;
+        }
+
+        function renderujWykresSlupkowySVG(slupki, jednostka, kolorSlupka) {
+            if (!slupki || slupki.length === 0) {
+                return `<div style="color:var(--text-muted); font-size:0.85rem; padding:12px;">Brak danych do wykresu słupkowego.</div>`;
+            }
+            const width = 620, height = 165, padL = 44, padR = 20, padT = 20, padB = 30;
+            const plotW = width - padL - padR;
+            const plotH = height - padT - padB;
+            const maxVal = Math.max(...slupki.map(s => s.val), 1);
+            const slotW = plotW / slupki.length;
+            const barW = Math.min(46, Math.max(16, slotW * 0.55));
+
+            let svg = `<svg class="chart-svg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+            svg += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + plotH}" stroke="#444" stroke-width="1"/>`;
+            svg += `<line x1="${padL}" y1="${padT + plotH}" x2="${width - padR}" y2="${padT + plotH}" stroke="#444" stroke-width="1"/>`;
+            svg += `<text x="${padL - 6}" y="${padT + 8}" fill="#aaa" font-size="10" text-anchor="end">${Math.round(maxVal)}${jednostka}</text>`;
+            svg += `<text x="${padL - 6}" y="${padT + plotH}" fill="#aaa" font-size="10" text-anchor="end">0</text>`;
+
+            slupki.forEach((s, idx) => {
+                const h = Math.max(4, (s.val / maxVal) * plotH);
+                const x = padL + idx * slotW + (slotW - barW) / 2;
+                const y = padT + plotH - h;
+                svg += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${kolorSlupka}"/>`;
+                svg += `<text x="${(x + barW / 2).toFixed(1)}" y="${(y - 5).toFixed(1)}" fill="#fff" font-size="10" text-anchor="middle">${Math.round(s.val * 10) / 10}</text>`;
+                svg += `<text x="${(x + barW / 2).toFixed(1)}" y="${height - 10}" fill="#aaa" font-size="10" text-anchor="middle">${s.label}</text>`;
+            });
+
+            svg += `</svg>`;
+            return svg;
+        }
+
         function zaladujAnalize() {
             let wybraneCwiczenie = document.getElementById('analiza-cwiczenie').value;
             let partia = document.getElementById('analiza-partia').value;
             let podsumowanieEl = document.getElementById('analiza-podsumowanie');
             let tabelaEl = document.getElementById('tabela-historii');
+            let prognozaEl = document.getElementById('raport-prognoza');
+            let wykres1rmEl = document.getElementById('wykres-1rm-svg');
+            let pushPullEl = document.getElementById('raport-push-pull');
+            let rirEl = document.getElementById('raport-rir');
+            let wykresRirEl = document.getElementById('wykres-rir-svg');
+            let silaWzgEl = document.getElementById('raport-sila-wzgledna');
+            let objetoscEl = document.getElementById('raport-objemosc');
+            let wykresObjEl = document.getElementById('wykres-objetosc-svg');
+
             if(!wybraneCwiczenie || !tabelaEl) return;
             
             let historiaFiltrowana = pobierzPrzefiltrowanaHistorie();
-            let wpisyCwiczenia = historiaFiltrowana.filter(w => w.cwiczenie === wybraneCwiczenie);
+            let wpisyCwiczenia = historiaFiltrowana
+                .filter(w => w.cwiczenie === wybraneCwiczenie)
+                .sort((a, b) => (a.data || '').localeCompare(b.data || '') || ((a.seria || 1) - (b.seria || 1)));
             
-            tabelaEl.innerHTML = partia === 'Cardio' ? `<tr><th>Data</th><th>Dystans (km)</th><th>Czas (min)</th><th>Tempo</th></tr>` : `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr>`;
+            tabelaEl.innerHTML = partia === 'Cardio'
+                ? `<tr><th>Data</th><th>Dystans (km)</th><th>Czas (min)</th><th>Tempo / Śr. prędkość</th></tr>`
+                : `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>RIR</th><th>1RM</th></tr>`;
+
             if(wpisyCwiczenia.length === 0) {
-                podsumowanieEl.innerHTML = 'Brak wpisów.';
-                return;
-            }
-            podsumowanieEl.innerHTML = `Liczba wpisów: <b>${wpisyCwiczenia.length}</b>`;
-            wpisyCwiczenia.forEach(w => {
+                podsumowanieEl.innerHTML = `Brak wpisów dla ćwiczenia <b>${wybraneCwiczenie}</b> w wybranym zakresie.`;
+                if (prognozaEl) prognozaEl.innerHTML = 'Brak danych do prognozy.';
+                if (wykres1rmEl) wykres1rmEl.innerHTML = renderujWykresLiniowySVG([], '', '#ff2a2a');
+            } else {
                 if (partia === 'Cardio') {
-                    tabelaEl.innerHTML += `<tr><td>${w.data?.substring(0,10)}</td><td><b>${w.ciezar} km</b></td><td><b>${w.powt} min</b></td><td>-</td></tr>`;
+                    let sumaKm = wpisyCwiczenia.reduce((acc, w) => acc + (parseFloat(w.ciezar) || 0), 0);
+                    let sumaMin = wpisyCwiczenia.reduce((acc, w) => acc + (parseInt(w.powt) || 0), 0);
+                    podsumowanieEl.innerHTML = `Liczba sesji: <b>${wpisyCwiczenia.length}</b> | Łączny dystans: <b>${sumaKm.toFixed(1)} km</b> | Łączny czas: <b>${sumaMin} min</b>`;
+                    wpisyCwiczenia.forEach(w => {
+                        let km = parseFloat(w.ciezar) || 0;
+                        let min = parseInt(w.powt) || 0;
+                        let tempo = km > 0 && min > 0 ? `${(min / km).toFixed(1)} min/km (${((km / min) * 60).toFixed(1)} km/h)` : '-';
+                        tabelaEl.innerHTML += `<tr><td>${w.data?.substring(0,10)}</td><td><b>${km} km</b></td><td><b>${min} min</b></td><td>${tempo}</td></tr>`;
+                    });
+                    if (prognozaEl) prognozaEl.innerHTML = `Najdłuższy zarejestrowany dystans: <b>${Math.max(...wpisyCwiczenia.map(w => parseFloat(w.ciezar) || 0))} km</b>.`;
+                    const punktyKm = wpisyCwiczenia.map(w => ({
+                        label: (w.data || '').substring(5, 10),
+                        val: parseFloat(w.ciezar) || 0
+                    }));
+                    if (wykres1rmEl) wykres1rmEl.innerHTML = renderujWykresLiniowySVG(punktyKm, 'km', '#ff2a2a');
                 } else {
-                    tabelaEl.innerHTML += `<tr><td>${w.data?.substring(0,10)}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+                    let max1RM = Math.max(...wpisyCwiczenia.map(w => parseFloat(w.onerm) || (parseFloat(w.ciezar) || 0) * (1 + (parseInt(w.powt) || 0) / 30)));
+                    let tonazCalkowity = wpisyCwiczenia.reduce((acc, w) => acc + ((parseFloat(w.ciezar) || 0) * (parseInt(w.powt) || 0)), 0);
+                    podsumowanieEl.innerHTML = `Liczba serii: <b>${wpisyCwiczenia.length}</b> | Szczytowe 1RM: <b>${(Math.round(max1RM * 10) / 10)} kg</b> | Łączny tonaż ćwiczenia: <b>${Math.round(tonazCalkowity)} kg</b>`;
+
+                    wpisyCwiczenia.forEach(w => {
+                        let c = parseFloat(w.ciezar) || 0;
+                        let p = parseInt(w.powt) || 0;
+                        let onerm = parseFloat(w.onerm) || Math.round(c * (1 + p / 30) * 10) / 10;
+                        tabelaEl.innerHTML += `<tr><td>${w.data?.substring(0,10)}</td><td>${w.seria || 1}</td><td>${c} kg</td><td>${p}</td><td>${w.rir || '-'}</td><td><b>${onerm} kg</b></td></tr>`;
+                    });
+
+                    const poDacie = {};
+                    wpisyCwiczenia.forEach(w => {
+                        const d = (w.data || '').substring(0, 10);
+                        const c = parseFloat(w.ciezar) || 0;
+                        const p = parseInt(w.powt) || 0;
+                        const est = parseFloat(w.onerm) || (c * (1 + p / 30));
+                        if (!poDacie[d] || est > poDacie[d]) poDacie[d] = est;
+                    });
+                    const punkty = Object.keys(poDacie).sort().map(d => ({ data: d, label: d.substring(5, 10), val: poDacie[d] }));
+                    if (prognozaEl) {
+                        if (punkty.length >= 2) {
+                            const pierwszy = punkty[0].val;
+                            const ostatni = punkty[punkty.length - 1].val;
+                            const przyrostSesja = (ostatni - pierwszy) / (punkty.length - 1);
+                            const prognoza2Sesje = Math.round((ostatni + przyrostSesja * 2) * 10) / 10;
+                            prognozaEl.innerHTML = `Bieżące szacowane 1RM: <b>${(Math.round(ostatni * 10) / 10)} kg</b> (wzrost z <b>${(Math.round(pierwszy * 10) / 10)} kg</b> w analizowanym okresie).<br>Szacowana prognoza po kolejnych 2 sesjach roboczych: <b>${prognoza2Sesje} kg</b>.`;
+                        } else {
+                            prognozaEl.innerHTML = `Aktualne szacowane 1RM: <b>${(Math.round(punkty[0].val * 10) / 10)} kg</b>. Dodaj więcej sesji w czasie, aby wyliczyć dynamikę prognozy.`;
+                        }
+                    }
+                    if (wykres1rmEl) wykres1rmEl.innerHTML = renderujWykresLiniowySVG(punkty, 'kg', '#ff2a2a');
+                }
+            }
+
+            // Audyt Push vs Pull z wizualnym wskaźnikiem proporcji
+            let pushTonaz = 0, pushSerie = 0, pullTonaz = 0, pullSerie = 0;
+            const partiePush = ['Klatka', 'Barki'];
+            const partiePull = ['Plecy'];
+            historiaFiltrowana.forEach(w => {
+                if (w.partia === 'Cardio' || w.partia === 'Regeneracja') return;
+                const tonaz = (parseFloat(w.ciezar) || 0) * (parseInt(w.powt) || 0);
+                if (partiePush.includes(w.partia)) {
+                    pushTonaz += tonaz;
+                    pushSerie += 1;
+                } else if (partiePull.includes(w.partia)) {
+                    pullTonaz += tonaz;
+                    pullSerie += 1;
                 }
             });
+            if (pushPullEl) {
+                const razemTonaz = pushTonaz + pullTonaz;
+                const pushPct = razemTonaz > 0 ? Math.round((pushTonaz / razemTonaz) * 100) : 50;
+                const pullPct = razemTonaz > 0 ? (100 - pushPct) : 50;
+                pushPullEl.innerHTML = `
+                    <div>Push (Klatka, Barki): <b>${Math.round(pushTonaz)} kg</b> (${pushSerie} serii, <b>${pushPct}%</b>) vs. Pull (Plecy): <b>${Math.round(pullTonaz)} kg</b> (${pullSerie} serii, <b>${pullPct}%</b>)</div>
+                    <div class="ratio-bar-track" title="Push ${pushPct}% / Pull ${pullPct}%">
+                        <div class="ratio-bar-push" style="width: ${pushPct}%;"></div>
+                        <div class="ratio-bar-pull" style="width: ${pullPct}%;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted); margin-top:6px;">
+                        <span>🔴 Push: ${pushPct}%</span>
+                        <span>🔵 Pull: ${pullPct}%</span>
+                    </div>
+                `;
+            }
+
+            // Analiza RIR + wykres
+            if (rirEl) {
+                const serieZRir = historiaFiltrowana
+                    .filter(w => w.rir !== null && w.rir !== undefined && String(w.rir).trim() !== '')
+                    .map(w => ({
+                        label: (w.data || '').substring(5, 10),
+                        val: String(w.rir) === '4+' ? 4 : parseFloat(w.rir)
+                    }))
+                    .filter(item => !Number.isNaN(item.val));
+                if (serieZRir.length > 0) {
+                    const srednieRir = serieZRir.reduce((a, b) => a + b.val, 0) / serieZRir.length;
+                    const ocena = srednieRir < 1.2 ? 'Wysoka intensywność / blisko upadku – monitoruj regenerację.' : (srednieRir <= 3.0 ? 'Optymalna strefa budowania siły i hipertrofii (RIR 1–3).' : 'Zapas sił powyżej 3 – dobre pole pod progresję ciężaru.');
+                    rirEl.innerHTML = `Średni zapas sił w seriach: <b>RIR ${(Math.round(srednieRir * 10) / 10)}</b> (na podstawie ${serieZRir.length} serii). ${ocena}`;
+                    if (wykresRirEl) wykresRirEl.innerHTML = renderujWykresLiniowySVG(serieZRir.slice(-12), '', '#f59e0b');
+                } else {
+                    rirEl.innerHTML = 'Brak zarejestrowanych wartości RIR w wybranym zakresie.';
+                    if (wykresRirEl) wykresRirEl.innerHTML = renderujWykresLiniowySVG([], '', '#f59e0b');
+                }
+            }
+
+            // Siła względna
+            if (silaWzgEl) {
+                const wpisySiloweWszystkie = historiaFiltrowana.filter(w => w.partia !== 'Cardio' && w.partia !== 'Regeneracja');
+                const max1RMCalosc = wpisySiloweWszystkie.length > 0
+                    ? Math.max(...wpisySiloweWszystkie.map(w => parseFloat(w.onerm) || ((parseFloat(w.ciezar) || 0) * (1 + (parseInt(w.powt) || 0) / 30))))
+                    : 0;
+                const max1RMCwiczenia = wpisyCwiczenia.length > 0 && partia !== 'Cardio'
+                    ? Math.max(...wpisyCwiczenia.map(w => parseFloat(w.onerm) || ((parseFloat(w.ciezar) || 0) * (1 + (parseInt(w.powt) || 0) / 30))))
+                    : 0;
+                const wsgCw = (max1RMCwiczenia / MASA_CIALA_KG).toFixed(2);
+                const wsgMax = (max1RMCalosc / MASA_CIALA_KG).toFixed(2);
+                silaWzgEl.innerHTML = `Dla wybranego ćwiczenia (<b>${wybraneCwiczenie}</b>): <b>${wsgCw}x</b> masy ciała | Najwyższy wskaźnik w okresie: <b>${wsgMax}x</b> masy ciała.`;
+            }
+
+            // Objętość tygodniowa + wykres słupkowy
+            if (objetoscEl) {
+                const tygodnie = {};
+                historiaFiltrowana.forEach(w => {
+                    if (!w.data || w.partia === 'Cardio' || w.partia === 'Regeneracja') return;
+                    const tydz = pobierzNumerTygodniaISO(w.data);
+                    if (!tygodnie[tydz]) tygodnie[tydz] = { serie: 0, tonaz: 0 };
+                    tygodnie[tydz].serie += 1;
+                    tygodnie[tydz].tonaz += (parseFloat(w.ciezar) || 0) * (parseInt(w.powt) || 0);
+                });
+                const kluczeTyg = Object.keys(tygodnie).sort();
+                if (kluczeTyg.length > 0) {
+                    objetoscEl.innerHTML = kluczeTyg.map(t => `• <b>${t}</b>: ${tygodnie[t].serie} serii roboczych | ${Math.round(tygodnie[t].tonaz)} kg tonażu`).join('<br>');
+                    const slupki = kluczeTyg.map(t => ({
+                        label: t.slice(-3),
+                        val: tygodnie[t].serie
+                    }));
+                    if (wykresObjEl) wykresObjEl.innerHTML = renderujWykresSlupkowySVG(slupki, 's', '#ef4444');
+                } else {
+                    objetoscEl.innerHTML = 'Brak serii siłowych w wybranym zakresie.';
+                    if (wykresObjEl) wykresObjEl.innerHTML = renderujWykresSlupkowySVG([], 's', '#ef4444');
+                }
+            }
         }
 
         function generujRaportOpisowyModal() {
             let modal = document.getElementById('opisowy-raport-modal');
-            document.getElementById('opisowy-raport-tresc').innerHTML = "Generowanie raportu...";
+            let trescEl = document.getElementById('opisowy-raport-tresc');
+            const historia = pobierzPrzefiltrowanaHistorie();
+            const wybraneCwiczenie = document.getElementById('analiza-cwiczenie')?.value || 'Wybrane ćwiczenie';
+
+            if (!historia || historia.length === 0) {
+                trescEl.innerHTML = `<p>Brak zarejestrowanych wpisów w wybranym zakresie, aby przygotować podsumowanie trenerskie.</p>`;
+            } else {
+                const wpisySilowe = historia.filter(w => w.partia !== 'Cardio' && w.partia !== 'Regeneracja');
+                const wpisyCardio = historia.filter(w => w.partia === 'Cardio');
+                const tonazSuma = wpisySilowe.reduce((sum, w) => sum + ((parseFloat(w.ciezar) || 0) * (parseInt(w.powt) || 0)), 0);
+                const max1RM = wpisySilowe.length > 0
+                    ? Math.max(...wpisySilowe.map(w => parseFloat(w.onerm) || ((parseFloat(w.ciezar) || 0) * (1 + (parseInt(w.powt) || 0) / 30))))
+                    : 0;
+
+                trescEl.innerHTML = `
+                    <p><b>Tryb pracy:</b> ${isDemoMode ? 'Podgląd DEMO (dane przykładowe)' : 'Konto aktywne (dane z bazy)'}</p>
+                    <p><b>Zakres analizy:</b> ${historia.length} wpisów łącznie (w tym ${wpisySilowe.length} serii siłowych oraz ${wpisyCardio.length} sesji cardio).</p>
+                    <p><b>Łączny tonaż siłowy w okresie:</b> ${Math.round(tonazSuma)} kg | <b>Najwyższe szacowane 1RM:</b> ${(Math.round(max1RM * 10) / 10)} kg.</p>
+                    <p><b>Wniosek trenerski (${wybraneCwiczenie}):</b> Regularne rejestrowanie ciężaru, powtórzeń oraz zapasu RIR pozwala precyzyjnie kontrolować progres siły bez nadmiernego wchodzenia w skrajne zmęczenie. W pełnej wersji desktopowej wszystkie Twoje realne sesje zapisują się na stałe w bazie i synchronizują z celami.</p>
+                `;
+            }
             modal.style.display = 'flex';
         }
 
@@ -1168,7 +1559,7 @@
         }
 
         function eksportujRaportCSV() {
-            let historia = bezpiecznyOdczytStorage('historia_treningow', []);
+            let historia = pobierzHistorieAktywna();
             let csv = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Ciezar,Powtorzenia,1RM\r\n";
             historia.forEach(w => { csv += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.ciezar},${w.powt},${w.onerm}\r\n`; });
             let link = document.createElement("a");
@@ -1182,11 +1573,13 @@
         function odswiezPanelBazy() {
             let select = document.getElementById('menedzer-kategoria');
             if(!select) return;
+            const obecnaKat = select.value;
             select.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
                 let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
                 select.appendChild(opt);
             });
+            if (obecnaKat && bazyCwiczen[obecnaKat]) select.value = obecnaKat;
             odswiezListeMenedzera();
         }
 
@@ -1195,27 +1588,107 @@
             let container = document.getElementById('lista-cwiczen-menedzer');
             if(!kat || !container) return;
             container.innerHTML = '';
-            bazyCwiczen[kat]?.forEach(cw => {
-                container.innerHTML += `<div class="list-item-cwiczenie"><span>${cw}</span></div>`;
+            const lista = bazyCwiczen[kat] || [];
+            lista.forEach((cw, idx) => {
+                const safeLabel = cw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                container.innerHTML += `
+                    <div class="list-item-cwiczenie">
+                        <span>${cw}</span>
+                        <div style="display:flex; gap:6px; flex-shrink:0;">
+                            <button type="button" class="btn-small" style="background:#333;" onclick="edytujCwiczenieWBazie('${kat}', ${idx}, '${safeLabel}')">✏️ Edytuj</button>
+                            <button type="button" class="btn-small" style="background:#8B0000;" onclick="usunCwiczenieZBazy('${kat}', ${idx}, '${safeLabel}')">🗑️ Usuń</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function edytujCwiczenieWBazie(kat, idx, staraNazwa) {
+            showPromptModal("Nowa nazwa ćwiczenia:", staraNazwa, async (nowa) => {
+                if (!nowa) return;
+                const trimmed = nowa.trim();
+                if (!trimmed || trimmed === staraNazwa) return;
+
+                bazyCwiczen[kat][idx] = trimmed;
+
+                if (isDemoMode) {
+                    odswiezListeMenedzera();
+                    inicjalizujKategorie();
+                    showNotification("✏️ Zaktualizowano nazwę ćwiczenia w trybie DEMO (bez zmian w bazie).");
+                    return;
+                }
+
+                if (zalogowanyUzytkownik?.id) {
+                    try {
+                        await supabaseClient
+                            .from('baza_cwiczen')
+                            .update({ nazwa: trimmed })
+                            .eq('user_id', String(zalogowanyUzytkownik.id))
+                            .eq('kategoria', kat)
+                            .eq('nazwa', staraNazwa);
+                    } catch (e) {}
+                }
+
+                odswiezListeMenedzera();
+                inicjalizujKategorie();
+                showNotification("✏️ Zaktualizowano nazwę ćwiczenia.");
+            });
+        }
+
+        async function usunCwiczenieZBazy(kat, idx, nazwa) {
+            showConfirmModal(`Usunąć ćwiczenie "${nazwa}" z kategorii ${kat}?`, async (potwierdzono) => {
+                if (!potwierdzono) return;
+                bazyCwiczen[kat].splice(idx, 1);
+
+                if (isDemoMode) {
+                    odswiezListeMenedzera();
+                    inicjalizujKategorie();
+                    showNotification("🗑️ Usunięto ćwiczenie w trybie DEMO (bez zmian w bazie).");
+                    return;
+                }
+
+                if (zalogowanyUzytkownik?.id) {
+                    try {
+                        await supabaseClient
+                            .from('baza_cwiczen')
+                            .delete()
+                            .eq('user_id', String(zalogowanyUzytkownik.id))
+                            .eq('kategoria', kat)
+                            .eq('nazwa', nazwa);
+                    } catch (e) {}
+                }
+
+                odswiezListeMenedzera();
+                inicjalizujKategorie();
+                showNotification("🗑️ Usunięto ćwiczenie.");
             });
         }
 
         function dodajKategorie() {
-            showPromptModal("Nazwa kategorii:", "", (n) => { if(n) { bazyCwiczen[n.trim()] = []; odswiezPanelBazy(); } });
+            showPromptModal("Nazwa kategorii:", "", (n) => {
+                if(n && n.trim()) {
+                    const katName = n.trim();
+                    if (!bazyCwiczen[katName]) bazyCwiczen[katName] = [];
+                    odswiezPanelBazy();
+                    document.getElementById('menedzer-kategoria').value = katName;
+                    odswiezListeMenedzera();
+                }
+            });
         }
 
         async function dodajCwiczenie() {
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
             if(kat && nazwa) {
+                if (!bazyCwiczen[kat]) bazyCwiczen[kat] = [];
                 bazyCwiczen[kat].push(nazwa);
-                if (zalogowanyUzytkownik?.id) {
+                if (!isDemoMode && zalogowanyUzytkownik?.id) {
                     await supabaseClient.from('baza_cwiczen').insert([{ user_id: String(zalogowanyUzytkownik.id), kategoria: kat, nazwa }]);
                 }
                 document.getElementById('nowe-cwiczenie-nazwa').value = '';
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-                showNotification("✅ Dodano!");
+                showNotification(isDemoMode ? "✅ Dodano w trybie DEMO (bez zapisu do bazy)." : "✅ Dodano!");
             }
         }
 
@@ -1237,6 +1710,14 @@
                 wpis.seria = parseInt(document.getElementById('dziennik-seria').value) || 1;
                 wpis.ciezar = c; wpis.powt = p; wpis.onerm = Math.round(c * (1 + p / 30) * 10) / 10;
                 wpis.rir = document.getElementById('dziennik-rir').value || null;
+            }
+
+            if (isDemoMode) {
+                demoHistoria.unshift(wpis);
+                odswiezInlineAccordion();
+                if (document.getElementById('tab-analiza').classList.contains('active')) zaladujAnalize();
+                showNotification('✅ Zapisano w trybie DEMO (bez zmian w bazie).');
+                return;
             }
 
             try {
