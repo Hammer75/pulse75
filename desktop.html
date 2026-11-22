@@ -151,21 +151,21 @@
             </div>
 
             <div class="sub-nick-box">
-                <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">Jak aktywować / przedłużyć dostęp po wpłacie:</div>
-                <div>Twój login / nick w aplikacji:</div>
+                <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">Automatyczna aktywacja przez BLIK (Stripe):</div>
+                <div>Konto przypisane do subskrypcji:</div>
                 <div class="sub-nick-pill">
                     <span id="sub-user-nick">---</span>
                     <button type="button" onclick="kopiujNickSubskrypcji()" style="padding: 3px 8px; font-size: 0.75rem; background: #3a3a3a; border-radius: 4px;">Kopiuj</button>
                 </div>
                 <div style="margin-top: 4px;">
                     1. Wybierz pakiet (<b>10 zł / 1 mies.</b> lub <b>100 zł / 12 mies.</b>).<br>
-                    2. W tytule lub wiadomości płatności wpisz dokładnie swój login: <b id="sub-nick-hint">---</b>.<br>
-                    3. Po zaksięgowaniu wpłaty dostęp desktopowy zostanie dopisany do Twojego konta.
+                    2. Kliknij opłać i dokończ płatność kodem BLIK w bezpiecznym oknie płatności.<br>
+                    3. Po zaksięgowaniu wpłaty dostęp desktopowy dopisze się automatycznie do konta <b id="sub-nick-hint">---</b>.
                 </div>
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" onclick="przejdzDoPlatnosciSubskrypcji()" style="flex: 2; min-width: 200px; background: var(--primary); color: white; padding: 12px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;">
+                <button id="btn-oplac-subskrypcje" type="button" onclick="przejdzDoPlatnosciSubskrypcji()" style="flex: 2; min-width: 200px; background: var(--primary); color: white; padding: 12px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;">
                     💳 Opłać pakiet <span id="sub-cta-label">100 zł (12 mies.)</span>
                 </button>
                 <button type="button" onclick="zamknijOknoSubskrypcji()" style="flex: 1; min-width: 110px; background: #444; color: white; padding: 12px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;">
@@ -527,6 +527,7 @@
         let pozostaleDniSubskrypcji = null;
         let wybranyPlanSubskrypcji = '12m';
         const MASA_CIALA_KG = 89;
+        const CREATE_CHECKOUT_URL = `${SUPABASE_URL}/functions/v1/create-checkout`;
 
         document.addEventListener('DOMContentLoaded', () => {
             inicjalizujPrzyciskSubskrypcji();
@@ -601,7 +602,7 @@
                 if (!isDemoMode && pozostaleDniSubskrypcji !== null) {
                     statusBox.innerHTML = `🟢 <b>Subskrypcja aktywna</b> na koncie <b>${nick}</b> – pozostało <b>${pozostaleDniSubskrypcji} ${pozostaleDniSubskrypcji === 1 ? 'dzień' : 'dni'}</b> dostępu desktopowego. Możesz przedłużyć ważność z wyprzedzeniem.`;
                 } else {
-                    statusBox.innerHTML = `🟠 <b>Tryb DEMO</b> (konto <b>${nick}</b> nie ma obecnie aktywnego pakietu desktopowego). Po opłaceniu i aktywacji odblokujesz pełny dostęp w chmurze.`;
+                    statusBox.innerHTML = `🟠 <b>Tryb DEMO</b> (konto <b>${nick}</b> nie ma obecnie aktywnego pakietu desktopowego). Po opłaceniu przez BLIK dostęp aktywuje się automatycznie.`;
                 }
             }
 
@@ -621,20 +622,77 @@
                 navigator.clipboard.writeText(nick).then(() => {
                     showNotification(`📋 Skopiowano login: ${nick}`);
                 }).catch(() => {
-                    showNotification(`Login do wpisania w tytule wpłaty: ${nick}`);
+                    showNotification(`Login konta: ${nick}`);
                 });
             } else {
-                showNotification(`Login do wpisania w tytule wpłaty: ${nick}`);
+                showNotification(`Login konta: ${nick}`);
             }
         }
 
-        function przejdzDoPlatnosciSubskrypcji() {
-            showNotification('W przygotowaniu', 4500);
+        async function przejdzDoPlatnosciSubskrypcji() {
+            if (!zalogowanyUzytkownik || !zalogowanyUzytkownik.id) {
+                showNotification('⚠️ Brak zalogowanego konta.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-oplac-subskrypcje');
+            const oryginalnyHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Przekierowanie do BLIK (Stripe)...';
+            }
+
+            try {
+                const response = await fetch(CREATE_CHECKOUT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        userId: String(zalogowanyUzytkownik.id),
+                        username: String(zalogowanyUzytkownik.username || ''),
+                        plan: wybranyPlanSubskrypcji
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data || !data.url) {
+                    throw new Error(data?.error || 'Nie udało się utworzyć sesji płatności.');
+                }
+
+                window.location.href = data.url;
+            } catch (err) {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = oryginalnyHtml;
+                }
+                showNotification('⚠️ Błąd płatności: ' + (err?.message || err), 4500);
+            }
+        }
+
+        function obsluzPowrotZPlatnosci() {
+            const params = new URLSearchParams(window.location.search);
+            const status = params.get('payment');
+            if (!status) return;
+
+            params.delete('payment');
+            const cleanSearch = params.toString();
+            const cleanUrl = window.location.pathname + (cleanSearch ? `?${cleanSearch}` : '') + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+
+            if (status === 'success') {
+                showNotification('✅ Płatność zakończona! Sprawdzanie i aktywacja dostępu...', 4500);
+            } else if (status === 'cancel') {
+                showNotification('ℹ️ Płatność została anulowana.', 3500);
+            }
         }
 
         document.addEventListener('visibilitychange', async () => {
-            if (isDemoMode) return;
             if (document.visibilityState === 'visible' && zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                await odswiezStanSubskrypcjiPoPowrocie();
+                if (isDemoMode) return;
                 try {
                     const { data: serverTreningi, error } = await supabaseClient
                         .from('treningi')
@@ -648,6 +706,18 @@
                 } catch(e) {}
             }
         });
+
+        async function odswiezStanSubskrypcjiPoPowrocie() {
+            const aktywna = await sprawdzAktywnoscSubskrypcji();
+            if (aktywna && isDemoMode) {
+                isDemoMode = false;
+                aktualizujStanKonta(zalogowanyUzytkownik, false);
+                await inicjalizujPoZalogowaniu();
+                showNotification('🟢 Subskrypcja desktopowa aktywna!');
+            } else {
+                aktualizujStanKonta(zalogowanyUzytkownik, isDemoMode);
+            }
+        }
 
         async function sprawdzAktywnoscSubskrypcji() {
             pozostaleDniSubskrypcji = null;
@@ -1104,6 +1174,7 @@
         }
 
         async function inicjalizujPoZalogowaniu() {
+            obsluzPowrotZPlatnosci();
             const aktywnaSubskrypcja = await sprawdzAktywnoscSubskrypcji();
             isDemoMode = !aktywnaSubskrypcja;
             aktualizujStanKonta(zalogowanyUzytkownik, isDemoMode);
@@ -1731,7 +1802,7 @@
             let ocenaPP = 'Równowaga Push/Pull jest zbliżona do optymalnej.';
             if (sumaPP > 0) {
                 if (pushPct - pullPct > 15) ocenaPP = `Przewaga ruchu wypychającego (Push ${pushPct}% vs Pull ${pullPct}%) – warto dorzucić więcej pracy na plecy/tył barku (wiosłowania, ściągania, face pull).`;
-                else if (pullPct - pushPct > 15) ocenaPP = `Przewaga ruchu przyciągającego (Pull ${pullPct}% vs Push ${pushPct}%) – proporcje sprzyjają zdrowiu barków, możesz śmiało utrzymać lub delikatnie podbić Push.`;
+                else if (pullPct - pushPct > 15) ocenaPP = `Przewaga ruchu przyciągającego (Pull ${pullPct}% vs Push ${pullPct}%) – proporcje sprzyjają zdrowiu barków, możesz śmiało utrzymać lub delikatnie podbić Push.`;
                 else ocenaPP = `Bardzo dobra równowaga Push (${pushPct}%) do Pull (${pullPct}%) – sprzyja stabilności obręczy barkowej.`;
             }
 
