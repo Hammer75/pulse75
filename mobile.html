@@ -61,6 +61,28 @@
         #custom-toast { display: none; position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--primary); color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 0.95rem; text-align: center; max-width: 90%; transition: opacity 0.3s ease; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10001; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.7); position: relative; }
+
+        /* TYLKO ZAKŁADKA HISTORIA – KARTY ĆWICZEŃ I PODSUMOWANIE DNIA */
+        .historia-summary-pill { background: #262626; border: 1px solid var(--border); color: #f0f0f0; border-radius: 999px; padding: 8px 14px; font-size: 0.85rem; font-weight: 700; text-align: center; margin-bottom: 14px; }
+        .historia-exercise-card { background: #242424; border: 1px solid #323232; border-left: 3px solid var(--primary); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+        .historia-exercise-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+        .historia-exercise-title-group { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+        .historia-exercise-title { font-size: 1rem; font-weight: 800; color: #ffffff; line-height: 1.25; }
+        .historia-partia-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #2f3b2e; color: #8ce99a; border: 1px solid #3f573e; white-space: nowrap; }
+        .historia-partia-badge.badge-warm { background: #3b3524; color: #ffd43b; border-color: #594e2c; }
+        .historia-partia-badge.badge-cardio { background: #223544; color: #66d9e8; border-color: #32526b; }
+        .historia-partia-badge.badge-regen { background: #2f2a3d; color: #d0bfff; border-color: #493f63; }
+        .historia-best-badge { font-size: 0.76rem; font-weight: 700; color: #dddddd; background: #1a1a1a; border: 1px solid #383838; border-radius: 6px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
+        .historia-set-row { display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 8px; padding: 6px 2px; border-top: 1px solid #2e2e2e; font-size: 0.92rem; }
+        .historia-set-row:first-of-type { border-top: none; padding-top: 2px; }
+        .historia-set-num { color: var(--text-muted); font-weight: 700; font-size: 0.84rem; }
+        .historia-set-main { color: #ffffff; font-weight: 700; }
+        .historia-set-reps { color: #cccccc; font-size: 0.86rem; white-space: nowrap; }
+        .historia-set-rir { color: #bbbbbb; font-size: 0.84rem; text-align: right; white-space: nowrap; }
+        .historia-cardio-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 2px; border-top: 1px solid #2e2e2e; font-size: 0.92rem; }
+        .historia-cardio-row:first-of-type { border-top: none; padding-top: 2px; }
+        .historia-cardio-metrics { color: #ffffff; font-weight: 700; }
+        .historia-cardio-pace { color: #bbbbbb; font-size: 0.84rem; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -731,6 +753,22 @@
             zaladujHistorieDnia();
         }
 
+        function escapeHtmlHistorii(tekst) {
+            return String(tekst || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function klasaOdznakiPartiiHistorii(partia) {
+            const p = String(partia || '').trim().toLowerCase();
+            if (p === 'cardio') return 'historia-partia-badge badge-cardio';
+            if (p === 'regeneracja') return 'historia-partia-badge badge-regen';
+            if (p === 'ramiona' || p === 'barki' || p === 'klatka') return 'historia-partia-badge badge-warm';
+            return 'historia-partia-badge';
+        }
+
         function zaladujHistorieDnia() {
             let inputDate = document.getElementById('historia-wybor-dnia');
             let kontener = document.getElementById('historia-wyniki-container');
@@ -755,79 +793,153 @@
             let wpisyCardio = wpisyDnia.filter(w => w.partia === 'Cardio');
             let wpisyRegeneracja = wpisyDnia.filter(w => w.partia === 'Regeneracja');
 
-            let html = '';
+            let lacznyTonaz = 0;
+            wpisySila.forEach(w => {
+                let c = parseFloat(w.ciezar) || 0;
+                let p = parseInt(w.powt, 10) || 0;
+                lacznyTonaz += c * p;
+            });
+            let tonazZaokraglony = Math.round(lacznyTonaz * 10) / 10;
 
-            if (wpisySila.length > 0) {
-                html += `
-                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 5px;">💪 Trening Siłowy</div>
-                    <div style="overflow-x: auto; margin-bottom: 15px;">
-                        <table>
-                            <tr>
-                                <th>Partia</th>
-                                <th>Ćwiczenie</th>
-                                <th>Seria</th>
-                                <th>Ciężar</th>
-                                <th>Powt.</th>
-                                <th>Zapas</th>
-                                <th>1RM</th>
-                            </tr>
-                `;
-                wpisySila.forEach(w => {
-                    html += `
-                        <tr>
-                            <td>${w.partia || '-'}</td>
-                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Trening'}</td>
-                            <td>${w.seria || 1}</td>
-                            <td>${w.ciezar || 0} kg</td>
-                            <td>${w.powt || 0}</td>
-                            <td>${w.rir !== undefined && w.rir !== null && w.rir !== "" ? `RIR ${w.rir}` : '-'}</td>
-                            <td><b>${w.onerm || 0} kg</b></td>
-                        </tr>
-                    `;
-                });
-                html += `</table></div>`;
-            }
+            let grupySila = new Map();
+            wpisySila.forEach(w => {
+                let nazwa = w.cwiczenie || 'Trening';
+                let partia = w.partia || '-';
+                let klucz = `${partia}::${nazwa}`;
+                if (!grupySila.has(klucz)) {
+                    grupySila.set(klucz, { nazwa, partia, serie: [] });
+                }
+                grupySila.get(klucz).serie.push(w);
+            });
 
+            let grupyCardio = new Map();
+            wpisyCardio.forEach(w => {
+                let nazwa = w.cwiczenie || 'Cardio';
+                let partia = w.partia || 'Cardio';
+                let klucz = `${partia}::${nazwa}`;
+                if (!grupyCardio.has(klucz)) {
+                    grupyCardio.set(klucz, { nazwa, partia, wpisy: [] });
+                }
+                grupyCardio.get(klucz).wpisy.push(w);
+            });
+
+            let liczbaCwiczen = grupySila.size + grupyCardio.size + wpisyRegeneracja.length;
+            let liczbaSeriiSila = wpisySila.length;
+            let etykietaCwiczen = liczbaCwiczen === 1 ? 'ćwiczenie' : (liczbaCwiczen >= 2 && liczbaCwiczen <= 4 ? 'ćwiczenia' : 'ćwiczeń');
+            let etykietaSerii = liczbaSeriiSila === 1 ? 'seria' : (liczbaSeriiSila >= 2 && liczbaSeriiSila <= 4 ? 'serie' : 'serii');
+
+            let czesciPodsumowania = [`${liczbaCwiczen} ${etykietaCwiczen}`];
+            if (liczbaSeriiSila > 0) czesciPodsumowania.push(`${liczbaSeriiSila} ${etykietaSerii}`);
+            if (tonazZaokraglony > 0) czesciPodsumowania.push(`Tonaż: ${tonazZaokraglony} kg`);
             if (wpisyCardio.length > 0) {
-                html += `
-                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 15px;">🏃 Cardio</div>
-                    <div style="overflow-x: auto; margin-bottom: 15px;">
-                        <table>
-                            <tr>
-                                <th>Aktywność</th>
-                                <th>Dystans</th>
-                                <th>Czas</th>
-                            </tr>
-                `;
-                wpisyCardio.forEach(w => {
-                    html += `
-                        <tr>
-                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Cardio'}</td>
-                            <td>${w.ciezar || 0} km</td>
-                            <td>${w.powt || 0} min</td>
-                        </tr>
-                    `;
-                });
-                html += `</table></div>`;
+                let sumaKm = wpisyCardio.reduce((acc, w) => acc + (parseFloat(w.ciezar) || 0), 0);
+                let sumaMin = wpisyCardio.reduce((acc, w) => acc + (parseInt(w.powt, 10) || 0), 0);
+                let kmZaokraglone = Math.round(sumaKm * 100) / 100;
+                czesciPodsumowania.push(`Cardio: ${kmZaokraglone} km / ${sumaMin} min`);
             }
+
+            let html = `<div class="historia-summary-pill">${escapeHtmlHistorii(czesciPodsumowania.join(' • '))}</div>`;
+
+            grupySila.forEach(grupa => {
+                let seriePosortowane = [...grupa.serie].sort((a, b) => (Number(a.seria) || 0) - (Number(b.seria) || 0));
+                let max1rm = 0;
+                seriePosortowane.forEach(s => {
+                    let c = parseFloat(s.ciezar) || 0;
+                    let p = parseInt(s.powt, 10) || 0;
+                    let wyliczone1rm = parseFloat(s.onerm);
+                    if (!wyliczone1rm && wyliczone1rm !== 0) {
+                        wyliczone1rm = p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0;
+                    }
+                    if (wyliczone1rm > max1rm) max1rm = wyliczone1rm;
+                });
+
+                let wierszeSeriiHtml = seriePosortowane.map((s, idx) => {
+                    let nrSerii = s.seria || (idx + 1);
+                    let ciezar = s.ciezar || 0;
+                    let powt = s.powt || 0;
+                    let rirText = (s.rir !== undefined && s.rir !== null && s.rir !== '') ? `RIR ${escapeHtmlHistorii(s.rir)}` : '';
+                    return `
+                        <div class="historia-set-row">
+                            <span class="historia-set-num">S${escapeHtmlHistorii(nrSerii)}</span>
+                            <span class="historia-set-main">${escapeHtmlHistorii(ciezar)} kg</span>
+                            <span class="historia-set-reps">x ${escapeHtmlHistorii(powt)}</span>
+                            <span class="historia-set-rir">${rirText}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                let odznakaMax1rm = max1rm > 0 ? `<span class="historia-best-badge">1RM: ~${Math.round(max1rm)}</span>` : '';
+
+                html += `
+                    <div class="historia-exercise-card">
+                        <div class="historia-exercise-header">
+                            <div class="historia-exercise-title-group">
+                                <span class="historia-exercise-title">${escapeHtmlHistorii(grupa.nazwa)}</span>
+                                <span class="${klasaOdznakiPartiiHistorii(grupa.partia)}">${escapeHtmlHistorii(grupa.partia)}</span>
+                            </div>
+                            ${odznakaMax1rm}
+                        </div>
+                        ${wierszeSeriiHtml}
+                    </div>
+                `;
+            });
+
+            grupyCardio.forEach(grupa => {
+                let sumaDystansu = grupa.wpisy.reduce((acc, w) => acc + (parseFloat(w.ciezar) || 0), 0);
+                let sumaCzasu = grupa.wpisy.reduce((acc, w) => acc + (parseInt(w.powt, 10) || 0), 0);
+                let dystansRazem = Math.round(sumaDystansu * 100) / 100;
+
+                let wierszeCardioHtml = grupa.wpisy.map((w, idx) => {
+                    let dystans = parseFloat(w.ciezar) || 0;
+                    let czas = parseInt(w.powt, 10) || 0;
+                    let tempoInfo = (dystans > 0 && czas > 0)
+                        ? `${Math.round((dystans / (czas / 60)) * 10) / 10} km/h`
+                        : '';
+                    let etykietaWpisu = grupa.wpisy.length > 1 ? `#${idx + 1}` : 'Sesja';
+                    return `
+                        <div class="historia-cardio-row">
+                            <span class="historia-set-num">${escapeHtmlHistorii(etykietaWpisu)}</span>
+                            <span class="historia-cardio-metrics">${escapeHtmlHistorii(dystans)} km • ${escapeHtmlHistorii(czas)} min</span>
+                            <span class="historia-cardio-pace">${escapeHtmlHistorii(tempoInfo)}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                let odznakaCardio = dystansRazem > 0 ? `<span class="historia-best-badge">${escapeHtmlHistorii(dystansRazem)} km</span>` : `<span class="historia-best-badge">${escapeHtmlHistorii(sumaCzasu)} min</span>`;
+
+                html += `
+                    <div class="historia-exercise-card">
+                        <div class="historia-exercise-header">
+                            <div class="historia-exercise-title-group">
+                                <span class="historia-exercise-title">${escapeHtmlHistorii(grupa.nazwa)}</span>
+                                <span class="${klasaOdznakiPartiiHistorii(grupa.partia)}">${escapeHtmlHistorii(grupa.partia)}</span>
+                            </div>
+                            ${odznakaCardio}
+                        </div>
+                        ${wierszeCardioHtml}
+                    </div>
+                `;
+            });
 
             if (wpisyRegeneracja.length > 0) {
+                let wierszeRegenHtml = wpisyRegeneracja.map(w => `
+                    <div class="historia-cardio-row">
+                        <span class="historia-cardio-metrics">${escapeHtmlHistorii(w.cwiczenie || 'Regeneracja')}</span>
+                        <span class="historia-cardio-pace">Regeneracja</span>
+                    </div>
+                `).join('');
+
                 html += `
-                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 15px;">🔋 Regeneracja</div>
-                    <div style="overflow-x: auto; margin-bottom: 15px;">
-                        <table>
-                            <tr>
-                                <th>Aktywność / Stan</th>
-                            </tr>
+                    <div class="historia-exercise-card">
+                        <div class="historia-exercise-header">
+                            <div class="historia-exercise-title-group">
+                                <span class="historia-exercise-title">Regeneracja</span>
+                                <span class="${klasaOdznakiPartiiHistorii('Regeneracja')}">Regeneracja</span>
+                            </div>
+                        </div>
+                        ${wierszeRegenHtml}
+                    </div>
                 `;
-                wpisyRegeneracja.forEach(w => {
-                    html += `
-                        <tr>
-                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Regeneracja'}</td>
-                        </tr>
-                    `;
-                });
-                html += `</table></div>`;
             }
 
             kontener.innerHTML = html;
