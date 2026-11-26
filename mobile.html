@@ -21,7 +21,8 @@
 
     <style>
         :root { --bg-color: #121212; --card-bg: #1e1e1e; --primary: #ff2a2a; --primary-glow: rgba(255, 42, 42, 0.3); --text-main: #ffffff; --text-muted: #aaaaaa; --border: #333333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 70px; }
+        html { overscroll-behavior-y: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 70px; overscroll-behavior-y: none; touch-action: pan-y; }
         header { background: linear-gradient(180deg, #2a1b1b 0%, #1d1212 100%); padding: 12px 15px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; align-items: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); max-width: 600px; margin: 0 auto; box-sizing: border-box; }
         .logo-wrapper { display: flex; align-items: center; gap: 12px; flex-shrink: 0; grid-column: 1; }
         .logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; filter: drop-shadow(0 0 8px var(--primary-glow)); }
@@ -387,6 +388,18 @@
         let pozostalyCzasSekundy = 0;
         let flagaPrzejsciaPoOsiagnieciuCelu = false;
         let cacheCelowSupabase = {}; // Pamięć podręczna celów z tabeli 'cele'
+
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
+                e.preventDefault();
+                showNotification('🔒 Odświeżanie strony jest zablokowane');
+            }
+        }, { capture: true });
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
@@ -1069,9 +1082,7 @@
             let selectCwiczenie = document.getElementById(cwiczenieId);
             if(!partiaEl || !selectCwiczenie) return;
             
-            let wybranaStaraWartosc = tryb === 'dziennik'
-                ? (bezpiecznyOdczytStorage('ostatnie_cwiczenie', null) || selectCwiczenie.value)
-                : selectCwiczenie.value;
+            let wybranaStaraWartosc = selectCwiczenie.value || (tryb === 'dziennik' ? bezpiecznyOdczytStorage('ostatnie_cwiczenie', null) : null);
             let partia = partiaEl.value;
             selectCwiczenie.innerHTML = '';
 
