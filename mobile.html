@@ -1582,17 +1582,44 @@
             container.innerHTML = '';
             if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].length > 0) {
                 bazyCwiczen[kat].forEach((cwiczenie) => {
-                    container.innerHTML += `
-                        <div class="list-item-cwiczenie">
-                            <span style="word-break: break-all; flex: 1;">${cwiczenie}</span>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
-                                <button class="btn-small" style="background:#2b6cb0;" onclick="edytujCwiczenie('${kat}', '${cwiczenie}')">✏️</button>
-                                <button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌</button>
-                            </div>
-                        </div>`;
+                    const item = document.createElement('div');
+                    item.className = 'list-item-cwiczenie';
+
+                    const nazwaSpan = document.createElement('span');
+                    nazwaSpan.style.wordBreak = 'break-all';
+                    nazwaSpan.style.flex = '1';
+                    nazwaSpan.textContent = cwiczenie;
+
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.style.display = 'flex';
+                    actionsDiv.style.gap = '5px';
+                    actionsDiv.style.flexShrink = '0';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn-small';
+                    editBtn.style.background = '#2b6cb0';
+                    editBtn.textContent = '✏️';
+                    editBtn.addEventListener('click', () => edytujCwiczenie(kat, cwiczenie));
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-small';
+                    deleteBtn.style.background = '#8B0000';
+                    deleteBtn.textContent = '❌';
+                    deleteBtn.addEventListener('click', () => usunCwiczenie(kat, cwiczenie));
+
+                    actionsDiv.appendChild(editBtn);
+                    actionsDiv.appendChild(deleteBtn);
+                    item.appendChild(nazwaSpan);
+                    item.appendChild(actionsDiv);
+                    container.appendChild(item);
                 });
             } else {
-                container.innerHTML = `<div class="result-box" style="text-align: center; color: var(--text-muted);">Brak ćwiczeń w kategorii "${kat}". Dodaj pierwsze ćwiczenie powyżej.</div>`;
+                const emptyBox = document.createElement('div');
+                emptyBox.className = 'result-box';
+                emptyBox.style.textAlign = 'center';
+                emptyBox.style.color = 'var(--text-muted)';
+                emptyBox.textContent = `Brak ćwiczeń w kategorii "${kat}". Dodaj pierwsze ćwiczenie powyżej.`;
+                container.appendChild(emptyBox);
             }
         }
 
