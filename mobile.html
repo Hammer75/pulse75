@@ -1539,23 +1539,34 @@
         }
 
         function zaladujAnalize() {
+            let wybranaPartia = document.getElementById('analiza-partia')?.value;
             let wybraneCwiczenie = document.getElementById('analiza-cwiczenie')?.value;
             let podsumowanieEl = document.getElementById('analiza-podsumowanie');
             let tabelaEl = document.getElementById('tabela-historii');
             if(!wybraneCwiczenie || !tabelaEl) return;
-            
+
+            let czyCardio = wybranaPartia === 'Cardio';
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             if (!Array.isArray(historia)) historia = [];
             let wpisyCwiczenia = historia.filter(w => w && w.cwiczenie === wybraneCwiczenie);
-            tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM (Epley)</th></tr>`;
-            
+
+            if (czyCardio) {
+                tabelaEl.innerHTML = `<tr><th>Data</th><th>km</th><th>Czas</th></tr>`;
+            } else {
+                tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM (Epley)</th></tr>`;
+            }
+
             if(wpisyCwiczenia.length === 0) {
                 if(podsumowanieEl) podsumowanieEl.innerHTML = 'Brak zarejestrowanych wpisów dla tego ćwiczenia.';
                 return;
             }
             if(podsumowanieEl) podsumowanieEl.innerHTML = `Liczba wpisów: <b>${wpisyCwiczenia.length}</b>`;
             wpisyCwiczenia.forEach(w => {
-                tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+                if (czyCardio) {
+                    tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.ciezar || 0} km</td><td>${w.powt || 0} min</td></tr>`;
+                } else {
+                    tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+                }
             });
         }
 
