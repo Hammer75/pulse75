@@ -544,9 +544,13 @@
             isExerciseLocked = !isExerciseLocked;
             let p = document.getElementById('dziennik-partia');
             let c = document.getElementById('dziennik-cwiczenie');
+            let btn = document.getElementById('btn-lock-cwiczenie');
             if (p) p.disabled = isExerciseLocked;
             if (c) c.disabled = isExerciseLocked;
-            aktualujWygladPrzyciskuBlokady();
+            if (btn) {
+                btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+                btn.classList.toggle('locked', isExerciseLocked);
+            }
             bezpiecznyZapisStorage('is_locked', isExerciseLocked);
         }
 
@@ -1016,12 +1020,10 @@
             }
 
             let savedLock = bezpiecznyOdczytStorage('is_locked', false);
-            if (savedLock) {
-                isExerciseLocked = true;
-                if (partiaEl) partiaEl.disabled = true;
-                if (cwiczenieEl) cwiczenieEl.disabled = true;
-                aktualujWygladPrzyciskuBlokady();
-            }
+            isExerciseLocked = Boolean(savedLock);
+            if (partiaEl) partiaEl.disabled = isExerciseLocked;
+            if (cwiczenieEl) cwiczenieEl.disabled = isExerciseLocked;
+            aktualujWygladPrzyciskuBlokady();
 
             zmienionoKategorieCelu();
         }
