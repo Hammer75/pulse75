@@ -267,7 +267,7 @@
                     </div>
                     <div class="result-box" id="analiza-podsumowanie" style="margin-top:15px;">Brak danych.</div>
                     <div style="overflow-x: auto; margin-top: 15px;">
-                        <table id="tabela-historii"><tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr></table>
+                        <table id="tabela-historii"><tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM (Epley)</th></tr></table>
                     </div>
                 </div>
             </div>
@@ -360,7 +360,7 @@
                         <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">3. ⚙️ Więcej (Menu Główne Opcji)</h3>
                         <p>Centralny punkt nawigacyjny prowadzący do zaawansowanych modułów analitycznych, celów oraz zarządzania słownikiem treningowym.</p>
                         <p>
-                        • <b>📊 Analiza i Historia:</b> Kompleksowy przegląd historii Twoich treningów z opcją filtrowania według partii mięśniowej oraz konkretnego ćwiczenia. Moduł prezentuje kluczowe statystyki: liczbę wpisów, rekordy 1RM, największy dystans oraz szczegółową tabelę historyczną wpisów (data, seria, ciężar, powtórzenia, 1RM, prędkość dla cardio).<br>
+                        • <b>📊 Analiza i Historia:</b> Kompleksowy przegląd historii Twoich treningów z opcją filtrowania według partii mięśniowej oraz konkretnego ćwiczenia. Moduł prezentuje liczbę wpisów oraz szczegółową tabelę historyczną wpisów (data, seria, ciężar, powtórzenia, 1RM Epley).<br>
                         • <b>🎯 Wizualizacja Celów (1RM):</b> Narzędzie motywacyjne pozwalające zdefiniować docelowy rekord 1RM w kg (lub docelowy dystans) dla wybranego ćwiczenia i śledzić bieżący postęp w formie przejrzystego paska procentowego (od 0% do 100%).<br>
                         • <b>🏋️ Zarządzanie Bazą Ćwiczeń:</b> Wbudowany menedżer słownika. Pozwala na dodawanie własnych kategorii, tworzenie nowych ćwiczeń oraz usuwanie pozycji z listy.<br>
                         • <b>📖 Instrukcja Obsługi:</b> Kompletny przewodnik po funkcjach i działaniu aplikacji.<br>
@@ -605,7 +605,7 @@
             'Posladki': ['Hip Thrust ze sztangą', 'Rumuński martwy ciąg (RDL)', 'Wypychanie ciężaru wysokimi stopami na suwnicy', 'Wznosy bioder na maszynie / mostki biodrowe', 'Przysiady bułgarskie (wersja na pośladek)', 'Zakroki z hantlami / sztangą', 'Glute Bridge ze sztangą', 'Odwodzenie nóg na maszynie (Abductor)', 'Uginanie nóg na maszynie leżąc na brzuchu'],
             'Barki': ['Wyciskanie żołnierskie (Overhead Press)', 'Wyciskanie hantli nad głowę siedząc', 'Wyciskanie na maszynie (Shoulder Press)', 'Wznosy hantli bokiem (bok barku)', 'Wznosy hantli w opadzie tułowia (tył barku)', 'Odwodzenie ramion na maszynie (Reverse Pec Deck)', 'Face pull (wyciąg - tył barku)', 'Wznosy ramion ze sztangielkami w przód', 'Podciąganie sztangi wzdłuż tułowia'],
             'Ramiona': ['Uginanie przedramion ze sztangą (biceps)', 'Uginanie przedramion z hantlami z supinacją', 'Uginanie hantlami chwytem młotkowym', 'Uginanie na modlitewniku', 'Uginanie ramion z linką wyciągu dolnego', 'Wyciskanie francuskie ze sztangą łamaną leżąc (triceps)', 'Wyciskanie wąskim chwytem na ławce poziomej', 'Prostowanie ramion na wyciągu (ściąganie sznura)', 'Wyciskanie hantla oburącz zza głowy siedząc', 'Pompki w podporze tyłem na ławce'],
-            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych legs w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
+            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych nóg w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
             'Cardio': ['Bieżnia / Bieganie', 'Rower stacjonarny', 'Orbitrek / Maszyna eliptyczna'],
             'Regeneracja': ['Odpoczynek całkowity', 'Lekkie cardio / spacer', 'Stretching', 'Rolowanie (foam roller)', 'Basen', 'Sauna', 'Joga regeneracyjna', 'Ćwiczenia mobilnościowe', 'Kąpiel solankowa']
         };
@@ -1289,7 +1289,7 @@
             let c = parseFloat(document.getElementById('dziennik-ciezar')?.value) || 0;
             let p = parseInt(document.getElementById('dziennik-powt')?.value) || 0;
             let lc = document.getElementById('live-calc');
-            if(lc) lc.innerHTML = `Tonaż: <b>${c*p} kg</b> | Szacowane 1RM: <b>${p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0} kg</b>`;
+            if(lc) lc.innerHTML = `Tonaż: <b>${c*p} kg</b> | Szacowane 1RM (Epley): <b>${p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0} kg</b>`;
         }
 
         function zmienZakladke(nazwa, el) {
@@ -1354,12 +1354,12 @@
             if(kawaWrapper) kawaWrapper.style.display = 'none';
             zmienZakladke('dziennik', document.querySelectorAll('.nav-item')[0]);
             if (!czyOstatniCelCardio) {
-                otwórzPanelWyboruPrzerwy();
+                otworzPanelWyboruPrzerwy();
             }
             czyOstatniCelCardio = false;
         }
 
-        function otwórzPanelWyboruPrzerwy() {
+        function otworzPanelWyboruPrzerwy() {
             let wyborBox = document.getElementById('timer-wybor-box');
             let odliczBox = document.getElementById('timer-odliczanie-box');
             let timerTitle = document.getElementById('timer-title');
@@ -1375,20 +1375,20 @@
             document.getElementById('timer-wybor-box').style.display = 'none';
             document.getElementById('timer-odliczanie-box').style.display = 'flex';
             document.getElementById('timer-title').textContent = 'Przerwa między seriami';
-            aktualizujWyświetlaczTimera();
+            aktualizujWyswietlaczTimera();
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 pozostalyCzasSekundy--;
-                aktualizujWyświetlaczTimera();
+                aktualizujWyswietlaczTimera();
                 if (pozostalyCzasSekundy <= 0) {
                     clearInterval(timerInterval);
-                    uruchomSygnałKoniecPzerwy();
+                    uruchomSygnalKoniecPrzerwy();
                     document.getElementById('timer-overlay').style.display = 'none';
                 }
             }, 1000);
         }
 
-        function aktualizujWyświetlaczTimera() {
+        function aktualizujWyswietlaczTimera() {
             let min = Math.floor(pozostalyCzasSekundy / 60);
             let sek = pozostalyCzasSekundy % 60;
             let disp = document.getElementById('timer-display');
@@ -1401,7 +1401,7 @@
             if(overlay) overlay.style.display = 'none';
         }
 
-        function uruchomSygnałKoniecPzerwy() {
+        function uruchomSygnalKoniecPrzerwy() {
             if (navigator.vibrate) {
                 try {
                     navigator.vibrate([500, 200, 500, 200, 500]);
@@ -1547,7 +1547,7 @@
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             if (!Array.isArray(historia)) historia = [];
             let wpisyCwiczenia = historia.filter(w => w && w.cwiczenie === wybraneCwiczenie);
-            tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr>`;
+            tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM (Epley)</th></tr>`;
             
             if(wpisyCwiczenia.length === 0) {
                 if(podsumowanieEl) podsumowanieEl.innerHTML = 'Brak zarejestrowanych wpisów dla tego ćwiczenia.';
@@ -1943,7 +1943,7 @@
             zaladujHistorieDnia();
 
             if (!celOsiagniety && wpis.partia !== 'Regeneracja' && wpis.partia !== 'Cardio') {
-                otwórzPanelWyboruPrzerwy();
+                otworzPanelWyboruPrzerwy();
             }
         }
 
