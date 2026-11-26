@@ -972,6 +972,7 @@
                     }
                 } catch(err) {}
             }
+            aktualizujWygladPrzyciskuBlokady();
             aktualizujCwiczenia('analiza');
         }
 
@@ -1025,9 +1026,10 @@
             isExerciseLocked = Boolean(savedLock);
             if (partiaEl) partiaEl.disabled = isExerciseLocked;
             if (cwiczenieEl) cwiczenieEl.disabled = isExerciseLocked;
-            aktualujWygladPrzyciskuBlokady();
+            aktualizujWygladPrzyciskuBlokady();
 
             zmienionoKategorieCelu();
+            aktualizujWygladPrzyciskuBlokady();
         }
 
         function zmienKategorieDziennika() {
