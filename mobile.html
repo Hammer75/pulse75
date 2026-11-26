@@ -70,7 +70,7 @@
         .historia-exercise-title { font-size: 1rem; font-weight: 800; color: #ffffff; line-height: 1.25; }
         .historia-partia-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #2f3b2e; color: #8ce99a; border: 1px solid #3f573e; white-space: nowrap; }
         .historia-partia-badge.badge-warm { background: #3b3524; color: #ffd43b; border-color: #594e2c; }
-        .historia-partia-badge.badge-cardio { background: #223544; color: #66d9e8; border-color: #32526b; }
+        .historia-partia-badge.badge-cardio { background: #223544; color: #66d9e8; border: 1px solid #32526b; }
         .historia-partia-badge.badge-regen { background: #2f2a3d; color: #d0bfff; border-color: #493f63; }
         .historia-best-badge { font-size: 0.76rem; font-weight: 700; color: #dddddd; background: #1a1a1a; border: 1px solid #383838; border-radius: 6px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
         .historia-set-row { display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 8px; padding: 6px 2px; border-top: 1px solid #2e2e2e; font-size: 0.92rem; }
@@ -458,6 +458,7 @@
                     if (typeof domyslnaWartosc === 'boolean' && typeof parsed === 'boolean') return parsed;
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                    if (typeof domyslnaWartosc === 'string' && typeof parsed === 'string') return parsed;
                 }
                 
                 let globalVal = localStorage.getItem(`ironmetric_${klucz}`) || localStorage.getItem(`pulse75_${klucz}`);
@@ -466,6 +467,7 @@
                     if (typeof domyslnaWartosc === 'boolean' && typeof parsed === 'boolean') return parsed;
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                    if (typeof domyslnaWartosc === 'string' && typeof parsed === 'string') return parsed;
                 }
 
                 return domyslnaWartosc;
@@ -968,6 +970,11 @@
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
                         inicjalizujSelectHistorii();
                         zaladujHistorieDnia();
+                        let savedCwiczenie = bezpiecznyOdczytStorage('ostatnie_cwiczenie', null);
+                        let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
+                        if (savedCwiczenie && cwiczenieEl && Array.from(cwiczenieEl.options).some(o => o.value === savedCwiczenie)) {
+                            cwiczenieEl.value = savedCwiczenie;
+                        }
                         zmienionoCwiczenieDziennika();
                     }
                 } catch(err) {}
@@ -1010,10 +1017,11 @@
                 if (found) partiaEl.value = savedPartia;
             }
 
-            zmienKategorieDziennika();
-
             let savedCwiczenie = bezpiecznyOdczytStorage('ostatnie_cwiczenie', null);
             let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
+
+            zmienKategorieDziennika();
+
             if (savedCwiczenie && cwiczenieEl) {
                 let foundCw = Array.from(cwiczenieEl.options).some(o => o.value === savedCwiczenie);
                 if (foundCw) {
@@ -1061,7 +1069,7 @@
             let selectCwiczenie = document.getElementById(cwiczenieId);
             if(!partiaEl || !selectCwiczenie) return;
             
-            let wybranaStaraWartosc = selectCwiczenie.value;
+            let wybranaStaraWartosc = selectCwiczenie.value || (tryb === 'dziennik' ? bezpiecznyOdczytStorage('ostatnie_cwiczenie', null) : null);
             let partia = partiaEl.value;
             selectCwiczenie.innerHTML = '';
 
@@ -1099,7 +1107,7 @@
             let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
             let cwiczenie = cwiczenieEl ? cwiczenieEl.value : '';
             
-            if (cwiczenieEl) {
+            if (cwiczenieEl && cwiczenie && cwiczenie !== "Brak ćwiczeń") {
                 bezpiecznyZapisStorage('ostatnie_cwiczenie', cwiczenie);
             }
             
