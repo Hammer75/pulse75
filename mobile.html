@@ -388,13 +388,6 @@
         let pozostalyCzasSekundy = 0;
         let flagaPrzejsciaPoOsiagnieciuCelu = false;
         let cacheCelowSupabase = {}; // Pamięć podręczna celów z tabeli 'cele'
-        let czyWylogowywanie = false;
-
-        window.addEventListener('beforeunload', (e) => {
-            if (czyWylogowywanie) return;
-            e.preventDefault();
-            e.returnValue = '';
-        });
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
@@ -517,7 +510,6 @@
         function kliknieciePrzyciskuKonta() {
             showConfirmModal('Czy na pewno chcesz się wylogować?', (potwierdzono) => {
                 if (potwierdzono) {
-                    czyWylogowywanie = true;
                     localStorage.removeItem('pulse75_user');
                     localStorage.removeItem('ironmetric_user');
                     window.location.href = 'index.html';
