@@ -231,6 +231,9 @@
             <button onclick="window.location.href='mobile.html'" style="background: #252525; color: #ffffff; border: 1px solid var(--border); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center;">
                 📱 Wersja mobilna
             </button>
+            <button onclick="otworzKontakt()" style="background: #252525; color: #ffffff; border: 1px solid var(--border); padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                ✉️ Zgłoś błąd / Kontakt
+            </button>
         </div>
     </nav>
 
@@ -263,10 +266,7 @@
                     </div>
 
                     <div style="border-top: 1px solid var(--border); padding-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label style="margin-bottom: 0;">Kategoria / Partia Mięśniowa:</label>
-                            <button type="button" id="btn-lock-cwiczenie" onclick="toggleLockCwiczenie()" class="btn-small" style="background: #333; border: 1px solid var(--border); padding: 4px 10px; font-size: 0.8rem; color: #fff; border-radius: 4px; cursor: pointer;">🔓 Odblokowane</button>
-                        </div>
+                        <label>Kategoria / Partia Mięśniowa:</label>
                         <select id="dziennik-partia" onchange="zmienKategorieDziennika()"></select>
 
                         <div id="sekcja-treningowa">
@@ -477,11 +477,12 @@
                         • <b>iOS (Safari):</b> Otwórz aplikację w przeglądarce Safari, kliknij przycisk Udostępnij (kwadrat ze strzałką w górę) na dolnym pasku, a następnie przewiń listę i wybierz „Do ekranu początkowego”.</p>
 
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">Panel boczny, Subskrypcja i Wersja mobilna</h3>
-                        <p>Po lewej stronie ekranu znajduje się stały panel nawigacyjny. W jego dolnej części umieszczono trzy kluczowe przyciski systemowe:</p>
+                        <p>Po lewej stronie ekranu znajduje się stały panel nawigacyjny. W jego dolnej części umieszczono kluczowe przyciski systemowe:</p>
                         <p>
                         • <b>Moje konto / DEMO / Wyloguj:</b> Wyświetla status połączenia z kontem użytkownika (lub napis <b>DEMO</b> w trybie demonstracyjnym) oraz umożliwia bezpieczne wylogowanie się z aplikacji.<br>
                         • <b>💳 Subskrypcja / Opłać:</b> Przenosi do okna aktywacji dostępu do pełnej wersji desktopowej. Aplikacja mobilna pozostaje w pełni darmowa, natomiast pełny dostęp do wersji komputerowej działa w wygodnym modelu przedpłaconym (prepaid, bez automatycznego odnawiania opłat) w dwóch wariantach: <b>10 zł za 1 miesiąc</b> lub <b>100 zł za 12 miesięcy</b>. W przypadku braku aktywnej subskrypcji wersja desktop uruchamia się w trybie demonstracyjnym (Demo) na przykładowych danych.<br>
-                        • <b>📱 Wersja mobilna:</b> Pozwala jednym kliknięciem przełączyć się bezpośrednio do interfejsu mobilnego na ekranie komputera.
+                        • <b>📱 Wersja mobilna:</b> Pozwala jednym kliknięciem przełączyć się bezpośrednio do interfejsu mobilnego na ekranie komputera.<br>
+                        • <b>✉️ Zgłoś błąd / Kontakt:</b> Otwiera domyślny program pocztowy w celu szybkiego zgłoszenia uwagi lub błędu bezpośrednio do twórcy.
                         </p>
 
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">1. 📊 Historia (Rejestracja i Historia Dnia)</h3>
@@ -489,7 +490,7 @@
                         <p>
                         • <b>Data treningu / przeglądu:</b> Pozwala wybrać bieżącą lub dowolną historyczną datę treningu.<br>
                         • <b>Kieszeń podglądu dnia (Accordion):</b> Pasek informujący o liczbie zapisanych serii w wybranym dniu. Po kliknięciu rozwija listę wszystkich wpisów z tego dnia, umożliwiając ich natychmiastową <b>edycję</b> (poprawa ciężaru, powtórzeń, serii, RIR lub ćwiczenia) oraz <b>usunięcie</b> z bazy danych.<br>
-                        • <b>Formularz rejestracji aktywności:</b> Umożliwia wybór kategorii (partii mięśniowej, Cardio lub Regeneracji) oraz ćwiczenia (z opcją zablokowania wyboru przyciskiem <i>Odblokowane/Zablokowane</i>). Dla treningu siłowego podajesz numer serii, ciężar (kg), liczbę powtórzeń oraz opcjonalny zapas sił <b>RIR</b> (0 do 4+). Kalkulator na żywo na bieżąco wylicza tonaż serii oraz szacowany rekord maksymalny <b>1RM według wzoru Epleya</b>. Dla Cardio rejestrowany jest dystans (km) i czas (min), a dla Regeneracji – wybrana forma odnowy.
+                        • <b>Formularz rejestracji aktywności:</b> Umożliwia wybór kategorii (partii mięśniowej, Cardio lub Regeneracji) oraz ćwiczenia. Dla treningu siłowego podajesz numer serii, ciężar (kg), liczbę powtórzeń oraz opcjonalny zapas sił <b>RIR</b> (0 do 4+). Kalkulator na żywo na bieżąco wylicza tonaż serii oraz szacowany rekord maksymalny <b>1RM według wzoru Epleya</b>. Dla Cardio rejestrowany jest dystans (km) i czas (min), a dla Regeneracji – wybrana forma odnowy.
                         </p>
 
                         <h3 style="color: var(--primary); font-size: 1.05rem; margin-top: 20px;">2. 📈 Analiza i Wykresy (Raporty PRO)</h3>
@@ -770,14 +771,18 @@
                 let val = localStorage.getItem(realKey);
                 if (val !== null) {
                     let parsed = JSON.parse(val);
+                    if (typeof domyslnaWartosc === 'boolean' && typeof parsed === 'boolean') return parsed;
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                    if (typeof domyslnaWartosc === 'string' && typeof parsed === 'string') return parsed;
                 }
                 let globalVal = localStorage.getItem(`ironmetric_${klucz}`) || localStorage.getItem(`pulse75_${klucz}`);
                 if (globalVal !== null) {
                     let parsed = JSON.parse(globalVal);
+                    if (typeof domyslnaWartosc === 'boolean' && typeof parsed === 'boolean') return parsed;
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                    if (typeof domyslnaWartosc === 'string' && typeof parsed === 'string') return parsed;
                 }
                 return domyslnaWartosc;
             } catch (e) {
@@ -852,15 +857,36 @@
             document.getElementById('custom-prompt-cancel').onclick = () => { modal.style.display = 'none'; callback(null); };
         }
 
-        let isExerciseLocked = false;
-        function toggleLockCwiczenie() {
-            isExerciseLocked = !isExerciseLocked;
-            let p = document.getElementById('dziennik-partia');
-            let c = document.getElementById('dziennik-cwiczenie');
-            let btn = document.getElementById('btn-lock-cwiczenie');
-            p.disabled = isExerciseLocked;
-            c.disabled = isExerciseLocked;
-            btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+        function klasyfikujRuchPushPull(partia, nazwaCwiczenia = '') {
+            const p = String(partia || '').trim().toLowerCase();
+            const nazwa = String(nazwaCwiczenia || '').trim().toLowerCase();
+
+            const pullKeywords = [
+                'podciąganie', 'podciaganie', 'wiosłowanie', 'wioslowanie',
+                'ściąganie', 'sciaganie', 'martwy ciąg', 'martwy ciag',
+                'face pull', 'w opadzie', 'odwrotne', 'tył barku', 'tyl barku',
+                'uginanie', 'szrugsy'
+            ];
+            const pushKeywords = [
+                'wyciskanie', 'pompki', 'dipy', 'rozpiętki', 'rozpietki',
+                'prostowanie', 'wznosy bokiem', 'wznosy w przód', 'wznosy w przod'
+            ];
+
+            if (p === 'klatka' || p === 'barki') {
+                if (pullKeywords.some(k => nazwa.includes(k))) return 'Pull';
+                return 'Push';
+            }
+
+            if (p === 'plecy') {
+                if (pushKeywords.some(k => nazwa.includes(k)) && !nazwa.includes('w opadzie') && !nazwa.includes('tył') && !nazwa.includes('tyl')) {
+                    return 'Push';
+                }
+                return 'Pull';
+            }
+
+            if (pullKeywords.some(k => nazwa.includes(k))) return 'Pull';
+            if (pushKeywords.some(k => nazwa.includes(k))) return 'Push';
+            return null;
         }
 
         const domyslnaBazaCwiczen = {
@@ -870,15 +896,21 @@
             'Posladki': ['Hip Thrust ze sztangą', 'Rumuński martwy ciąg (RDL)', 'Wypychanie ciężaru wysokimi stopami na suwnicy', 'Wznosy bioder na maszynie / mostki biodrowe', 'Przysiady bułgarskie (wersja na pośladek)', 'Zakroki z hantlami / sztangą', 'Glute Bridge ze sztangą', 'Odwodzenie nóg na maszynie (Abductor)', 'Uginanie nóg na maszynie leżąc na brzuchu'],
             'Barki': ['Wyciskanie żołnierskie (Overhead Press)', 'Wyciskanie hantli nad głowę siedząc', 'Wyciskanie na maszynie (Shoulder Press)', 'Wznosy hantli bokiem (bok barku)', 'Wznosy hantli w opadzie tułowia (tył barku)', 'Odwodzenie ramion na maszynie (Reverse Pec Deck)', 'Face pull (wyciąg - tył barku)', 'Wznosy ramion ze sztangielkami w przód', 'Podciąganie sztangi wzdłuż tułowia'],
             'Ramiona': ['Uginanie przedramion ze sztangą (biceps)', 'Uginanie przedramion z hantlami z supinacją', 'Uginanie hantlami chwytem młotkowym', 'Uginanie na modlitewniku', 'Uginanie ramion z linką wyciągu dolnego', 'Wyciskanie francuskie ze sztangą łamaną leżąc (triceps)', 'Wyciskanie wąskim chwytem na ławce poziomej', 'Prostowanie ramion na wyciągu (ściąganie sznura)', 'Wyciskanie hantla oburącz zza głowy siedząc', 'Pompki w podporze tyłem na ławce'],
-            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych legs w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
+            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych nóg w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
             'Cardio': ['Bieżnia / Bieganie', 'Rower stacjonarny', 'Orbitrek / Maszyna eliptyczna'],
             'Regeneracja': ['Odpoczynek całkowity', 'Lekkie cardio / spacer', 'Stretching', 'Rolowanie (foam roller)', 'Basen', 'Sauna', 'Joga regeneracyjna', 'Ćwiczenia mobilnościowe', 'Kąpiel solankowa']
         };
 
         let bazyCwiczen = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
 
+        function aktualizujListeBezElementu(tablica, element) {
+            let index = tablica.indexOf(element);
+            if (index > -1) tablica.splice(index, 1);
+        }
+
         async function pobierzBazeCwiczenZChmury() {
             let aktualnaBaza = JSON.parse(JSON.stringify(domyslnaBazaCwiczen));
+
             if (isDemoMode) {
                 const demoKat = window.PULSE75_DEMO_DATA && window.PULSE75_DEMO_DATA.bazaCwiczen;
                 if (demoKat && typeof demoKat === 'object') {
@@ -891,6 +923,18 @@
                 }
                 return aktualnaBaza;
             }
+
+            let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+            let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
+            let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+            let lokalneKategorie = bezpiecznyOdczytStorage('wlasne_kategorie_list', []);
+
+            if (Array.isArray(lokalneKategorie)) {
+                lokalneKategorie.forEach(kat => {
+                    if (kat && !aktualnaBaza[kat]) aktualnaBaza[kat] = [];
+                });
+            }
+
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
                     const { data: wlasneData, error } = await supabaseClient
@@ -900,14 +944,77 @@
 
                     if (!error && wlasneData) {
                         wlasneData.forEach(item => {
+                            if (!item || !item.kategoria) return;
                             if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
-                            if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
+                            if (item.nazwa && !aktualnaBaza[item.kategoria].includes(item.nazwa)) {
                                 aktualnaBaza[item.kategoria].push(item.nazwa);
+                            }
+                        });
+                    }
+
+                    const { data: ukryteData } = await supabaseClient
+                        .from('ukryte_domyslne_cwiczenia')
+                        .select('kategoria, nazwa_cwiczenia')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (ukryteData) {
+                        ukryteData.forEach(u => {
+                            if (aktualnaBaza[u.kategoria]) {
+                                aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa_cwiczenia);
+                            }
+                        });
+                    }
+
+                    const { data: nadpisaneData } = await supabaseClient
+                        .from('nadpisane_domyslne_cwiczenia')
+                        .select('kategoria, stara_nazwa, nowa_nazwa')
+                        .eq('user_id', String(zalogowanyUzytkownik.id));
+
+                    if (nadpisaneData) {
+                        nadpisaneData.forEach(n => {
+                            if (aktualnaBaza[n.kategoria]) {
+                                let idx = aktualnaBaza[n.kategoria].indexOf(n.stara_nazwa);
+                                if (idx > -1) {
+                                    aktualnaBaza[n.kategoria][idx] = n.nowa_nazwa;
+                                } else if (!aktualnaBaza[n.kategoria].includes(n.nowa_nazwa)) {
+                                    aktualnaBaza[n.kategoria].push(n.nowa_nazwa);
+                                }
                             }
                         });
                     }
                 } catch(e) {}
             }
+
+            Object.keys(lokalneWlasne).forEach(kat => {
+                if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
+                if (Array.isArray(lokalneWlasne[kat])) {
+                    lokalneWlasne[kat].forEach(cw => {
+                        if (!aktualnaBaza[kat].includes(cw)) aktualnaBaza[kat].push(cw);
+                    });
+                }
+            });
+
+            if (Array.isArray(lokalneUkryte)) {
+                lokalneUkryte.forEach(u => {
+                    if (aktualnaBaza[u.kategoria]) {
+                        aktualizujListeBezElementu(aktualnaBaza[u.kategoria], u.nazwa);
+                    }
+                });
+            }
+
+            Object.keys(lokalneNadpisane).forEach(kat => {
+                if (aktualnaBaza[kat]) {
+                    let mapNadpisan = lokalneNadpisane[kat];
+                    Object.keys(mapNadpisan).forEach(stara => {
+                        let nowa = mapNadpisan[stara];
+                        let idx = aktualnaBaza[kat].indexOf(stara);
+                        if (idx > -1) {
+                            aktualnaBaza[kat][idx] = nowa;
+                        }
+                    });
+                }
+            });
+
             return aktualnaBaza;
         }
 
@@ -1128,7 +1235,7 @@
                 aktualizowanyWpis.onerm = 0;
                 aktualizowanyWpis.rir = null;
             } else if (nowaPartia === 'Regeneracja') {
-                aktualizowanyWpis.seria = 1; aktualizizowanyWpis.ciezar = 0; aktualizizowanyWpis.powt = 0; aktualizizowanyWpis.onerm = 0; aktualizizowanyWpis.rir = null;
+                aktualizowanyWpis.seria = 1; aktualizowanyWpis.ciezar = 0; aktualizowanyWpis.powt = 0; aktualizowanyWpis.onerm = 0; aktualizowanyWpis.rir = null;
             } else {
                 aktualizowanyWpis.seria = parseInt(document.getElementById('edit-seria').value) || 1;
                 aktualizowanyWpis.ciezar = parseFloat(document.getElementById('edit-ciezar').value) || 0;
@@ -1232,23 +1339,41 @@
             } catch (e) {}
         }
 
-        function inicjalizujKategorie() {
+        function inicjalizujKategorie(preferowanaPartia = null) {
             ['dziennik-partia', 'analiza-partia', 'cel-kategoria', 'menedzer-kategoria'].forEach(id => {
                 let el = document.getElementById(id);
                 if(el) {
+                    let wybranaStaraWartosc = el.value;
                     el.innerHTML = '';
+                    let hasAny = false;
                     Object.keys(bazyCwiczen).forEach(kat => {
-                        if ((id !== 'cel-kategoria' && id !== 'analiza-partia') || kat !== 'Regeneracja') {
+                        let maCwiczenia = bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].length > 0;
+                        let wolnoDodac = (id === 'menedzer-kategoria')
+                            ? true
+                            : ((id === 'dziennik-partia')
+                                ? (maCwiczenia || kat === preferowanaPartia)
+                                : (kat !== 'Regeneracja' && maCwiczenia));
+                        if (wolnoDodac) {
+                            hasAny = true;
                             let opt = document.createElement('option');
                             opt.value = kat; opt.textContent = kat;
                             el.appendChild(opt);
                         }
                     });
+                    if (!hasAny) {
+                        let opt = document.createElement('option');
+                        opt.value = ''; opt.textContent = 'Brak kategorii / ćwiczeń';
+                        el.appendChild(opt);
+                    } else if (preferowanaPartia && id === 'dziennik-partia' && Array.from(el.options).some(o => o.value === preferowanaPartia)) {
+                        el.value = preferowanaPartia;
+                    } else if (wybranaStaraWartosc && Array.from(el.options).some(o => o.value === wybranaStaraWartosc)) {
+                        el.value = wybranaStaraWartosc;
+                    }
                 }
             });
             zmienKategorieDziennika();
             zmienionoKategorieCelu();
-            odswiezPanelBazy();
+            odswiezPanelBazy(preferowanaPartia);
         }
 
         function zainicjalizujDatyAnalizy() {
@@ -1304,15 +1429,29 @@
             let selectCwiczenie = document.getElementById(cwiczenieId);
             if(!partiaEl || !selectCwiczenie) return;
             
+            let wybranaStaraWartosc = selectCwiczenie.value;
             let partia = partiaEl.value;
             selectCwiczenie.innerHTML = '';
-            if(bazyCwiczen[partia]) {
-                bazyCwiczen[partia].forEach(cw => {
-                    let opt = document.createElement('option');
-                    opt.value = cw; opt.textContent = cw;
-                    selectCwiczenie.appendChild(opt);
-                });
+
+            if (!partia || !bazyCwiczen[partia] || !Array.isArray(bazyCwiczen[partia]) || bazyCwiczen[partia].length === 0) {
+                let opt = document.createElement('option');
+                opt.value = ''; opt.textContent = 'Brak ćwiczeń';
+                selectCwiczenie.appendChild(opt);
+                if (tryb === 'analiza') zaladujAnalize();
+                else if (tryb === 'dziennik') obliczWlocie();
+                return;
             }
+
+            bazyCwiczen[partia].forEach(cw => {
+                let opt = document.createElement('option');
+                opt.value = cw; opt.textContent = cw;
+                selectCwiczenie.appendChild(opt);
+            });
+
+            if (wybranaStaraWartosc && Array.from(selectCwiczenie.options).some(o => o.value === wybranaStaraWartosc)) {
+                selectCwiczenie.value = wybranaStaraWartosc;
+            }
+
             if(tryb === 'analiza') zaladujAnalize();
             else if(tryb === 'cel') zmienionoKategorieCeluWartosc();
             else if(tryb === 'dziennik') zmienionoCwiczenieDziennika();
@@ -1321,7 +1460,7 @@
         function zmienionoCwiczenieDziennika() {
             let partia = document.getElementById('dziennik-partia').value;
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
-            if (!cwiczenie) return;
+            if (!cwiczenie || cwiczenie === 'Brak ćwiczeń') return;
             let historia = pobierzHistorieAktywna();
             let ostatniWpis = historia.find(w => w.cwiczenie === cwiczenie);
             if (ostatniWpis) {
@@ -1341,12 +1480,14 @@
             let celCwiczenieEl = document.getElementById('cel-cwiczenie');
             if(!celCwiczenieEl) return;
             celCwiczenieEl.innerHTML = '';
-            if (bazyCwiczen[kat]) {
+            if (bazyCwiczen[kat] && bazyCwiczen[kat].length > 0) {
                 bazyCwiczen[kat].forEach(cw => {
                     let opt = document.createElement('option');
                     opt.value = cw; opt.textContent = cw;
                     celCwiczenieEl.appendChild(opt);
                 });
+            } else {
+                celCwiczenieEl.innerHTML = '<option value="">Brak ćwiczeń</option>';
             }
             zmienionoKategorieCeluWartosc();
         }
@@ -1481,7 +1622,7 @@
             if(!celKatEl) return;
             celKatEl.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
-                if (kat !== 'Regeneracja') {
+                if (kat !== 'Regeneracja' && bazyCwiczen[kat] && bazyCwiczen[kat].length > 0) {
                     let opt = document.createElement('option');
                     opt.value = kat; opt.textContent = kat;
                     celKatEl.appendChild(opt);
@@ -1667,15 +1808,14 @@
             }
 
             let pushTonaz = 0, pushSerie = 0, pullTonaz = 0, pullSerie = 0;
-            const partiePush = ['Klatka', 'Barki'];
-            const partiePull = ['Plecy'];
             historiaFiltrowana.forEach(w => {
                 if (w.partia === 'Cardio' || w.partia === 'Regeneracja') return;
                 const tonaz = (parseFloat(w.ciezar) || 0) * (parseInt(w.powt) || 0);
-                if (partiePush.includes(w.partia)) {
+                const typRuchu = klasyfikujRuchPushPull(w.partia, w.cwiczenie);
+                if (typRuchu === 'Push') {
                     pushTonaz += tonaz;
                     pushSerie += 1;
-                } else if (partiePull.includes(w.partia)) {
+                } else if (typRuchu === 'Pull') {
                     pullTonaz += tonaz;
                     pullSerie += 1;
                 }
@@ -1685,7 +1825,7 @@
                 const pushPct = razemTonaz > 0 ? Math.round((pushTonaz / razemTonaz) * 100) : 50;
                 const pullPct = razemTonaz > 0 ? (100 - pushPct) : 50;
                 pushPullEl.innerHTML = `
-                    <div>Push (Klatka, Barki): <b>${Math.round(pushTonaz)} kg</b> (${pushSerie} serii, <b>${pushPct}%</b>) vs. Pull (Plecy): <b>${Math.round(pullTonaz)} kg</b> (${pullSerie} serii, <b>${pullPct}%</b>)</div>
+                    <div>Push: <b>${Math.round(pushTonaz)} kg</b> (${pushSerie} serii, <b>${pushPct}%</b>) vs. Pull: <b>${Math.round(pullTonaz)} kg</b> (${pullSerie} serii, <b>${pullPct}%</b>)</div>
                     <div class="ratio-bar-track" title="Push ${pushPct}% / Pull ${pullPct}%">
                         <div class="ratio-bar-push" style="width: ${pushPct}%;"></div>
                         <div class="ratio-bar-pull" style="width: ${pullPct}%;"></div>
@@ -1793,8 +1933,9 @@
             let pushTonaz = 0, pullTonaz = 0, pushSerie = 0, pullSerie = 0;
             wpisySilowe.forEach(w => {
                 const t = (parseFloat(w.ciezar) || 0) * (parseInt(w.powt) || 0);
-                if (w.partia === 'Klatka' || w.partia === 'Barki') { pushTonaz += t; pushSerie += 1; }
-                else if (w.partia === 'Plecy') { pullTonaz += t; pullSerie += 1; }
+                const typRuchu = klasyfikujRuchPushPull(w.partia, w.cwiczenie);
+                if (typRuchu === 'Push') { pushTonaz += t; pushSerie += 1; }
+                else if (typRuchu === 'Pull') { pullTonaz += t; pullSerie += 1; }
             });
             const sumaPP = pushTonaz + pullTonaz;
             const pushPct = sumaPP > 0 ? Math.round((pushTonaz / sumaPP) * 100) : 50;
@@ -1802,7 +1943,7 @@
             let ocenaPP = 'Równowaga Push/Pull jest zbliżona do optymalnej.';
             if (sumaPP > 0) {
                 if (pushPct - pullPct > 15) ocenaPP = `Przewaga ruchu wypychającego (Push ${pushPct}% vs Pull ${pullPct}%) – warto dorzucić więcej pracy na plecy/tył barku (wiosłowania, ściągania, face pull).`;
-                else if (pullPct - pushPct > 15) ocenaPP = `Przewaga ruchu przyciągającego (Pull ${pullPct}% vs Push ${pullPct}%) – proporcje sprzyjają zdrowiu barków, możesz śmiało utrzymać lub delikatnie podbić Push.`;
+                else if (pullPct - pushPct > 15) ocenaPP = `Przewaga ruchu przyciągającego (Pull ${pullPct}% vs Push ${pushPct}%) – proporcje sprzyjają zdrowiu barków, możesz śmiało utrzymać lub delikatnie podbić Push.`;
                 else ocenaPP = `Bardzo dobra równowaga Push (${pushPct}%) do Pull (${pullPct}%) – sprzyja stabilności obręczy barkowej.`;
             }
 
@@ -1935,8 +2076,10 @@
 
         function eksportujRaportCSV() {
             let historia = pobierzHistorieAktywna();
-            let csv = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Ciezar,Powtorzenia,1RM\r\n";
-            historia.forEach(w => { csv += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.ciezar},${w.powt},${w.onerm}\r\n`; });
+            let csv = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Ciezar,Powtorzenia,1RM
+";
+            historia.forEach(w => { csv += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.ciezar},${w.powt},${w.onerm}
+`; });
             let link = document.createElement("a");
             link.setAttribute("href", encodeURI(csv));
             link.setAttribute("download", `raport.csv`);
@@ -1945,16 +2088,19 @@
             document.body.removeChild(link);
         }
 
-        function odswiezPanelBazy() {
+        async function odswiezPanelBazy(preferowanaKat = null) {
+            bazyCwiczen = await pobierzBazeCwiczenZChmury();
             let select = document.getElementById('menedzer-kategoria');
             if(!select) return;
-            const obecnaKat = select.value;
+            const obecnaKat = preferowanaKat || select.value;
             select.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
                 let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
                 select.appendChild(opt);
             });
-            if (obecnaKat && bazyCwiczen[obecnaKat]) select.value = obecnaKat;
+            if (obecnaKat && Array.from(select.options).some(o => o.value === obecnaKat)) {
+                select.value = obecnaKat;
+            }
             odswiezListeMenedzera();
         }
 
@@ -1964,56 +2110,149 @@
             if(!kat || !container) return;
             container.innerHTML = '';
             const lista = bazyCwiczen[kat] || [];
-            lista.forEach((cw, idx) => {
-                const safeLabel = cw.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                container.innerHTML += `
-                    <div class="list-item-cwiczenie">
-                        <span>${cw}</span>
-                        <div style="display:flex; gap:6px; flex-shrink:0;">
-                            <button type="button" class="btn-small" style="background:#333;" onclick="edytujCwiczenieWBazie('${kat}', ${idx}, '${safeLabel}')">✏️ Edytuj</button>
-                            <button type="button" class="btn-small" style="background:#8B0000;" onclick="usunCwiczenieZBazy('${kat}', ${idx}, '${safeLabel}')">🗑️ Usuń</button>
-                        </div>
-                    </div>
-                `;
+            if (lista.length === 0) {
+                const emptyBox = document.createElement('div');
+                emptyBox.className = 'result-box';
+                emptyBox.style.textAlign = 'center';
+                emptyBox.style.color = 'var(--text-muted)';
+                emptyBox.textContent = `Brak ćwiczeń w kategorii "${kat}". Dodaj pierwsze ćwiczenie powyżej.`;
+                container.appendChild(emptyBox);
+                return;
+            }
+            lista.forEach((cw) => {
+                const item = document.createElement('div');
+                item.className = 'list-item-cwiczenie';
+
+                const nazwaSpan = document.createElement('span');
+                nazwaSpan.style.wordBreak = 'break-all';
+                nazwaSpan.style.flex = '1';
+                nazwaSpan.textContent = cw;
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.style.display = 'flex';
+                actionsDiv.style.gap = '6px';
+                actionsDiv.style.flexShrink = '0';
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'btn-small';
+                editBtn.style.background = '#333';
+                editBtn.textContent = '✏️ Edytuj';
+                editBtn.addEventListener('click', () => edytujCwiczenieWBazie(kat, cw));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'btn-small';
+                deleteBtn.style.background = '#8B0000';
+                deleteBtn.textContent = '🗑️ Usuń';
+                deleteBtn.addEventListener('click', () => usunCwiczenieZBazy(kat, cw));
+
+                actionsDiv.appendChild(editBtn);
+                actionsDiv.appendChild(deleteBtn);
+                item.appendChild(nazwaSpan);
+                item.appendChild(actionsDiv);
+                container.appendChild(item);
             });
         }
 
-        async function edytujCwiczenieWBazie(kat, idx, staraNazwa) {
-            showPromptModal("Nowa nazwa ćwiczenia:", staraNazwa, async (nowa) => {
-                if (!nowa) return;
+        async function edytujCwiczenieWBazie(kat, staraNazwa) {
+            showPromptModal(`Edytuj nazwę ćwiczenia dla "${staraNazwa}":`, staraNazwa, async (nowa) => {
+                if (!nowa || nowa.trim() === "" || nowa.trim() === staraNazwa) return;
                 const trimmed = nowa.trim();
-                if (!trimmed || trimmed === staraNazwa) return;
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) return;
 
-                bazyCwiczen[kat][idx] = trimmed;
+                let idx = bazyCwiczen[kat].indexOf(staraNazwa);
+                if (idx === -1) return;
 
                 if (isDemoMode) {
+                    bazyCwiczen[kat][idx] = trimmed;
                     odswiezListeMenedzera();
                     inicjalizujKategorie();
                     showNotification("✏️ Zaktualizowano nazwę ćwiczenia w trybie DEMO (bez zmian w bazie).");
                     return;
                 }
 
+                let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(staraNazwa);
+                let oryginalnaNazwa = staraNazwa;
+
+                if (!czyDomyslne) {
+                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                    if (nadpisaneMap[kat]) {
+                        for (let orig in nadpisaneMap[kat]) {
+                            if (nadpisaneMap[kat][orig] === staraNazwa) {
+                                oryginalnaNazwa = orig;
+                                czyDomyslne = true;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    oryginalnaNazwa = staraNazwa;
+                }
+
+                let przywracanieDomyslnej = czyDomyslne && (trimmed === oryginalnaNazwa);
+                bazyCwiczen[kat][idx] = trimmed;
+
+                if (czyDomyslne) {
+                    let nadpisaneMap = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+                    if (!nadpisaneMap[kat]) nadpisaneMap[kat] = {};
+
+                    if (przywracanieDomyslnej) {
+                        delete nadpisaneMap[kat][oryginalnaNazwa];
+                        if (Object.keys(nadpisaneMap[kat]).length === 0) delete nadpisaneMap[kat];
+                    } else {
+                        nadpisaneMap[kat][oryginalnaNazwa] = trimmed;
+                    }
+                    bezpiecznyZapisStorage('nadpisane_cwiczenia_map', nadpisaneMap);
+                } else {
+                    let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                    if (wlasneMap[kat]) {
+                        let wIdx = wlasneMap[kat].indexOf(staraNazwa);
+                        if (wIdx > -1) wlasneMap[kat][wIdx] = trimmed;
+                        bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                    }
+                }
+
                 if (zalogowanyUzytkownik?.id) {
                     try {
-                        await supabaseClient
-                            .from('baza_cwiczen')
-                            .update({ nazwa: trimmed })
-                            .eq('user_id', String(zalogowanyUzytkownik.id))
-                            .eq('kategoria', kat)
-                            .eq('nazwa', staraNazwa);
+                        if (czyDomyslne) {
+                            await supabaseClient.from('nadpisane_domyslne_cwiczenia')
+                                .delete()
+                                .eq('user_id', String(zalogowanyUzytkownik.id))
+                                .eq('kategoria', kat)
+                                .eq('stara_nazwa', oryginalnaNazwa);
+
+                            if (!przywracanieDomyslnej) {
+                                await supabaseClient.from('nadpisane_domyslne_cwiczenia').insert([{
+                                    user_id: String(zalogowanyUzytkownik.id),
+                                    kategoria: kat,
+                                    stara_nazwa: oryginalnaNazwa,
+                                    nowa_nazwa: trimmed
+                                }]);
+                            }
+                        } else {
+                            await supabaseClient
+                                .from('baza_cwiczen')
+                                .update({ nazwa: trimmed })
+                                .eq('user_id', String(zalogowanyUzytkownik.id))
+                                .eq('kategoria', kat)
+                                .eq('nazwa', staraNazwa);
+                        }
                     } catch (e) {}
                 }
 
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-                showNotification("✏️ Zaktualizowano nazwę ćwiczenia.");
+                showNotification(przywracanieDomyslnej ? "✅ Przywrócono domyślną nazwę!" : "✏️ Zaktualizowano nazwę ćwiczenia.");
             });
         }
 
-        async function usunCwiczenieZBazy(kat, idx, nazwa) {
-            showConfirmModal(`Usunąć ćwiczenie "${nazwa}" z kategorii ${kat}?`, async (potwierdzono) => {
+        async function usunCwiczenieZBazy(kat, nazwa) {
+            showConfirmModal(`Usunąć / ukryć "${nazwa}" z kategorii ${kat}?`, async (potwierdzono) => {
                 if (!potwierdzono) return;
-                bazyCwiczen[kat].splice(idx, 1);
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) return;
+
+                bazyCwiczen[kat] = bazyCwiczen[kat].filter(c => c !== nazwa);
 
                 if (isDemoMode) {
                     odswiezListeMenedzera();
@@ -2022,31 +2261,94 @@
                     return;
                 }
 
+                let czyDomyslne = domyslnaBazaCwiczen[kat] && domyslnaBazaCwiczen[kat].includes(nazwa);
+
+                if (czyDomyslne) {
+                    let ukryteList = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
+                    ukryteList.push({ kategoria: kat, nazwa: nazwa });
+                    bezpiecznyZapisStorage('ukryte_cwiczenia_map', ukryteList);
+                } else {
+                    let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                    if (wlasneMap[kat]) {
+                        wlasneMap[kat] = wlasneMap[kat].filter(c => c !== nazwa);
+                        bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+                    }
+                }
+
                 if (zalogowanyUzytkownik?.id) {
                     try {
-                        await supabaseClient
-                            .from('baza_cwiczen')
-                            .delete()
-                            .eq('user_id', String(zalogowanyUzytkownik.id))
-                            .eq('kategoria', kat)
-                            .eq('nazwa', nazwa);
+                        if (czyDomyslne) {
+                            await supabaseClient.from('ukryte_domyslne_cwiczenia').insert([{
+                                user_id: String(zalogowanyUzytkownik.id),
+                                kategoria: kat,
+                                nazwa_cwiczenia: nazwa
+                            }]);
+                        } else {
+                            await supabaseClient
+                                .from('baza_cwiczen')
+                                .delete()
+                                .eq('user_id', String(zalogowanyUzytkownik.id))
+                                .eq('kategoria', kat)
+                                .eq('nazwa', nazwa);
+                        }
                     } catch (e) {}
                 }
 
+                delete cacheCelowSupabase[nazwa];
+
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-                showNotification("🗑️ Usunięto ćwiczenie.");
+                showNotification("🗑️ Usunięto pomyślnie!");
             });
         }
 
         function dodajKategorie() {
-            showPromptModal("Nazwa kategorii:", "", (n) => {
-                if(n && n.trim()) {
-                    const katName = n.trim();
-                    if (!bazyCwiczen[katName]) bazyCwiczen[katName] = [];
-                    odswiezPanelBazy();
-                    document.getElementById('menedzer-kategoria').value = katName;
-                    odswiezListeMenedzera();
+            showPromptModal("Podaj nazwę nowej kategorii:", "", async (nowa) => {
+                if (nowa && nowa.trim() !== "") {
+                    let nazwaKat = nowa.trim();
+                    if (!bazyCwiczen[nazwaKat]) {
+                        bazyCwiczen[nazwaKat] = [];
+                    }
+
+                    if (isDemoMode) {
+                        await odswiezPanelBazy(nazwaKat);
+                        inicjalizujKategorie(nazwaKat);
+                        showNotification("✅ Kategoria dodana w trybie DEMO (bez zapisu do bazy).");
+                        return;
+                    }
+
+                    let lokalneKategorie = bezpiecznyOdczytStorage('wlasne_kategorie_list', []);
+                    if (!lokalneKategorie.includes(nazwaKat)) {
+                        lokalneKategorie.push(nazwaKat);
+                        bezpiecznyZapisStorage('wlasne_kategorie_list', lokalneKategorie);
+                    }
+
+                    if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                        try {
+                            const { error } = await supabaseClient
+                                .from('baza_cwiczen')
+                                .insert([{
+                                    user_id: String(zalogowanyUzytkownik.id),
+                                    kategoria: nazwaKat,
+                                    nazwa: null
+                                }]);
+
+                            if (error) {
+                                console.error("Supabase category insert error:", error);
+                                showNotification("⚠️ Kategoria dodana lokalnie (sprawdź kolumny tabeli baza_cwiczen w Supabase)");
+                            } else {
+                                showNotification("✅ Kategoria dodana do bazy i widoczna na liście!");
+                            }
+                        } catch (e) {
+                            console.error("Supabase category exception:", e);
+                            showNotification("⚠️ Kategoria dodana lokalnie");
+                        }
+                    } else {
+                        showNotification("✅ Kategoria dodana lokalnie!");
+                    }
+
+                    await odswiezPanelBazy(nazwaKat);
+                    inicjalizujKategorie(nazwaKat);
                 }
             });
         }
@@ -2055,15 +2357,49 @@
             let kat = document.getElementById('menedzer-kategoria')?.value;
             let nazwa = document.getElementById('nowe-cwiczenie-nazwa')?.value.trim();
             if(kat && nazwa) {
-                if (!bazyCwiczen[kat]) bazyCwiczen[kat] = [];
-                bazyCwiczen[kat].push(nazwa);
-                if (!isDemoMode && zalogowanyUzytkownik?.id) {
-                    await supabaseClient.from('baza_cwiczen').insert([{ user_id: String(zalogowanyUzytkownik.id), kategoria: kat, nazwa }]);
+                if (!bazyCwiczen[kat] || !Array.isArray(bazyCwiczen[kat])) {
+                    bazyCwiczen[kat] = [];
                 }
+                if (!bazyCwiczen[kat].includes(nazwa)) {
+                    bazyCwiczen[kat].push(nazwa);
+                }
+
+                if (isDemoMode) {
+                    document.getElementById('nowe-cwiczenie-nazwa').value = '';
+                    odswiezListeMenedzera();
+                    inicjalizujKategorie();
+                    showNotification("✅ Dodano w trybie DEMO (bez zapisu do bazy).");
+                    return;
+                }
+
+                let wlasneMap = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
+                if (!wlasneMap[kat]) wlasneMap[kat] = [];
+                if (!wlasneMap[kat].includes(nazwa)) wlasneMap[kat].push(nazwa);
+                bezpiecznyZapisStorage('wlasne_cwiczenia_map', wlasneMap);
+
                 document.getElementById('nowe-cwiczenie-nazwa').value = '';
+
+                if (zalogowanyUzytkownik?.id) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('baza_cwiczen')
+                            .insert([{ user_id: String(zalogowanyUzytkownik.id), kategoria: kat, nazwa }]);
+                        if (error) {
+                            showNotification("⚠️ Zapisano w pamięci (błąd zapisu do chmury)");
+                        } else {
+                            showNotification("✅ Ćwiczenie dodane i zsynchronizowane!");
+                        }
+                    } catch (e) {
+                        showNotification("✅ Zapisano lokalnie");
+                    }
+                } else {
+                    showNotification("✅ Ćwiczenie dodane lokalnie!");
+                }
+
                 odswiezListeMenedzera();
                 inicjalizujKategorie();
-                showNotification(isDemoMode ? "✅ Dodano w trybie DEMO (bez zapisu do bazy)." : "✅ Dodano!");
+            } else {
+                showNotification("⚠️ Wpisz nazwę ćwiczenia!");
             }
         }
 
@@ -2072,7 +2408,7 @@
             let data = document.getElementById('dziennik-data').value;
             let partia = document.getElementById('dziennik-partia').value;
             let cwiczenie = document.getElementById('dziennik-cwiczenie').value;
-            if (!data || !cwiczenie) return;
+            if (!data || !cwiczenie || cwiczenie === 'Brak ćwiczeń') { showNotification('Brak dostępnych ćwiczeń lub nie wybrano danych'); return; }
 
             let wpis = { user_id: String(zalogowanyUzytkownik.id), data, partia, cwiczenie, typ: 'Trening' };
             if (partia === 'Cardio') {
@@ -2108,6 +2444,10 @@
             historia.unshift(wpis);
             bezpiecznyZapisStorage('historia_treningow', historia);
             odswiezInlineAccordion();
+        }
+
+        function otworzKontakt() {
+            window.location.href = `mailto:h75@onet.eu?subject=Pulse75%20-%20Zgłoszenie%20błędu`;
         }
     </script>
 </body>
