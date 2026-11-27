@@ -21,7 +21,8 @@
 
     <style>
         :root { --bg-color: #121212; --card-bg: #1e1e1e; --primary: #ff2a2a; --primary-glow: rgba(255, 42, 42, 0.3); --text-main: #ffffff; --text-muted: #aaaaaa; --border: #333333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 70px; }
+        html { overscroll-behavior-y: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 70px; overscroll-behavior-y: none; touch-action: pan-y; }
         header { background: linear-gradient(180deg, #2a1b1b 0%, #1d1212 100%); padding: 12px 15px; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr auto; align-items: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); max-width: 600px; margin: 0 auto; box-sizing: border-box; }
         .logo-wrapper { display: flex; align-items: center; gap: 12px; flex-shrink: 0; grid-column: 1; }
         .logo-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; filter: drop-shadow(0 0 8px var(--primary-glow)); }
@@ -38,6 +39,10 @@
         input[type="date"] { background-image: none; padding-right: 12px; color-scheme: dark; }
         button { background-color: var(--primary); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; }
         button:active { opacity: 0.8; transform: scale(0.99); }
+        .partia-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; }
+        .partia-row select { flex: 1; margin-bottom: 0; }
+        .btn-lock-large { width: auto; flex-shrink: 0; padding: 10px 14px; font-size: 0.88rem; font-weight: 700; background: #333; border: 1px solid var(--border); color: #fff; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+        .btn-lock-large.locked { background: #3d1717; border-color: var(--primary); }
         .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 600px; background-color: #1a1a1a; border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; box-sizing: border-box; }
         .nav-item { background: none; border: none; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; text-align: center; flex: 1; }
         .nav-item.active { color: var(--primary); font-weight: bold; }
@@ -57,6 +62,28 @@
         #custom-toast { display: none; position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--primary); color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 10000; box-shadow: 0 4px 15px rgba(0,0,0,0.6); font-size: 0.95rem; text-align: center; max-width: 90%; transition: opacity 0.3s ease; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10001; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.7); position: relative; }
+
+        /* TYLKO ZAKŁADKA HISTORIA – KARTY ĆWICZEŃ I PODSUMOWANIE DNIA */
+        .historia-summary-pill { background: #262626; border: 1px solid var(--border); color: #f0f0f0; border-radius: 999px; padding: 8px 14px; font-size: 0.85rem; font-weight: 700; text-align: center; margin-bottom: 14px; }
+        .historia-exercise-card { background: #242424; border: 1px solid #323232; border-left: 3px solid var(--primary); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+        .historia-exercise-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+        .historia-exercise-title-group { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+        .historia-exercise-title { font-size: 1rem; font-weight: 800; color: #ffffff; line-height: 1.25; }
+        .historia-partia-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #2f3b2e; color: #8ce99a; border: 1px solid #3f573e; white-space: nowrap; }
+        .historia-partia-badge.badge-warm { background: #3b3524; color: #ffd43b; border-color: #594e2c; }
+        .historia-partia-badge.badge-cardio { background: #223544; color: #66d9e8; border: 1px solid #32526b; }
+        .historia-partia-badge.badge-regen { background: #2f2a3d; color: #d0bfff; border: 1px solid #493f63; }
+        .historia-best-badge { font-size: 0.76rem; font-weight: 700; color: #dddddd; background: #1a1a1a; border: 1px solid #383838; border-radius: 6px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
+        .historia-set-row { display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 8px; padding: 6px 2px; border-top: 1px solid #2e2e2e; font-size: 0.92rem; }
+        .historia-set-row:first-of-type { border-top: none; padding-top: 2px; }
+        .historia-set-num { color: var(--text-muted); font-weight: 700; font-size: 0.84rem; }
+        .historia-set-main { color: #ffffff; font-weight: 700; }
+        .historia-set-reps { color: #cccccc; font-size: 0.86rem; white-space: nowrap; }
+        .historia-set-rir { color: #bbbbbb; font-size: 0.84rem; text-align: right; white-space: nowrap; }
+        .historia-cardio-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 2px; border-top: 1px solid #2e2e2e; font-size: 0.92rem; }
+        .historia-cardio-row:first-of-type { border-top: none; padding-top: 2px; }
+        .historia-cardio-metrics { color: #ffffff; font-weight: 700; }
+        .historia-cardio-pace { color: #bbbbbb; font-size: 0.84rem; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -143,11 +170,11 @@
                     </div>
                     <input type="hidden" id="dziennik-data">
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; margin-top: 10px;">
-                        <label style="margin-bottom: 0; color: var(--text-muted); font-size: 0.9rem;">Kategoria / Partia Mięśniowa:</label>
-                        <button type="button" id="btn-lock-cwiczenie" onclick="toggleLockCwiczenie()" class="btn-small" style="background: #333; border: 1px solid var(--border); padding: 3px 8px; font-size: 0.75rem; color: #fff; border-radius: 4px; cursor: pointer;">🔓 Odblokowane</button>
+                    <label for="dziennik-partia">Kategoria / Partia Mięśniowa:</label>
+                    <div class="partia-row">
+                        <select id="dziennik-partia" onchange="zmienKategorieDziennika()"></select>
+                        <button type="button" id="btn-lock-cwiczenie" onclick="toggleLockCwiczenie()" class="btn-lock-large">🔓 Odblokowane</button>
                     </div>
-                    <select id="dziennik-partia" onchange="zmienKategorieDziennika()"></select>
 
                     <div id="sekcja-treningowa">
                         <label>Wybierz Ćwiczenie / Aktywność:</label>
@@ -240,7 +267,7 @@
                     </div>
                     <div class="result-box" id="analiza-podsumowanie" style="margin-top:15px;">Brak danych.</div>
                     <div style="overflow-x: auto; margin-top: 15px;">
-                        <table id="tabela-historii"><tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr></table>
+                        <table id="tabela-historii"><tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM (Epley)</th></tr></table>
                     </div>
                 </div>
             </div>
@@ -317,7 +344,7 @@
                         <p>Główny ekran roboczy aplikacji służący do bieżącego zapisywania Twoich treningów siłowych, jednostek cardio oraz dni regeneracyjnych.</p>
                         <p>
                         • <b>Data Treningu / Dnia:</b> Wyświetla aktualną datę bieżącą (automatycznie ustawianą przez system) dla rejestrowanej aktywności.<br>
-                        • <b>Kategoria / Partia Mięśniowa:</b> Grupuje ćwiczenia według partii ciała oraz trybów specjalnych (Cardio i Regeneracja). Posiada przycisk trybu blokady (odblokowane/zablokowane) pozwalający uchronić się przed przypadkową zmianą wyboru na czas serii.<br>
+                        • <b>Kategoria / Partia Mięśniowa:</b> Grupuje ćwiczenia według partii ciała oraz trybów specjalnych (Cardio i Regeneracja). Obok listy znajduje się przycisk trybu blokady (odblokowane/zablokowane) pozwalający uchronić się przed przypadkową zmianą wyboru na czas serii.<br>
                         • <b>Wybierz Ćwiczenie:</b> Lista konkretnych ćwiczeń przypisanych do wybranej kategorii. Zmiana ćwiczenia automatycznie podpowiada ostatnio użyte wartości z historii.<br>
                         • <b>Numer Serii:</b> Określa, którą z kolei serię danego ćwiczenia właśnie wykonujesz (w zakresie od 1 do 6).<br>
                         • <b>Ciężar (kg) / Czas (min):</b> Nałożony ciężar roboczy z dokładnością do 0.5 kg lub czas trwania wysiłku w minutach (dla jednostek cardio). Pole to automatycznie uzupełnia się ostatnim ciężarem (lub dystansem) zapisanym dla tego ćwiczenia w historii.<br>
@@ -333,7 +360,7 @@
                         <h3 style="color: var(--primary); font-size: 1rem; margin-top: 15px;">3. ⚙️ Więcej (Menu Główne Opcji)</h3>
                         <p>Centralny punkt nawigacyjny prowadzący do zaawansowanych modułów analitycznych, celów oraz zarządzania słownikiem treningowym.</p>
                         <p>
-                        • <b>📊 Analiza i Historia:</b> Kompleksowy przegląd historii Twoich treningów z opcją filtrowania według partii mięśniowej oraz konkretnego ćwiczenia. Moduł prezentuje kluczowe statystyki: liczbę wpisów, rekordy 1RM, największy dystans oraz szczegółową tabelę historyczną wpisów (data, seria, ciężar, powtórzenia, 1RM, prędkość dla cardio).<br>
+                        • <b>📊 Analiza i Historia:</b> Kompleksowy przegląd historii Twoich treningów z opcją filtrowania według partii mięśniowej oraz konkretnego ćwiczenia. Moduł prezentuje liczbę wpisów oraz szczegółową tabelę historyczną wpisów (data, seria, ciężar, powtórzenia, 1RM Epley).<br>
                         • <b>🎯 Wizualizacja Celów (1RM):</b> Narzędzie motywacyjne pozwalające zdefiniować docelowy rekord 1RM w kg (lub docelowy dystans) dla wybranego ćwiczenia i śledzić bieżący postęp w formie przejrzystego paska procentowego (od 0% do 100%).<br>
                         • <b>🏋️ Zarządzanie Bazą Ćwiczeń:</b> Wbudowany menedżer słownika. Pozwala na dodawanie własnych kategorii, tworzenie nowych ćwiczeń oraz usuwanie pozycji z listy.<br>
                         • <b>📖 Instrukcja Obsługi:</b> Kompletny przewodnik po funkcjach i działaniu aplikacji.<br>
@@ -361,6 +388,13 @@
         let pozostalyCzasSekundy = 0;
         let flagaPrzejsciaPoOsiagnieciuCelu = false;
         let cacheCelowSupabase = {}; // Pamięć podręczna celów z tabeli 'cele'
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) {
+                e.preventDefault();
+                showNotification('🔒 Odświeżanie strony jest zablokowane');
+            }
+        }, { capture: true });
 
         document.addEventListener('DOMContentLoaded', () => {
             try {
@@ -429,15 +463,19 @@
                 let val = localStorage.getItem(realKey);
                 if (val !== null) {
                     let parsed = JSON.parse(val);
+                    if (typeof domyslnaWartosc === 'boolean' && typeof parsed === 'boolean') return parsed;
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                    if (typeof domyslnaWartosc === 'string' && typeof parsed === 'string') return parsed;
                 }
                 
                 let globalVal = localStorage.getItem(`ironmetric_${klucz}`) || localStorage.getItem(`pulse75_${klucz}`);
                 if (globalVal !== null) {
                     let parsed = JSON.parse(globalVal);
+                    if (typeof domyslnaWartosc === 'boolean' && typeof parsed === 'boolean') return parsed;
                     if (Array.isArray(domyslnaWartosc) && Array.isArray(parsed)) return parsed;
                     if (!Array.isArray(domyslnaWartosc) && typeof domyslnaWartosc === 'object' && parsed !== null && typeof parsed === 'object') return parsed;
+                    if (typeof domyslnaWartosc === 'string' && typeof parsed === 'string') return parsed;
                 }
 
                 return domyslnaWartosc;
@@ -457,8 +495,9 @@
             const btnText = document.getElementById('header-user-text');
             const btnIcon = document.getElementById('header-user-icon');
             const logoutSymbol = document.getElementById('header-logout-symbol');
-            if (user) {
-                btnText.textContent = user.username;
+            const loginName = user && (user.username || user.nick || user.login || user.email);
+            if (user && loginName) {
+                btnText.textContent = loginName;
                 btnIcon.textContent = '🟢';
                 if(logoutSymbol) logoutSymbol.style.display = 'inline';
             } else {
@@ -472,6 +511,7 @@
             showConfirmModal('Czy na pewno chcesz się wylogować?', (potwierdzono) => {
                 if (potwierdzono) {
                     localStorage.removeItem('pulse75_user');
+                    localStorage.removeItem('ironmetric_user');
                     window.location.href = 'index.html';
                 }
             });
@@ -505,15 +545,57 @@
         }
 
         let isExerciseLocked = false;
+        function aktualizujWygladPrzyciskuBlokady() {
+            let btn = document.getElementById('btn-lock-cwiczenie');
+            if (!btn) return;
+            btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+            btn.classList.toggle('locked', isExerciseLocked);
+        }
+
         function toggleLockCwiczenie() {
             isExerciseLocked = !isExerciseLocked;
             let p = document.getElementById('dziennik-partia');
             let c = document.getElementById('dziennik-cwiczenie');
             let btn = document.getElementById('btn-lock-cwiczenie');
-            p.disabled = isExerciseLocked;
-            c.disabled = isExerciseLocked;
-            btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+            if (p) p.disabled = isExerciseLocked;
+            if (c) c.disabled = isExerciseLocked;
+            if (btn) {
+                btn.textContent = isExerciseLocked ? '🔒 Zablokowane' : '🔓 Odblokowane';
+                btn.classList.toggle('locked', isExerciseLocked);
+            }
             bezpiecznyZapisStorage('is_locked', isExerciseLocked);
+        }
+
+        function klasyfikujRuchPushPull(partia, nazwaCwiczenia = '') {
+            const p = String(partia || '').trim().toLowerCase();
+            const nazwa = String(nazwaCwiczenia || '').trim().toLowerCase();
+
+            const pullKeywords = [
+                'podciąganie', 'podciaganie', 'wiosłowanie', 'wioslowanie',
+                'ściąganie', 'sciaganie', 'martwy ciąg', 'martwy ciag',
+                'face pull', 'w opadzie', 'odwrotne', 'tył barku', 'tyl barku',
+                'uginanie', 'szrugsy'
+            ];
+            const pushKeywords = [
+                'wyciskanie', 'pompki', 'dipy', 'rozpiętki', 'rozpietki',
+                'prostowanie', 'wznosy bokiem', 'wznosy w przód', 'wznosy w przod'
+            ];
+
+            if (p === 'klatka' || p === 'barki') {
+                if (pullKeywords.some(k => nazwa.includes(k))) return 'Pull';
+                return 'Push';
+            }
+
+            if (p === 'plecy') {
+                if (pushKeywords.some(k => nazwa.includes(k)) && !nazwa.includes('w opadzie') && !nazwa.includes('tył') && !nazwa.includes('tyl')) {
+                    return 'Push';
+                }
+                return 'Pull';
+            }
+
+            if (pullKeywords.some(k => nazwa.includes(k))) return 'Pull';
+            if (pushKeywords.some(k => nazwa.includes(k))) return 'Push';
+            return null;
         }
 
         const domyslnaBazaCwiczen = {
@@ -523,7 +605,7 @@
             'Posladki': ['Hip Thrust ze sztangą', 'Rumuński martwy ciąg (RDL)', 'Wypychanie ciężaru wysokimi stopami na suwnicy', 'Wznosy bioder na maszynie / mostki biodrowe', 'Przysiady bułgarskie (wersja na pośladek)', 'Zakroki z hantlami / sztangą', 'Glute Bridge ze sztangą', 'Odwodzenie nóg na maszynie (Abductor)', 'Uginanie nóg na maszynie leżąc na brzuchu'],
             'Barki': ['Wyciskanie żołnierskie (Overhead Press)', 'Wyciskanie hantli nad głowę siedząc', 'Wyciskanie na maszynie (Shoulder Press)', 'Wznosy hantli bokiem (bok barku)', 'Wznosy hantli w opadzie tułowia (tył barku)', 'Odwodzenie ramion na maszynie (Reverse Pec Deck)', 'Face pull (wyciąg - tył barku)', 'Wznosy ramion ze sztangielkami w przód', 'Podciąganie sztangi wzdłuż tułowia'],
             'Ramiona': ['Uginanie przedramion ze sztangą (biceps)', 'Uginanie przedramion z hantlami z supinacją', 'Uginanie hantlami chwytem młotkowym', 'Uginanie na modlitewniku', 'Uginanie ramion z linką wyciągu dolnego', 'Wyciskanie francuskie ze sztangą łamaną leżąc (triceps)', 'Wyciskanie wąskim chwytem na ławce poziomej', 'Prostowanie ramion na wyciągu (ściąganie sznura)', 'Wyciskanie hantla oburącz zza głowy siedząc', 'Pompki w podporze tyłem na ławce'],
-            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych legs w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
+            'Brzuch': ['Allahy (brzuch na wyciągu klęcząc)', 'Wznosy kolan do klatki w zwisie na drążku', 'Wznosy prostych nóg w zwisie', 'Skrętne spięcia brzucha (allahy skośne)', 'Kółko (Ab Roller / Rollout)', 'Spięcia brzucha leżąc (Crunches)', 'Deska (Plank)', 'Allahy na maszynie'],
             'Cardio': ['Bieżnia / Bieganie', 'Rower stacjonarny', 'Orbitrek / Maszyna eliptyczna'],
             'Regeneracja': ['Odpoczynek całkowity', 'Lekkie cardio / spacer', 'Stretching', 'Rolowanie (foam roller)', 'Basen', 'Sauna', 'Joga regeneracyjna', 'Ćwiczenia mobilnościowe', 'Kąpiel solankowa']
         };
@@ -536,8 +618,14 @@
             let lokalneWlasne = bezpiecznyOdczytStorage('wlasne_cwiczenia_map', {});
             let lokalneUkryte = bezpiecznyOdczytStorage('ukryte_cwiczenia_map', []);
             let lokalneNadpisane = bezpiecznyOdczytStorage('nadpisane_cwiczenia_map', {});
+            let lokalneKategorie = bezpiecznyOdczytStorage('wlasne_kategorie_list', []);
 
-            // 1. Pobierz z Supabase
+            if (Array.isArray(lokalneKategorie)) {
+                lokalneKategorie.forEach(kat => {
+                    if (kat && !aktualnaBaza[kat]) aktualnaBaza[kat] = [];
+                });
+            }
+
             if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
                 try {
                     const { data: wlasneData, error } = await supabaseClient
@@ -547,8 +635,9 @@
 
                     if (!error && wlasneData) {
                         wlasneData.forEach(item => {
+                            if (!item || !item.kategoria) return;
                             if (!aktualnaBaza[item.kategoria]) aktualnaBaza[item.kategoria] = [];
-                            if (!aktualnaBaza[item.kategoria].includes(item.nazwa)) {
+                            if (item.nazwa && !aktualnaBaza[item.kategoria].includes(item.nazwa)) {
                                 aktualnaBaza[item.kategoria].push(item.nazwa);
                             }
                         });
@@ -587,12 +676,13 @@
                 } catch(e) {}
             }
 
-            // 2. Nałóż lokalne modyfikacje
             Object.keys(lokalneWlasne).forEach(kat => {
                 if (!aktualnaBaza[kat]) aktualnaBaza[kat] = [];
-                lokalneWlasne[kat].forEach(cw => {
-                    if (!aktualnaBaza[kat].includes(cw)) aktualnaBaza[kat].push(cw);
-                });
+                if (Array.isArray(lokalneWlasne[kat])) {
+                    lokalneWlasne[kat].forEach(cw => {
+                        if (!aktualnaBaza[kat].includes(cw)) aktualnaBaza[kat].push(cw);
+                    });
+                }
             });
 
             lokalneUkryte.forEach(u => {
@@ -622,7 +712,6 @@
             if (index > -1) tablica.splice(index, 1);
         }
 
-        // POBIERANIE CELÓW Z SUPABASE DO PAMIĘCI PODRĘCZNEJ I LOKALNEJ
         async function pobierzCeleZSupabase() {
             let celeZapisane = bezpiecznyOdczytStorage('cele', {});
             if (!celeZapisane || typeof celeZapisane !== 'object' || Array.isArray(celeZapisane)) {
@@ -680,6 +769,22 @@
             zaladujHistorieDnia();
         }
 
+        function escapeHtmlHistorii(tekst) {
+            return String(tekst || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function klasaOdznakiPartiiHistorii(partia) {
+            const p = String(partia || '').trim().toLowerCase();
+            if (p === 'cardio') return 'historia-partia-badge badge-cardio';
+            if (p === 'regeneracja') return 'historia-partia-badge badge-regen';
+            if (p === 'ramiona' || p === 'barki' || p === 'klatka') return 'historia-partia-badge badge-warm';
+            return 'historia-partia-badge';
+        }
+
         function zaladujHistorieDnia() {
             let inputDate = document.getElementById('historia-wybor-dnia');
             let kontener = document.getElementById('historia-wyniki-container');
@@ -704,79 +809,153 @@
             let wpisyCardio = wpisyDnia.filter(w => w.partia === 'Cardio');
             let wpisyRegeneracja = wpisyDnia.filter(w => w.partia === 'Regeneracja');
 
-            let html = '';
+            let lacznyTonaz = 0;
+            wpisySila.forEach(w => {
+                let c = parseFloat(w.ciezar) || 0;
+                let p = parseInt(w.powt, 10) || 0;
+                lacznyTonaz += c * p;
+            });
+            let tonazZaokraglony = Math.round(lacznyTonaz * 10) / 10;
 
-            if (wpisySila.length > 0) {
-                html += `
-                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 5px;">💪 Trening Siłowy</div>
-                    <div style="overflow-x: auto; margin-bottom: 15px;">
-                        <table>
-                            <tr>
-                                <th>Partia</th>
-                                <th>Ćwiczenie</th>
-                                <th>Seria</th>
-                                <th>Ciężar</th>
-                                <th>Powt.</th>
-                                <th>Zapas</th>
-                                <th>1RM</th>
-                            </tr>
-                `;
-                wpisySila.forEach(w => {
-                    html += `
-                        <tr>
-                            <td>${w.partia || '-'}</td>
-                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Trening'}</td>
-                            <td>${w.seria || 1}</td>
-                            <td>${w.ciezar || 0} kg</td>
-                            <td>${w.powt || 0}</td>
-                            <td>${w.rir !== undefined && w.rir !== null && w.rir !== "" ? `RIR ${w.rir}` : '-'}</td>
-                            <td><b>${w.onerm || 0} kg</b></td>
-                        </tr>
-                    `;
-                });
-                html += `</table></div>`;
-            }
+            let grupySila = new Map();
+            wpisySila.forEach(w => {
+                let nazwa = w.cwiczenie || 'Trening';
+                let partia = w.partia || '-';
+                let klucz = `${partia}::${nazwa}`;
+                if (!grupySila.has(klucz)) {
+                    grupySila.set(klucz, { nazwa, partia, serie: [] });
+                }
+                grupySila.get(klucz).serie.push(w);
+            });
 
+            let grupyCardio = new Map();
+            wpisyCardio.forEach(w => {
+                let nazwa = w.cwiczenie || 'Cardio';
+                let partia = w.partia || 'Cardio';
+                let klucz = `${partia}::${nazwa}`;
+                if (!grupyCardio.has(klucz)) {
+                    grupyCardio.set(klucz, { nazwa, partia, wpisy: [] });
+                }
+                grupyCardio.get(klucz).wpisy.push(w);
+            });
+
+            let liczbaCwiczen = grupySila.size + grupyCardio.size + wpisyRegeneracja.length;
+            let liczbaSeriiSila = wpisySila.length;
+            let etykietaCwiczen = liczbaCwiczen === 1 ? 'ćwiczenie' : (liczbaCwiczen >= 2 && liczbaCwiczen <= 4 ? 'ćwiczenia' : 'ćwiczeń');
+            let etykietaSerii = liczbaSeriiSila === 1 ? 'seria' : (liczbaSeriiSila >= 2 && liczbaSeriiSila <= 4 ? 'serie' : 'serii');
+
+            let czesciPodsumowania = [`${liczbaCwiczen} ${etykietaCwiczen}`];
+            if (liczbaSeriiSila > 0) czesciPodsumowania.push(`${liczbaSeriiSila} ${etykietaSerii}`);
+            if (tonazZaokraglony > 0) czesciPodsumowania.push(`Tonaż: ${tonazZaokraglony} kg`);
             if (wpisyCardio.length > 0) {
-                html += `
-                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 15px;">🏃 Cardio</div>
-                    <div style="overflow-x: auto; margin-bottom: 15px;">
-                        <table>
-                            <tr>
-                                <th>Aktywność</th>
-                                <th>Dystans</th>
-                                <th>Czas</th>
-                            </tr>
-                `;
-                wpisyCardio.forEach(w => {
-                    html += `
-                        <tr>
-                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Cardio'}</td>
-                            <td>${w.ciezar || 0} km</td>
-                            <td>${w.powt || 0} min</td>
-                        </tr>
-                    `;
-                });
-                html += `</table></div>`;
+                let sumaKm = wpisyCardio.reduce((acc, w) => acc + (parseFloat(w.ciezar) || 0), 0);
+                let sumaMin = wpisyCardio.reduce((acc, w) => acc + (parseInt(w.powt, 10) || 0), 0);
+                let kmZaokraglone = Math.round(sumaKm * 100) / 100;
+                czesciPodsumowania.push(`Cardio: ${kmZaokraglone} km / ${sumaMin} min`);
             }
+
+            let html = `<div class="historia-summary-pill">${escapeHtmlHistorii(czesciPodsumowania.join(' • '))}</div>`;
+
+            grupySila.forEach(grupa => {
+                let seriePosortowane = [...grupa.serie].sort((a, b) => (Number(a.seria) || 0) - (Number(b.seria) || 0));
+                let max1rm = 0;
+                seriePosortowane.forEach(s => {
+                    let c = parseFloat(s.ciezar) || 0;
+                    let p = parseInt(s.powt, 10) || 0;
+                    let wyliczone1rm = parseFloat(s.onerm);
+                    if (!wyliczone1rm && wyliczone1rm !== 0) {
+                        wyliczone1rm = p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0;
+                    }
+                    if (wyliczone1rm > max1rm) max1rm = wyliczone1rm;
+                });
+
+                let wierszeSeriiHtml = seriePosortowane.map((s, idx) => {
+                    let nrSerii = s.seria || (idx + 1);
+                    let ciezar = s.ciezar || 0;
+                    let powt = s.powt || 0;
+                    let rirText = (s.rir !== undefined && s.rir !== null && s.rir !== '') ? `RIR ${escapeHtmlHistorii(s.rir)}` : '';
+                    return `
+                        <div class="historia-set-row">
+                            <span class="historia-set-num">S${escapeHtmlHistorii(nrSerii)}</span>
+                            <span class="historia-set-main">${escapeHtmlHistorii(ciezar)} kg</span>
+                            <span class="historia-set-reps">x ${escapeHtmlHistorii(powt)}</span>
+                            <span class="historia-set-rir">${rirText}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                let odznakaMax1rm = max1rm > 0 ? `<span class="historia-best-badge">1RM: ~${Math.round(max1rm)}</span>` : '';
+
+                html += `
+                    <div class="historia-exercise-card">
+                        <div class="historia-exercise-header">
+                            <div class="historia-exercise-title-group">
+                                <span class="historia-exercise-title">${escapeHtmlHistorii(grupa.nazwa)}</span>
+                                <span class="${klasaOdznakiPartiiHistorii(grupa.partia)}">${escapeHtmlHistorii(grupa.partia)}</span>
+                            </div>
+                            ${odznakaMax1rm}
+                        </div>
+                        ${wierszeSeriiHtml}
+                    </div>
+                `;
+            });
+
+            grupyCardio.forEach(grupa => {
+                let sumaDystansu = grupa.wpisy.reduce((acc, w) => acc + (parseFloat(w.ciezar) || 0), 0);
+                let sumaCzasu = grupa.wpisy.reduce((acc, w) => acc + (parseInt(w.powt, 10) || 0), 0);
+                let dystansRazem = Math.round(sumaDystansu * 100) / 100;
+
+                let wierszeCardioHtml = grupa.wpisy.map((w, idx) => {
+                    let dystans = parseFloat(w.ciezar) || 0;
+                    let czas = parseInt(w.powt, 10) || 0;
+                    let tempoInfo = (dystans > 0 && czas > 0)
+                        ? `${Math.round((dystans / (czas / 60)) * 10) / 10} km/h`
+                        : '';
+                    let etykietaWpisu = grupa.wpisy.length > 1 ? `#${idx + 1}` : 'Sesja';
+                    return `
+                        <div class="historia-cardio-row">
+                            <span class="historia-set-num">${escapeHtmlHistorii(etykietaWpisu)}</span>
+                            <span class="historia-cardio-metrics">${escapeHtmlHistorii(dystans)} km • ${escapeHtmlHistorii(czas)} min</span>
+                            <span class="historia-cardio-pace">${escapeHtmlHistorii(tempoInfo)}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                let odznakaCardio = dystansRazem > 0 ? `<span class="historia-best-badge">${escapeHtmlHistorii(dystansRazem)} km</span>` : `<span class="historia-best-badge">${escapeHtmlHistorii(sumaCzasu)} min</span>`;
+
+                html += `
+                    <div class="historia-exercise-card">
+                        <div class="historia-exercise-header">
+                            <div class="historia-exercise-title-group">
+                                <span class="historia-exercise-title">${escapeHtmlHistorii(grupa.nazwa)}</span>
+                                <span class="${klasaOdznakiPartiiHistorii(grupa.partia)}">${escapeHtmlHistorii(grupa.partia)}</span>
+                            </div>
+                            ${odznakaCardio}
+                        </div>
+                        ${wierszeCardioHtml}
+                    </div>
+                `;
+            });
 
             if (wpisyRegeneracja.length > 0) {
+                let wierszeRegenHtml = wpisyRegeneracja.map(w => `
+                    <div class="historia-cardio-row">
+                        <span class="historia-cardio-metrics">${escapeHtmlHistorii(w.cwiczenie || 'Regeneracja')}</span>
+                        <span class="historia-cardio-pace">Regeneracja</span>
+                    </div>
+                `).join('');
+
                 html += `
-                    <div style="font-weight: bold; color: var(--primary); margin-bottom: 5px; margin-top: 15px;">🔋 Regeneracja</div>
-                    <div style="overflow-x: auto; margin-bottom: 15px;">
-                        <table>
-                            <tr>
-                                <th>Aktywność / Stan</th>
-                            </tr>
+                    <div class="historia-exercise-card">
+                        <div class="historia-exercise-header">
+                            <div class="historia-exercise-title-group">
+                                <span class="historia-exercise-title">Regeneracja</span>
+                                <span class="${klasaOdznakiPartiiHistorii('Regeneracja')}">Regeneracja</span>
+                            </div>
+                        </div>
+                        ${wierszeRegenHtml}
+                    </div>
                 `;
-                wpisyRegeneracja.forEach(w => {
-                    html += `
-                        <tr>
-                            <td style="text-align: left; font-weight: bold;">${w.cwiczenie || 'Regeneracja'}</td>
-                        </tr>
-                    `;
-                });
-                html += `</table></div>`;
             }
 
             kontener.innerHTML = html;
@@ -799,14 +978,20 @@
                         bezpiecznyZapisStorage('historia_treningow', serverTreningi);
                         inicjalizujSelectHistorii();
                         zaladujHistorieDnia();
+                        let savedCwiczenie = bezpiecznyOdczytStorage('ostatnie_cwiczenie', null);
+                        let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
+                        if (savedCwiczenie && cwiczenieEl && Array.from(cwiczenieEl.options).some(o => o.value === savedCwiczenie)) {
+                            cwiczenieEl.value = savedCwiczenie;
+                        }
                         zmienionoCwiczenieDziennika();
                     }
                 } catch(err) {}
             }
+            aktualizujWygladPrzyciskuBlokady();
             aktualizujCwiczenia('analiza');
         }
 
-        function inicjalizujKategorie() {
+        function inicjalizujKategorie(preferowanaPartia = null) {
             ['dziennik-partia', 'analiza-partia', 'cel-kategoria'].forEach(id => {
                 let el = document.getElementById(id);
                 if(el) {
@@ -814,7 +999,9 @@
                     el.innerHTML = '';
                     let hasAny = false;
                     Object.keys(bazyCwiczen).forEach(kat => {
-                        if ((id === 'dziennik-partia' || kat !== 'Regeneracja') && bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].length > 0) {
+                        let maCwiczenia = bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].length > 0;
+                        let wolnoDodac = (id === 'dziennik-partia') ? (maCwiczenia || kat === preferowanaPartia) : (kat !== 'Regeneracja' && maCwiczenia);
+                        if (wolnoDodac) {
                             hasAny = true;
                             let opt = document.createElement('option');
                             opt.value = kat; opt.textContent = kat;
@@ -831,17 +1018,18 @@
                 }
             });
 
-            let savedPartia = bezpiecznyOdczytStorage('ostatnia_partia', null);
+            let savedPartia = preferowanaPartia || bezpiecznyOdczytStorage('ostatnia_partia', null);
             let partiaEl = document.getElementById('dziennik-partia');
             if (savedPartia && partiaEl) {
                 let found = Array.from(partiaEl.options).some(o => o.value === savedPartia);
                 if (found) partiaEl.value = savedPartia;
             }
 
-            zmienKategorieDziennika();
-
             let savedCwiczenie = bezpiecznyOdczytStorage('ostatnie_cwiczenie', null);
             let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
+
+            zmienKategorieDziennika();
+
             if (savedCwiczenie && cwiczenieEl) {
                 let foundCw = Array.from(cwiczenieEl.options).some(o => o.value === savedCwiczenie);
                 if (foundCw) {
@@ -851,15 +1039,13 @@
             }
 
             let savedLock = bezpiecznyOdczytStorage('is_locked', false);
-            if (savedLock) {
-                isExerciseLocked = true;
-                if (partiaEl) partiaEl.disabled = true;
-                if (cwiczenieEl) cwiczenieEl.disabled = true;
-                let btn = document.getElementById('btn-lock-cwiczenie');
-                if (btn) btn.textContent = '🔒 Zablokowane';
-            }
+            isExerciseLocked = Boolean(savedLock);
+            if (partiaEl) partiaEl.disabled = isExerciseLocked;
+            if (cwiczenieEl) cwiczenieEl.disabled = isExerciseLocked;
+            aktualizujWygladPrzyciskuBlokady();
 
             zmienionoKategorieCelu();
+            aktualizujWygladPrzyciskuBlokady();
         }
 
         function zmienKategorieDziennika() {
@@ -891,7 +1077,7 @@
             let selectCwiczenie = document.getElementById(cwiczenieId);
             if(!partiaEl || !selectCwiczenie) return;
             
-            let wybranaStaraWartosc = selectCwiczenie.value;
+            let wybranaStaraWartosc = selectCwiczenie.value || (tryb === 'dziennik' ? bezpiecznyOdczytStorage('ostatnie_cwiczenie', null) : null);
             let partia = partiaEl.value;
             selectCwiczenie.innerHTML = '';
 
@@ -929,7 +1115,7 @@
             let cwiczenieEl = document.getElementById('dziennik-cwiczenie');
             let cwiczenie = cwiczenieEl ? cwiczenieEl.value : '';
             
-            if (cwiczenieEl) {
+            if (cwiczenieEl && cwiczenie && cwiczenie !== "Brak ćwiczeń") {
                 bezpiecznyZapisStorage('ostatnie_cwiczenie', cwiczenie);
             }
             
@@ -1103,7 +1289,7 @@
             let c = parseFloat(document.getElementById('dziennik-ciezar')?.value) || 0;
             let p = parseInt(document.getElementById('dziennik-powt')?.value) || 0;
             let lc = document.getElementById('live-calc');
-            if(lc) lc.innerHTML = `Tonaż: <b>${c*p} kg</b> | Szacowane 1RM: <b>${p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0} kg</b>`;
+            if(lc) lc.innerHTML = `Tonaż: <b>${c*p} kg</b> | Szacowane 1RM (Epley): <b>${p > 0 ? Math.round(c * (1 + p / 30) * 10) / 10 : 0} kg</b>`;
         }
 
         function zmienZakladke(nazwa, el) {
@@ -1168,12 +1354,12 @@
             if(kawaWrapper) kawaWrapper.style.display = 'none';
             zmienZakladke('dziennik', document.querySelectorAll('.nav-item')[0]);
             if (!czyOstatniCelCardio) {
-                otwórzPanelWyboruPrzerwy();
+                otworzPanelWyboruPrzerwy();
             }
             czyOstatniCelCardio = false;
         }
 
-        function otwórzPanelWyboruPrzerwy() {
+        function otworzPanelWyboruPrzerwy() {
             let wyborBox = document.getElementById('timer-wybor-box');
             let odliczBox = document.getElementById('timer-odliczanie-box');
             let timerTitle = document.getElementById('timer-title');
@@ -1189,20 +1375,20 @@
             document.getElementById('timer-wybor-box').style.display = 'none';
             document.getElementById('timer-odliczanie-box').style.display = 'flex';
             document.getElementById('timer-title').textContent = 'Przerwa między seriami';
-            aktualizujWyświetlaczTimera();
+            aktualizujWyswietlaczTimera();
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 pozostalyCzasSekundy--;
-                aktualizujWyświetlaczTimera();
+                aktualizujWyswietlaczTimera();
                 if (pozostalyCzasSekundy <= 0) {
                     clearInterval(timerInterval);
-                    uruchomSygnałKoniecPzerwy();
+                    uruchomSygnalKoniecPrzerwy();
                     document.getElementById('timer-overlay').style.display = 'none';
                 }
             }, 1000);
         }
 
-        function aktualizujWyświetlaczTimera() {
+        function aktualizujWyswietlaczTimera() {
             let min = Math.floor(pozostalyCzasSekundy / 60);
             let sek = pozostalyCzasSekundy % 60;
             let disp = document.getElementById('timer-display');
@@ -1215,7 +1401,7 @@
             if(overlay) overlay.style.display = 'none';
         }
 
-        function uruchomSygnałKoniecPzerwy() {
+        function uruchomSygnalKoniecPrzerwy() {
             if (navigator.vibrate) {
                 try {
                     navigator.vibrate([500, 200, 500, 200, 500]);
@@ -1258,13 +1444,29 @@
             bezpiecznyZapisStorage('cele', nowezele);
         }
 
+        function znajdzKategorieDlaCwiczenia(nazwaCwiczenia) {
+            if (!nazwaCwiczenia) return null;
+            for (let kat in bazyCwiczen) {
+                if (kat !== 'Regeneracja' && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].includes(nazwaCwiczenia)) {
+                    return kat;
+                }
+            }
+            return null;
+        }
+
         function inicjalizujListeCelow() {
             oczyscCeleISynchronizuj();
             
             let celKatEl = document.getElementById('cel-kategoria');
             if(!celKatEl) return;
-            
-            let wybranaStaraKat = celKatEl.value;
+
+            let doceloweCwiczenie = flagaPrzejsciaPoOsiagnieciuCelu && ostatnioPobityCel
+                ? ostatnioPobityCel
+                : (celKatEl.value ? null : ostatnioPobityCel);
+
+            let docelowaKat = doceloweCwiczenie ? znajdzKategorieDlaCwiczenia(doceloweCwiczenie) : null;
+            let wybranaStaraKat = docelowaKat || celKatEl.value;
+
             celKatEl.innerHTML = '';
             let hasAnyExercises = false;
 
@@ -1292,22 +1494,15 @@
 
             if (wybranaStaraKat && Array.from(celKatEl.options).some(o => o.value === wybranaStaraKat)) {
                 celKatEl.value = wybranaStaraKat;
-            } else if (ostatnioPobityCel) {
-                for (let kat in bazyCwiczen) {
-                    if (kat !== 'Regeneracja' && bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].includes(ostatnioPobityCel)) {
-                        celKatEl.value = kat;
-                        break;
-                    }
-                }
             }
 
             zmienionoKategorieCelu();
 
-            if (ostatnioPobityCel) {
-                let celCwiczenieEl = document.getElementById('cel-cwiczenie');
-                if (celCwiczenieEl) celCwiczenieEl.value = ostatnioPobityCel;
+            let celCwiczenieEl = document.getElementById('cel-cwiczenie');
+            if (doceloweCwiczenie && celCwiczenieEl && Array.from(celCwiczenieEl.options).some(o => o.value === doceloweCwiczenie)) {
+                celCwiczenieEl.value = doceloweCwiczenie;
+                zmienionoKategorieCeluWartosc();
             }
-            zmienionoKategorieCeluWartosc();
         }
 
         function sprawdzOsiagniecieCelu(cwiczenie, nowyWynik, isCardio = false) {
@@ -1344,31 +1539,42 @@
         }
 
         function zaladujAnalize() {
+            let wybranaPartia = document.getElementById('analiza-partia')?.value;
             let wybraneCwiczenie = document.getElementById('analiza-cwiczenie')?.value;
             let podsumowanieEl = document.getElementById('analiza-podsumowanie');
             let tabelaEl = document.getElementById('tabela-historii');
             if(!wybraneCwiczenie || !tabelaEl) return;
-            
+
+            let czyCardio = wybranaPartia === 'Cardio';
             let historia = bezpiecznyOdczytStorage('historia_treningow', []);
             if (!Array.isArray(historia)) historia = [];
             let wpisyCwiczenia = historia.filter(w => w && w.cwiczenie === wybraneCwiczenie);
-            tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM</th></tr>`;
-            
+
+            if (czyCardio) {
+                tabelaEl.innerHTML = `<tr><th>Data</th><th>km</th><th>Czas</th></tr>`;
+            } else {
+                tabelaEl.innerHTML = `<tr><th>Data</th><th>Seria</th><th>Ciężar</th><th>Powt.</th><th>1RM (Epley)</th></tr>`;
+            }
+
             if(wpisyCwiczenia.length === 0) {
                 if(podsumowanieEl) podsumowanieEl.innerHTML = 'Brak zarejestrowanych wpisów dla tego ćwiczenia.';
                 return;
             }
             if(podsumowanieEl) podsumowanieEl.innerHTML = `Liczba wpisów: <b>${wpisyCwiczenia.length}</b>`;
             wpisyCwiczenia.forEach(w => {
-                tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+                if (czyCardio) {
+                    tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.ciezar || 0} km</td><td>${w.powt || 0} min</td></tr>`;
+                } else {
+                    tabelaEl.innerHTML += `<tr><td>${w.data ? w.data.substring(0, 10) : ''}</td><td>${w.seria || 1}</td><td>${w.ciezar} kg</td><td>${w.powt}</td><td><b>${w.onerm || 0} kg</b></td></tr>`;
+                }
             });
         }
 
-        async function odswiezPanelBazy() {
+        async function odswiezPanelBazy(preferowanaKat = null) {
             bazyCwiczen = await pobierzBazeCwiczenZChmury();
             let select = document.getElementById('menedzer-kategoria');
             if(!select) return;
-            let wybranaKat = select.value;
+            let wybranaKat = preferowanaKat || select.value;
             select.innerHTML = '';
             Object.keys(bazyCwiczen).forEach(kat => {
                 let opt = document.createElement('option'); opt.value = kat; opt.textContent = kat;
@@ -1385,30 +1591,89 @@
             let container = document.getElementById('lista-cwiczen-menedzer');
             if(!kat || !container) return;
             container.innerHTML = '';
-            if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat])) {
+            if (bazyCwiczen[kat] && Array.isArray(bazyCwiczen[kat]) && bazyCwiczen[kat].length > 0) {
                 bazyCwiczen[kat].forEach((cwiczenie) => {
-                    container.innerHTML += `
-                        <div class="list-item-cwiczenie">
-                            <span style="word-break: break-all; flex: 1;">${cwiczenie}</span>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
-                                <button class="btn-small" style="background:#2b6cb0;" onclick="edytujCwiczenie('${kat}', '${cwiczenie}')">✏️</button>
-                                <button class="btn-small" style="background:#8B0000;" onclick="usunCwiczenie('${kat}', '${cwiczenie}')">❌</button>
-                            </div>
-                        </div>`;
+                    const item = document.createElement('div');
+                    item.className = 'list-item-cwiczenie';
+
+                    const nazwaSpan = document.createElement('span');
+                    nazwaSpan.style.wordBreak = 'break-all';
+                    nazwaSpan.style.flex = '1';
+                    nazwaSpan.textContent = cwiczenie;
+
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.style.display = 'flex';
+                    actionsDiv.style.gap = '5px';
+                    actionsDiv.style.flexShrink = '0';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn-small';
+                    editBtn.style.background = '#2b6cb0';
+                    editBtn.textContent = '✏️';
+                    editBtn.addEventListener('click', () => edytujCwiczenie(kat, cwiczenie));
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-small';
+                    deleteBtn.style.background = '#8B0000';
+                    deleteBtn.textContent = '❌';
+                    deleteBtn.addEventListener('click', () => usunCwiczenie(kat, cwiczenie));
+
+                    actionsDiv.appendChild(editBtn);
+                    actionsDiv.appendChild(deleteBtn);
+                    item.appendChild(nazwaSpan);
+                    item.appendChild(actionsDiv);
+                    container.appendChild(item);
                 });
+            } else {
+                const emptyBox = document.createElement('div');
+                emptyBox.className = 'result-box';
+                emptyBox.style.textAlign = 'center';
+                emptyBox.style.color = 'var(--text-muted)';
+                emptyBox.textContent = `Brak ćwiczeń w kategorii "${kat}". Dodaj pierwsze ćwiczenie powyżej.`;
+                container.appendChild(emptyBox);
             }
         }
 
         function dodajKategorie() {
-            showPromptModal("Podaj nazwę nowej kategorii:", "", (nowa) => {
+            showPromptModal("Podaj nazwę nowej kategorii:", "", async (nowa) => {
                 if (nowa && nowa.trim() !== "") {
                     let nazwaKat = nowa.trim();
                     if (!bazyCwiczen[nazwaKat]) {
                         bazyCwiczen[nazwaKat] = [];
-                        odswiezPanelBazy();
-                        inicjalizujKategorie();
+                    }
+
+                    let lokalneKategorie = bezpiecznyOdczytStorage('wlasne_kategorie_list', []);
+                    if (!lokalneKategorie.includes(nazwaKat)) {
+                        lokalneKategorie.push(nazwaKat);
+                        bezpiecznyZapisStorage('wlasne_kategorie_list', lokalneKategorie);
+                    }
+
+                    if (zalogowanyUzytkownik && zalogowanyUzytkownik.id) {
+                        try {
+                            const { error } = await supabaseClient
+                                .from('baza_cwiczen')
+                                .insert([{
+                                    user_id: String(zalogowanyUzytkownik.id),
+                                    kategoria: nazwaKat,
+                                    nazwa: null
+                                }]);
+
+                            if (error) {
+                                console.error("Supabase category insert error:", error);
+                                showNotification("⚠️ Kategoria dodana lokalnie (sprawdź kolumny tabeli baza_cwiczen w Supabase)");
+                            } else {
+                                showNotification("✅ Kategoria dodana do bazy i widoczna na liście!");
+                            }
+                        } catch (e) {
+                            console.error("Supabase category exception:", e);
+                            showNotification("⚠️ Kategoria dodana lokalnie");
+                        }
+                    } else {
                         showNotification("✅ Kategoria dodana lokalnie!");
                     }
+
+                    await odswiezPanelBazy(nazwaKat);
+                    inicjalizujKategorie(nazwaKat);
                 }
             });
         }
@@ -1646,13 +1911,19 @@
 
             if (istniejacyWpis) {
                 showConfirmModal(`Ta seria (${seriaWpisu}) dla ćwiczenia "${cwiczenie}" w tym dniu już istnieje. Czy chcesz ją nadpisać (poprawić)?`, async (potwierdzono) => {
-                    if (potwierdzono) {
-                        await wykonajZapisWpisu(wpis, celOsiagniety, true);
+                    if (!potwierdzono) {
+                        let alertEl = document.getElementById('alert-cel-osiagniety');
+                        if (alertEl) alertEl.style.display = 'none';
+                        flagaPrzejsciaPoOsiagnieciuCelu = false;
+                        showNotification('↩️ Anulowano — popraw wpis w dzienniku.');
+                        return;
                     }
+                    await wykonajZapisWpisu(wpis, celOsiagniety, true);
                 });
-            } else {
-                await wykonajZapisWpisu(wpis, celOsiagniety, false);
+                return;
             }
+
+            await wykonajZapisWpisu(wpis, celOsiagniety, false);
         }
 
         async function wykonajZapisWpisu(wpis, celOsiagniety, czyNadpisanie) {
@@ -1683,7 +1954,7 @@
             zaladujHistorieDnia();
 
             if (!celOsiagniety && wpis.partia !== 'Regeneracja' && wpis.partia !== 'Cardio') {
-                otwórzPanelWyboruPrzerwy();
+                otworzPanelWyboruPrzerwy();
             }
         }
 
