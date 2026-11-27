@@ -2076,13 +2076,13 @@
 
         function eksportujRaportCSV() {
             let historia = pobierzHistorieAktywna();
-            let csv = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Ciezar,Powtorzenia,1RM
-";
-            historia.forEach(w => { csv += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.ciezar},${w.powt},${w.onerm}
-`; });
+            let csv = "data:text/csv;charset=utf-8,Data,Partia,Cwiczenie,Ciezar,Powtorzenia,1RM\n";
+            historia.forEach(w => {
+                csv += `"${w.data}","${w.partia}","${w.cwiczenie}",${w.ciezar},${w.powt},${w.onerm}\n`;
+            });
             let link = document.createElement("a");
             link.setAttribute("href", encodeURI(csv));
-            link.setAttribute("download", `raport.csv`);
+            link.setAttribute("download", "raport.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
